@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -80 1500 1450" font-family="monospace" font-size="20">
+  <!--
+    Dimensioned overlay, session 2026-08-07. Traced from public/references/measured-plan.jpeg.
+    Units: centimetres, 1 svg unit = 1 cm. Origin matches data/house.ts footprint (x east, y south).
+    Colors follow data/house.ts GeometryStatus: measured=#2f9e44, traced=#e8990c, needs-confirmation=#e03131.
+    This overlay only draws elements whose dimension chains cross-check (see docs/GEOMETRY_AUDIT.md).
+    It does not promote data/house.ts to approved.
+  -->
+  <rect x="-140" y="-80" width="1500" height="1450" fill="#fffaf0"/>
+
+  <!-- outer envelope, per data/house.ts (jog currently at y=820, disputed — see red flag) -->
+  <polygon points="340,0 760,0 760,500 1140,500 1140,1210 0,1210 0,820 340,820"
+    fill="none" stroke="#e8990c" stroke-width="6"/>
+
+  <!-- disputed segment: plan reads 830, house.ts currently uses 820 -->
+  <line x1="0" y1="820" x2="340" y2="820" stroke="#e03131" stroke-width="8" stroke-dasharray="4 6"/>
+  <text x="10" y="805" fill="#e03131">jog at z=820 (house.ts) vs 830 (plan) — confirm</text>
+
+  <!-- confirmed north-extension bay interior opening: 20 + 380 + 20 = 420 -->
+  <line x1="360" y1="0" x2="360" y2="30" stroke="#2f9e44" stroke-width="6"/>
+  <line x1="740" y1="0" x2="740" y2="30" stroke="#2f9e44" stroke-width="6"/>
+  <text x="470" y="55" fill="#2f9e44" text-anchor="middle">380 (clear) + 2×20 jamb = 420 ✓</text>
+
+  <!-- top dimension chain: 340 | 420 | 380 = 1140 -->
+  <g stroke="#333" stroke-width="2">
+    <line x1="0" y1="-40" x2="340" y2="-40"/>
+    <line x1="340" y1="-40" x2="760" y2="-40"/>
+    <line x1="760" y1="-40" x2="1140" y2="-40"/>
+    <line x1="0" y1="-60" x2="0" y2="-20"/>
+    <line x1="340" y1="-60" x2="340" y2="-20"/>
+    <line x1="760" y1="-60" x2="760" y2="-20"/>
+    <line x1="1140" y1="-60" x2="1140" y2="-20"/>
+  </g>
+  <text x="170" y="-45" text-anchor="middle">340</text>
+  <text x="550" y="-45" text-anchor="middle">420</text>
+  <text x="950" y="-45" text-anchor="middle">380</text>
+  <text x="1160" y="-40" fill="#2f9e44">= 1140 ✓ maximumWidth</text>
+
+  <!-- right dimension chain: 500 | 710 = 1210 -->
+  <g stroke="#333" stroke-width="2">
+    <line x1="1180" y1="0" x2="1180" y2="500"/>
+    <line x1="1180" y1="500" x2="1180" y2="1210"/>
+    <line x1="1160" y1="0" x2="1200" y2="0"/>
+    <line x1="1160" y1="500" x2="1200" y2="500"/>
+    <line x1="1160" y1="1210" x2="1200" y2="1210"/>
+  </g>
+  <text x="1230" y="260" text-anchor="middle" transform="rotate(90 1230 260)">500</text>
+  <text x="1230" y="870" text-anchor="middle" transform="rotate(90 1230 870)">710</text>
+  <text x="1250" y="1240" fill="#2f9e44">= 1210 ✓ maximumDepth</text>
+
+  <!-- left dimension chain: 830 (plan) | 380 = 1210 -->
+  <g stroke="#333" stroke-width="2">
+    <line x1="-40" y1="0" x2="-40" y2="830"/>
+    <line x1="-40" y1="830" x2="-40" y2="1210"/>
+    <line x1="-60" y1="0" x2="-20" y2="0"/>
+    <line x1="-60" y1="830" x2="-20" y2="830"/>
+    <line x1="-60" y1="1210" x2="-20" y2="1210"/>
+  </g>
+  <text x="-90" y="430" text-anchor="middle" transform="rotate(-90 -90 430)">830</text>
+  <text x="-90" y="1030" text-anchor="middle" transform="rotate(-90 -90 1030)">380</text>
+  <text x="-130" y="1240" fill="#2f9e44">= 1210 ✓, but 830≠820 vs east side</text>
+
+  <!-- legend -->
+  <g font-size="18">
+    <rect x="0" y="1290" width="24" height="24" fill="#2f9e44"/>
+    <text x="32" y="1308">measured — independent chains agree</text>
+    <rect x="0" y="1320" width="24" height="24" fill="#e8990c"/>
+    <text x="32" y="1338">traced — single reading, not cross-checked</text>
+    <rect x="0" y="1350" width="24" height="24" fill="#e03131"/>
+    <text x="32" y="1368">needs-confirmation — conflict or illegible source</text>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.next/
+.vercel/
+.wrangler/
+.env
+.env.*
+!.env.example
+.DS_Store
+approvals.jsonl
+.codebase-memory/

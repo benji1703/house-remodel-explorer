@@ -160,6 +160,59 @@ button { color: inherit; }
 .plan-scale { position: absolute; right: 22px; bottom: 18px; color: #777b72; font-size: 9px; }
 .plan-scale span { width: 30px; height: 1px; display: inline-block; vertical-align: middle; margin-right: 5px; background: #555a51; }
 
+.dimensioned-overlay-container { display: grid; grid-template-columns: 1fr 280px; gap: 16px; padding: 16px 20px 20px; min-height: 610px; }
+.overlay-comparison { display: flex; flex-direction: column; gap: 10px; }
+.comparison-controls { display: flex; align-items: center; gap: 14px; padding: 10px; background: rgba(250,249,245,.6); border-radius: 4px; }
+.mode-selector { display: flex; gap: 4px; }
+.mode-selector button { border: 1px solid var(--line); background: transparent; padding: 6px 10px; border-radius: 3px; color: #666b62; font-size: 10px; cursor: pointer; transition: .15s; }
+.mode-selector button.is-active { background: #2f342c; color: white; border-color: #2f342c; }
+.mode-selector button:hover { background: rgba(43,48,40,.06); }
+.opacity-control { display: flex; align-items: center; gap: 8px; margin-left: auto; font-size: 9px; color: #6d7168; }
+.opacity-control input[type="range"] { width: 70px; height: 4px; }
+.opacity-control span { min-width: 28px; text-align: right; }
+
+.comparison-stage { position: relative; height: 430px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; background: #ebe8df; }
+.measured-view { position: absolute; inset: 0; }
+.measured-view img { object-fit: contain; }
+.overlay-image { position: absolute; inset: 0; background: transparent; }
+.overlay-image img { object-fit: contain; }
+.vector-plan { width: 100%; height: 100%; }
+
+.approval-checklist { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 3px; max-height: 610px; overflow-y: auto; }
+.checklist-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.checklist-header h3 { margin: 0; font: 500 12px Georgia, serif; }
+.unresolved-count { background: #f3e2d6; color: #9a572f; padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; }
+
+.checklist-categories { display: flex; flex-direction: column; gap: 6px; }
+.category-group { border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
+.category-header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: #f9f8f5; padding: 10px; border: none; cursor: pointer; transition: .15s; text-align: left; font-size: 10px; font-weight: 600; }
+.category-header:hover { background: #f3f1ec; }
+.category-header.is-expanded { background: #ede9dd; }
+.category-name { flex: 1; }
+.unresolved-badge { background: #f3e2d6; color: #9a572f; padding: 2px 5px; border-radius: 2px; font-size: 8px; font-weight: 700; }
+
+.category-items { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--line); background: #fbfaf7; }
+.approval-item { padding: 10px; border-bottom: 1px solid var(--line); }
+.approval-item:last-child { border-bottom: none; }
+.approval-item label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.approval-item input[type="checkbox"] { width: 16px; height: 16px; margin-top: 2px; cursor: pointer; accent-color: var(--accent); }
+.approval-item.is-approved input[type="checkbox"] { accent-color: #6c936a; }
+.item-text { flex: 1; }
+.item-text strong { display: block; font-size: 10px; line-height: 1.4; color: var(--ink); }
+.item-text em { font-style: normal; color: var(--muted); font-size: 9px; }
+.item-notes { margin: 5px 0 0; font-size: 8px; color: #999c94; line-height: 1.3; }
+
+@media (max-width: 1060px) {
+  .dimensioned-overlay-container { grid-template-columns: 1fr 220px; gap: 12px; }
+  .approval-checklist { max-height: 500px; font-size: 9px; }
+}
+
+@media (max-width: 800px) {
+  .dimensioned-overlay-container { grid-template-columns: 1fr; gap: 12px; padding: 12px 16px 16px; }
+  .comparison-stage { height: 350px; }
+  .approval-checklist { max-height: 300px; }
+}
+
 .reference-copy { position: relative; top: 0; left: 0; padding: 27px 29px 20px; }
 .reference-grid { height: 500px; display: grid; grid-template-columns: 1.35fr .65fr; gap: 10px; padding: 0 18px 18px; }
 .reference-grid figure { position: relative; margin: 0; min-height: 0; overflow: hidden; background: #d9d3c8; }

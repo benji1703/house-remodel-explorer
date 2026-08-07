@@ -21,6 +21,15 @@ export type HouseZone = {
   level: number;
 };
 
+export type ApprovalItem = {
+  id: string;
+  category: "dimension" | "opening" | "thickness" | "ceiling-height" | "floor-level" | "orientation";
+  description: string;
+  zone?: ZoneId;
+  approved: boolean;
+  notes?: string;
+};
+
 export const house = {
   title: "House Remodel",
   revision: "Geometry audit 01",
@@ -125,3 +134,100 @@ export const statusCopy: Record<GeometryStatus, string> = {
   traced: "Visible in source",
   "needs-confirmation": "Confirm",
 };
+
+export const geometryApprovalItems: ApprovalItem[] = [
+  {
+    id: "north-orientation",
+    category: "orientation",
+    description: "Confirm north arrow orientation shown on measured plan",
+    approved: false,
+    notes: "Visual north indicator present; needs confirmation of true north",
+  },
+  {
+    id: "ext-outer-walls-thickness",
+    category: "thickness",
+    description: "Exterior wall thickness (all perimeter)",
+    zone: "north-extension",
+    approved: false,
+    notes: "Provisionally traced from plan; verify actual construction thickness",
+  },
+  {
+    id: "ext-ceiling-height",
+    category: "ceiling-height",
+    description: "North extension ceiling height",
+    zone: "north-extension",
+    approved: false,
+    notes: "Not dimensioned; requires field measurement",
+  },
+  {
+    id: "central-wall-thickness",
+    category: "thickness",
+    description: "Internal partition walls (central core)",
+    zone: "central-core",
+    approved: false,
+    notes: "Visible in plan; exact thickness unconfirmed",
+  },
+  {
+    id: "central-ceiling-height",
+    category: "ceiling-height",
+    description: "Central core ceiling height",
+    zone: "central-core",
+    approved: false,
+    notes: "Not dimensioned; requires field measurement",
+  },
+  {
+    id: "sw-floor-level",
+    category: "floor-level",
+    description: "Southwest room floor level relative to main level",
+    zone: "southwest-room",
+    approved: false,
+    notes: "Step visible in plan; height difference unconfirmed",
+  },
+  {
+    id: "e1-opening-dims",
+    category: "opening",
+    description: "East upper room door/window dimensions and positions",
+    zone: "east-upper-room",
+    approved: false,
+    notes: "Symbols visible; exact opening sizes unclear",
+  },
+  {
+    id: "e1-internal-dims",
+    category: "dimension",
+    description: "East upper room internal clear dimensions",
+    zone: "east-upper-room",
+    approved: false,
+    notes: "Plan boundary traced; verify against wall thickness",
+  },
+  {
+    id: "e2-door-position",
+    category: "opening",
+    description: "East lower room door opening position and size",
+    zone: "east-lower-room",
+    approved: false,
+    notes: "Symbol visible; requires clarification",
+  },
+  {
+    id: "e2-internal-dims",
+    category: "dimension",
+    description: "East lower room internal clear dimensions",
+    zone: "east-lower-room",
+    approved: false,
+    notes: "Plan boundary traced; verify dimensions",
+  },
+  {
+    id: "svc-fixtures-scope",
+    category: "opening",
+    description: "Service core fixture positions (toilet, vanity, tub layout)",
+    zone: "service-core",
+    approved: false,
+    notes: "Simplified outline only; detailed fixture coords pending",
+  },
+  {
+    id: "floor-level-changes",
+    category: "floor-level",
+    description: "All floor level transitions across zones",
+    approved: false,
+    notes: "Provisional step locations identified; heights need confirmation",
+  },
+];

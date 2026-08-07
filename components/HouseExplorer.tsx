@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
+import { DimensionedOverlay } from "./DimensionedOverlay";
 
 const MeasuredHouseScene = lazy(() =>
   import("./MeasuredHouseScene").then((module) => ({
@@ -174,11 +175,11 @@ export function HouseExplorer() {
             {view === "plan" && (
               <div className="plan-view">
                 <div className="stage-copy plan-copy">
-                  <span className="overline">Vector reconstruction</span>
+                  <span className="overline">Measured vs. vector trace</span>
                   <h2>Dimension audit</h2>
-                  <p>Click a zone to inspect its source status.</p>
+                  <p>Compare authoritative photograph with vector reconstruction and approve unresolved geometry.</p>
                 </div>
-                <VectorPlan selected={selectedZone} onSelect={setSelectedZone} />
+                <DimensionedOverlay />
               </div>
             )}
 

@@ -31,6 +31,47 @@ export type ApprovalItem = {
   notes?: string;
 };
 
+/**
+ * First-pass design assumptions adopted 2026-08-07 to unblock a detailed 3D
+ * rendering while the geometry audit is still open (owner: "ignore the
+ * missing part"). These are NOT measurements from the photographed plan and
+ * are not owner-confirmed dimensions — see geometryApprovalItems for what is
+ * actually approved vs. still outstanding. Must be checked against an
+ * elevation or on-site survey before construction documentation.
+ */
+export const designAssumptions = {
+  // 20cm exterior (hollow block + plaster) and 10cm interior partition are
+  // typical for this style of single-storey Israeli residential build.
+  exteriorWallThicknessCm: 20,
+  interiorWallThicknessCm: 10,
+  // Israeli building code (תקנות התכנון והבנייה) sets 250cm as the minimum
+  // finished ceiling height for habitable rooms; used here as the default
+  // for a modest single-storey plan rather than an arbitrary 300cm.
+  finishedCeilingHeightCm: 250,
+  livingWestOpening: {
+    widthCm: 360,
+    headHeightCm: 240,
+    sillHeightCm: 0,
+  },
+  ensuiteBedroomDoor: {
+    widthCm: 80,
+    headHeightCm: 210,
+    sillHeightCm: 0,
+  },
+  bedroomWindow: {
+    eastWidthCm: 140,
+    northWidthCm: 140,
+    southWidthCm: 140,
+    sillHeightCm: 95,
+    headHeightCm: 220,
+  },
+  pergola: {
+    widthCm: 320,
+    depthCm: 500,
+    heightCm: 276,
+  },
+} as const;
+
 export const house = {
   title: "House Remodel",
   revision: "Geometry audit 01",
@@ -65,7 +106,7 @@ export const house = {
       z: 0,
       width: 4.2,
       depth: 3.8,
-      level: 0.12,
+      level: 0.1,
     },
     {
       id: "central-core",
@@ -89,55 +130,55 @@ export const house = {
       z: 8.2,
       width: 3.4,
       depth: 3.9,
-      level: 0.14,
+      level: 0.1,
     },
     {
       id: "east-upper-room",
       shortLabel: "E1",
       label: "East upper room",
-      description: "Room boundary is visible in the scan; exact clear internal dimensions still need confirmation.",
+      description: "Bedroom program. Retain plan openings and add architect-proposed east and north windows; exact construction details remain provisional.",
       status: "needs-confirmation",
       x: 7.6,
       z: 5.0,
       width: 3.8,
       depth: 3.55,
-      level: 0.16,
+      level: 0.1,
     },
     {
       id: "east-lower-room",
       shortLabel: "E2",
       label: "East lower room",
-      description: "Room boundary is visible in the scan; door, wall thickness and clear dimensions remain provisional.",
+      description: "Bedroom program. Retain plan openings and add architect-proposed east and south windows; exact construction details remain provisional.",
       status: "needs-confirmation",
       x: 7.6,
       z: 8.55,
       width: 3.8,
       depth: 3.55,
-      level: 0.16,
+      level: 0.1,
     },
     {
       id: "service-core",
       shortLabel: "B",
       label: "Main bathroom",
-      description: "Proposed main bathroom (owner program, 2026-08-07), traced from the plan. Fixture geometry is intentionally excluded until audited.",
+      description: "Proposed main bathroom (owner program, 2026-08-07), with a provisional vanity, toilet, and shower arrangement for the first 3D pass.",
       status: "needs-confirmation",
       x: 4.9,
       z: 10.2,
       width: 2.7,
       depth: 1.9,
-      level: 0.2,
+      level: 0.1,
     },
     {
       id: "ensuite",
       shortLabel: "EN",
       label: "Ensuite bathroom",
-      description: "Proposed ensuite (owner program, 2026-08-07) carved from the central-core volume between the master bedroom and the main bathroom. Not a separate room on the measured plan — this is a new internal partition proposal, not yet dimensioned or confirmed.",
+      description: "Proposed ensuite (owner program, 2026-08-07) carved from the central-core volume between the master bedroom and the main bathroom. The new 80 cm bedroom-connected door and partition are approved design assumptions for the first 3D pass.",
       status: "needs-confirmation",
       x: 3.4,
       z: 10.2,
       width: 1.5,
       depth: 1.9,
-      level: 0.2,
+      level: 0.1,
     },
   ] satisfies HouseZone[],
 };
@@ -162,7 +203,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Exterior wall thickness (all perimeter)",
     zone: "north-extension",
     approved: false,
-    notes: "Provisionally traced from plan; verify actual construction thickness",
+    notes: "Not measured. 20 cm used in the 3D render as a design assumption (see designAssumptions) so the first rendering pass has something to build against; still needs on-site verification.",
   },
   {
     id: "ext-ceiling-height",
@@ -170,7 +211,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "North extension ceiling height",
     zone: "north-extension",
     approved: false,
-    notes: "Not dimensioned; requires field measurement",
+    notes: "Not measured. 2.5 m used in the 3D render (Israeli building-code minimum habitable-room height, typical for this style of build); requires field measurement.",
   },
   {
     id: "central-wall-thickness",
@@ -178,7 +219,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Internal partition walls (central core)",
     zone: "central-core",
     approved: false,
-    notes: "Visible in plan; exact thickness unconfirmed",
+    notes: "Not measured. 10 cm used in the 3D render as a design assumption; exact thickness unconfirmed.",
   },
   {
     id: "central-ceiling-height",
@@ -186,7 +227,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Central core ceiling height",
     zone: "central-core",
     approved: false,
-    notes: "Not dimensioned; requires field measurement",
+    notes: "Not measured. 2.5 m used in the 3D render (Israeli building-code minimum habitable-room height, typical for this style of build); requires field measurement.",
   },
   {
     id: "sw-floor-level",
@@ -194,7 +235,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Southwest room floor level relative to main level",
     zone: "southwest-room",
     approved: false,
-    notes: "Step visible in plan; height difference unconfirmed",
+    notes: "Step visible in plan; height difference unconfirmed. Rendered with no level change as a design assumption.",
   },
   {
     id: "e1-opening-dims",
@@ -202,7 +243,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "East upper room door/window dimensions and positions",
     zone: "east-upper-room",
     approved: false,
-    notes: "Symbols visible; exact opening sizes unclear",
+    notes: "Symbols visible; exact opening sizes unclear. Render adds one provisional east and one north window as a design proposal, not a measurement.",
   },
   {
     id: "e1-internal-dims",
@@ -218,7 +259,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "East lower room door opening position and size",
     zone: "east-lower-room",
     approved: false,
-    notes: "Symbol visible; requires clarification",
+    notes: "Symbol visible; requires clarification. Render adds one provisional east and one south window as a design proposal, not a measurement.",
   },
   {
     id: "e2-internal-dims",
@@ -234,7 +275,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Service core fixture positions (toilet, vanity, tub layout)",
     zone: "service-core",
     approved: false,
-    notes: "Simplified outline only; detailed fixture coords pending",
+    notes: "Simplified outline only. Render places a first-pass vanity/toilet/shower layout for visualization; detailed fixture coords pending.",
   },
   {
     id: "living-west-opening",
@@ -242,7 +283,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "Large west-facing opening (wide sliding doors) in the living room's exterior wall",
     zone: "central-core",
     approved: true,
-    notes: "New remodel decision (2026-08-07, owner-approved), not present on the original measured plan. Placement follows the outdoor moodboard's indoor/outdoor sliding-door pattern. Exact width, head height, and structural lintel sizing still need an elevation drawing before construction.",
+    notes: "New remodel decision (2026-08-07, owner-approved), not present on the original measured plan. Rendered at 360 cm wide, 240 cm head height, zero sill. Exact width, head height, and structural lintel sizing still need an elevation drawing before construction.",
   },
   {
     id: "ensuite-partition",
@@ -250,13 +291,13 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "New internal partition carving the ensuite out of the central-core volume",
     zone: "ensuite",
     approved: true,
-    notes: "New remodel decision (2026-08-07, owner-approved): ensuite sits between the master bedroom and main bathroom. Partition position is a first pass, not yet dimensioned against the approved master overlay.",
+    notes: "New remodel decision (2026-08-07, owner-approved): ensuite sits between the master bedroom and main bathroom, with an 80 cm bedroom-connected door. Partition position is a first pass, not yet dimensioned against the approved master overlay.",
   },
   {
     id: "floor-level-changes",
     category: "floor-level",
     description: "All floor level transitions across zones",
     approved: false,
-    notes: "Provisional step locations identified; heights need confirmation",
+    notes: "Provisional step locations identified; heights need confirmation. Rendered with no level change as a design assumption.",
   },
 ];

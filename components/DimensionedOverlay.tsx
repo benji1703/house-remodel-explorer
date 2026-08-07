@@ -9,6 +9,8 @@ type OverlayMode = "measured" | "vector" | "compare";
 export function DimensionedOverlay() {
   const [mode, setMode] = useState<OverlayMode>("compare");
   const [opacity, setOpacity] = useState(50);
+  const [rotation, setRotation] = useState(0);
+  const [zoom, setZoom] = useState(1);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const approvalByCategory = geometryApprovalItems.reduce(
@@ -61,6 +63,42 @@ export function DimensionedOverlay() {
                 aria-label="Adjust overlay transparency"
               />
               <span>{opacity}%</span>
+              <label htmlFor="overlay-rotation">Rotate:</label>
+              <input
+                id="overlay-rotation"
+                type="range"
+                min="-3"
+                max="3"
+                step="0.1"
+                value={rotation}
+                onChange={(e) => setRotation(Number(e.target.value))}
+                aria-label="Rotate the photo to check alignment against the vector trace"
+              />
+              <span>{rotation.toFixed(1)}°</span>
+              <label htmlFor="overlay-zoom">Zoom:</label>
+              <input
+                id="overlay-zoom"
+                type="range"
+                min="0.85"
+                max="1.3"
+                step="0.01"
+                value={zoom}
+                onChange={(e) => setZoom(Number(e.target.value))}
+                aria-label="Zoom the photo to check alignment against the vector trace"
+              />
+              <span>{Math.round(zoom * 100)}%</span>
+              {(rotation !== 0 || zoom !== 1) && (
+                <button
+                  type="button"
+                  className="overlay-reset"
+                  onClick={() => {
+                    setRotation(0);
+                    setZoom(1);
+                  }}
+                >
+                  Reset
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -104,7 +142,10 @@ export function DimensionedOverlay() {
           )}
 
           {mode === "compare" && (
-            <div className="overlay-image" style={{ opacity: opacity / 100 }}>
+            <div
+              className="overlay-image"
+              style={{ opacity: opacity / 100, transform: `rotate(${rotation}deg) scale(${zoom})` }}
+            >
               <Image
                 src="/references/measured-plan.jpeg"
                 alt="Measured plan overlay"

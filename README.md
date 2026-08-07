@@ -13,7 +13,7 @@ The other two boards are inspiration only:
 - `public/references/outdoor-moodboard.png` — materials and atmosphere;
 - `public/references/design-reference.png` — general design language only; its plan and proportions are explicitly rejected.
 
-The geometry in `data/house.ts` is provisional until a dimensioned overlay is reviewed and approved.
+The outer footprint in `data/house.ts` is cross-checked against two independent dimension chains on the measured plan (see `docs/GEOMETRY_AUDIT.md`), but wall thickness, most openings, ceiling heights, and one footprint jog are still unconfirmed. A first-pass detailed 3D rendering now exists on top of that provisional shell, using explicit `designAssumptions` (wall thickness, ceiling height, opening sizes) that are design proposals, not measurements — see `docs/GEOMETRY_AUDIT.md` for exactly what is and isn't approved.
 
 ## Open this as a Codex project
 
@@ -53,7 +53,7 @@ npm run build:local
 ```text
 app/                         Routes, metadata, and global styles
 components/                  2D/3D explorer components
-data/house.ts                Typed provisional geometry ledger
+data/house.ts                Typed geometry ledger and design assumptions
 docs/                        Handoff and geometry-audit documentation
 public/references/           Architectural source and visual references
 AGENTS.md                    Durable Codex project instructions
@@ -66,7 +66,7 @@ AGENTS.md                    Durable Codex project instructions
 - Interactive 3D shell and plan audit implemented.
 - Desktop/mobile quality selection implemented.
 - WebGL fallback implemented.
-- Exact architectural geometry is **not yet approved**.
+- Exact architectural geometry is **not yet fully approved** (see `docs/GEOMETRY_AUDIT.md`); a first-pass 3D rendering exists on provisional design assumptions.
 - Detailed rooms, GLB assets, PBR materials, product hotspots, and before/after models remain future milestones.
 
 See `docs/PROJECT_HANDOFF.md` for the continuation sequence and `docs/GEOMETRY_AUDIT.md` for approval rules.

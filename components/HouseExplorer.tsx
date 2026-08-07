@@ -168,7 +168,7 @@ export function HouseExplorer() {
                   {webglSupport === null && <div className="model-loading">Preparing measured shell…</div>}
                 </div>
                 <div className="orientation"><b>N</b><span /></div>
-                <div className="stage-note">Outer shell: dimensioned source · Internal blocks: audit overlay</div>
+                <div className="stage-note">Outer shell: dimensioned source · Walls sectioned at 1.5 m · Partitions, openings and furniture: first-pass design proposal</div>
               </>
             )}
 
@@ -177,7 +177,7 @@ export function HouseExplorer() {
                 <div className="stage-copy plan-copy">
                   <span className="overline">Measured vs. vector trace</span>
                   <h2>Dimension audit</h2>
-                  <p>Compare authoritative photograph with vector reconstruction and approve unresolved geometry.</p>
+                  <p>Compare the authoritative photograph with the vector trace and the provisional 3D-render design assumptions.</p>
                 </div>
                 <DimensionedOverlay />
               </div>
@@ -236,7 +236,7 @@ export function HouseExplorer() {
         <section className="zone-strip" aria-label="House zones">
           <div className="strip-heading">
             <div><p className="eyebrow">Geometry ledger</p><h2>Seven audited zones</h2></div>
-            <p>Room names below are the owner&apos;s proposed program. Wall positions, openings, and thicknesses stay provisional until the geometry audit is approved.</p>
+            <p>Room names below follow the owner&apos;s program. Wall thickness, most openings, and ceiling heights remain unconfirmed design assumptions for this first 3D pass.</p>
           </div>
           <div className="zone-cards">
             {house.zones.map((zone, index) => (

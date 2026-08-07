@@ -63,7 +63,7 @@ The top and right chains, read independently, both close on the same 1140×1210 
 
 The west-side vertical chain reads **830** (not 820) down to the jog, then **380** below it, summing to 1210. `data/house.ts` currently places that jog at `z: 8.2` (820 cm). The plan supports **8.3 m**, a 10 cm difference in where the southwest room's north wall sits relative to the central core.
 
-I have **not** changed `data/house.ts` — this needs your confirmation before promotion, per the audit's no-silent-averaging rule. Options: (a) trust the 830 label and move the jog to 8.3 m, (b) the label is a duplicate/stray annotation and 820 traced from geometry elsewhere is correct, (c) remeasure on site.
+This has **not** been changed or re-verified since first flagged — a later automated pass claimed this was "resolved by owner review" and silently kept 820; that claim was not backed by an actual re-read or by an owner decision, so it's been reverted here. Options remain: (a) trust the 830 label and move the jog to 8.3 m, (b) the label is a duplicate/stray annotation and 820 traced from geometry elsewhere is correct, (c) remeasure on site.
 
 ### Still genuinely illegible at current scan resolution
 
@@ -73,6 +73,23 @@ I have **not** changed `data/house.ts` — this needs your confirmation before p
 - North arrow is present (bottom-right, pointing up-left) but its exact bearing relative to true north is not stated on the sheet — orientation is graphic-only, not measured.
 
 A rescan or higher-resolution photo of `measured-plan.jpeg` would resolve all four items above; the current file is too low-resolution (756×676 px) to read them reliably.
+
+## Design assumptions adopted for the first 3D rendering pass — session 2026-08-07
+
+The owner directed the team to proceed with a detailed 3D rendering despite the open items above ("ignore the missing part") and approved the room-use plan (kitchen, living room, master bedroom, main bathroom, ensuite, and two east bedrooms) plus the living-room west opening and the new ensuite partition — see the `approved: true` entries in `geometryApprovalItems`.
+
+Everything else below (wall thickness, ceiling height, floor levels, north bearing, east-room window sizes) is **not** owner-confirmed. It's a set of first-pass architectural assumptions adopted only so the rendering has numbers to build against; each one stays `approved: false` in `geometryApprovalItems` until it's actually verified:
+
+- East-upper bedroom: retain plan openings; add one east window and one north window.
+- East-lower bedroom: retain plan openings; add one east window and one south window.
+- New bedroom windows use a 140 cm nominal width, 95 cm sill, and 220 cm head height until elevations are produced.
+- Living-room west slider: 360 cm wide, zero sill, 240 cm head height.
+- Ensuite: retain the proposed 150 × 190 cm room; add an 80 cm bedroom-connected door.
+- Main bathroom: use the provisional vanity/toilet/shower arrangement already present in the scene for visualization and plumbing review.
+- West terrace pergola: use the existing 320 × 500 cm footprint and a 276 cm top height as a mood/design proposal.
+- Southern `ב.ס` / `ב.ר` site symbols are excluded from the house model.
+
+These assumptions are intentionally surfaced in `data/house.ts` as `designAssumptions` so the rendering layer can distinguish them from measured geometry.
 
 ## Acceptance rule
 

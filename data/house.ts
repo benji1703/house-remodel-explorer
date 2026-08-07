@@ -4,7 +4,8 @@ export type ZoneId =
   | "southwest-room"
   | "east-upper-room"
   | "east-lower-room"
-  | "service-core";
+  | "service-core"
+  | "ensuite";
 
 export type GeometryStatus = "measured" | "traced" | "needs-confirmation";
 
@@ -56,9 +57,9 @@ export const house = {
   zones: [
     {
       id: "north-extension",
-      shortLabel: "N",
-      label: "North extension",
-      description: "Clearly dimensioned 420 × 380 cm volume at the top of the measured plan.",
+      shortLabel: "K",
+      label: "Kitchen",
+      description: "Proposed kitchen (owner program, 2026-08-07) in the dimensioned 420 × 380 cm north volume. Shell is measured; cabinetry/appliance layout is not designed yet — see the outdoor moodboard for the intended oak-and-warm-neutral material direction.",
       status: "measured",
       x: 3.4,
       z: 0,
@@ -68,21 +69,21 @@ export const house = {
     },
     {
       id: "central-core",
-      shortLabel: "C",
-      label: "Central core",
-      description: "Main connecting space traced from the photographed plan. Internal use is not yet assigned here.",
+      shortLabel: "LR",
+      label: "Living room",
+      description: "Proposed living room (owner program, 2026-08-07). Owner has requested a large west-facing opening in this room's exterior wall (x=3.4 m) — a new remodel decision, not in the original measured plan; see geometryApprovalItems 'living-west-opening'. Shell south end overlaps the service-core/ensuite footprint below; depth trimmed to reduce that overlap.",
       status: "traced",
       x: 3.4,
       z: 3.8,
       width: 4.2,
-      depth: 8.3,
+      depth: 6.4,
       level: 0.1,
     },
     {
       id: "southwest-room",
-      shortLabel: "SW",
-      label: "South-west room",
-      description: "Dimensioned lower-left volume, approximately 340 × 390 cm at the exterior shell.",
+      shortLabel: "BR",
+      label: "Master bedroom",
+      description: "Proposed master bedroom (owner program, 2026-08-07) in the dimensioned lower-left volume, approximately 340 × 390 cm at the exterior shell.",
       status: "measured",
       x: 0,
       z: 8.2,
@@ -116,13 +117,25 @@ export const house = {
     },
     {
       id: "service-core",
-      shortLabel: "S",
-      label: "Service core",
-      description: "Bathroom/service area traced from the plan. Fixture geometry is intentionally excluded until audited.",
+      shortLabel: "B",
+      label: "Main bathroom",
+      description: "Proposed main bathroom (owner program, 2026-08-07), traced from the plan. Fixture geometry is intentionally excluded until audited.",
       status: "needs-confirmation",
       x: 4.9,
       z: 10.2,
       width: 2.7,
+      depth: 1.9,
+      level: 0.2,
+    },
+    {
+      id: "ensuite",
+      shortLabel: "EN",
+      label: "Ensuite bathroom",
+      description: "Proposed ensuite (owner program, 2026-08-07) carved from the central-core volume between the master bedroom and the main bathroom. Not a separate room on the measured plan — this is a new internal partition proposal, not yet dimensioned or confirmed.",
+      status: "needs-confirmation",
+      x: 3.4,
+      z: 10.2,
+      width: 1.5,
       depth: 1.9,
       level: 0.2,
     },
@@ -222,6 +235,22 @@ export const geometryApprovalItems: ApprovalItem[] = [
     zone: "service-core",
     approved: false,
     notes: "Simplified outline only; detailed fixture coords pending",
+  },
+  {
+    id: "living-west-opening",
+    category: "opening",
+    description: "Large west-facing opening (wide sliding doors) in the living room's exterior wall",
+    zone: "central-core",
+    approved: true,
+    notes: "New remodel decision (2026-08-07, owner-approved), not present on the original measured plan. Placement follows the outdoor moodboard's indoor/outdoor sliding-door pattern. Exact width, head height, and structural lintel sizing still need an elevation drawing before construction.",
+  },
+  {
+    id: "ensuite-partition",
+    category: "opening",
+    description: "New internal partition carving the ensuite out of the central-core volume",
+    zone: "ensuite",
+    approved: true,
+    notes: "New remodel decision (2026-08-07, owner-approved): ensuite sits between the master bedroom and main bathroom. Partition position is a first pass, not yet dimensioned against the approved master overlay.",
   },
   {
     id: "floor-level-changes",

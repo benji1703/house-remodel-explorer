@@ -235,8 +235,8 @@ export function HouseExplorer() {
 
         <section className="zone-strip" aria-label="House zones">
           <div className="strip-heading">
-            <div><p className="eyebrow">Geometry ledger</p><h2>Six audited zones</h2></div>
-            <p>Room names and uses stay neutral until the remodeled plan is dimension-approved.</p>
+            <div><p className="eyebrow">Geometry ledger</p><h2>Seven audited zones</h2></div>
+            <p>Room names below are the owner&apos;s proposed program. Wall positions, openings, and thicknesses stay provisional until the geometry audit is approved.</p>
           </div>
           <div className="zone-cards">
             {house.zones.map((zone, index) => (

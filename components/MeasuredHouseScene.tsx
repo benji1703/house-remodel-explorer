@@ -71,9 +71,11 @@ function Zone({
   onSelect: () => void;
   designMode: boolean;
 }) {
+  // Design-mode palette follows the outdoor moodboard: lime wash, natural
+  // oak, light travertine, warm beige/taupe.
   const colors = designMode
-    ? ["#c7a36d", "#a9b29a", "#d7b98c", "#b99e7b", "#b8a187", "#9d8976"]
-    : ["#9d9e9a", "#a8aaa5", "#989b97", "#b0b0aa", "#a3a49f", "#8c8e8a"];
+    ? ["#c7a36d", "#a9b29a", "#d7b98c", "#b99e7b", "#b8a187", "#9d8976", "#cbb9a0"]
+    : ["#9d9e9a", "#a8aaa5", "#989b97", "#b0b0aa", "#a3a49f", "#8c8e8a", "#94958f"];
   const index = house.zones.findIndex((item) => item.id === zone.id);
 
   return (

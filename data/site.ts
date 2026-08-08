@@ -5,17 +5,18 @@
 export const site = {
   name: "Villa Nehama",
   shortName: "Villa Nehama",
-  wordmark: { primary: "Villa Nehama", secondary: "" },
-  tagline: "Measured single-storey remodel",
+  wordmark: { primary: "Villa Nehama", secondary: "11.4 × 12.1 m · Israel" },
+  tagline: "North light in the kitchen, west terrace at dusk",
   description:
-    "Plan, model, and room finishes for Villa Nehama — lime-wash, oak, microcement, Belgian sage frames.",
+    "Villa Nehama — single-storey remodel in Israel. Measured plan, model, and finishes: lime-wash, oak, microcement, Belgian sage frames.",
   /** ~150 chars — WhatsApp / iMessage preview. */
   shareDescription:
-    "Villa Nehama remodel in Israel. Measured plan, 3D model, finishes — lime-wash, oak, sage Belgian frames.",
+    "Villa Nehama, Israel. Measured plan and 3D model — lime-wash, oak, sage Belgian frames, west terrace.",
   ogAlt:
     "Living opening to a timber terrace at dusk — lime-wash plaster, microcement, sage frames.",
   locale: "en_IL",
   keywords: [
+    "Villa Nehama",
     "house remodel",
     "Belgian frames",
     "lime-wash",

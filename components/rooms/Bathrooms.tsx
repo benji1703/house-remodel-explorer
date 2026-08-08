@@ -7,7 +7,7 @@ import type { Palette } from "./shared";
  * these envelopes cleanly. Procedural fixtures, architect clearances.
  *
  * Main bath door (north partition): ~x 5.4–6.2 at z=10.2.
- * Ensuite door (west partition): ~z 10.9–11.7 at x=3.4.
+ * Ensuite door (west partition): ~z 10.9–11.7 at x=3.4 — sliding.
  */
 
 type Wall = "n" | "s" | "e" | "w";

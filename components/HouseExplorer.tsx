@@ -18,12 +18,8 @@ const MeasuredHouseScene = lazy(() =>
 
 type View = "model" | "plan" | "references";
 
-/** Plan-derived glyphs — not generic dashboard icons. */
-const Icon = ({ name }: { name: "cube" | "layers" | "grid" | "close" | "chevron" }) => {
+const Icon = ({ name }: { name: "close" | "chevron" }) => {
   const paths = {
-    cube: "M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z M4 8.5l8 4.5 8-4.5 M12 13v7",
-    layers: "M3 11.5 12 7l9 4.5-9 4.5-9-4.5Z M5 14.2l7 3.5 7-3.5 M5 17l7 3.5 7-3.5",
-    grid: "M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z",
     close: "M6 6l12 12M18 6 6 18",
     chevron: "m6 9 6 6 6-6",
   };
@@ -34,13 +30,20 @@ const Icon = ({ name }: { name: "cube" | "layers" | "grid" | "close" | "chevron"
   );
 };
 
+/** Measured footprint mark — same silhouette as favicon. */
+const FootprintMark = () => (
+  <svg className="logo-mark-svg" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M8 3h8v9h7v9H1v-7h7V3Z" fill="currentColor" className="logo-foot-sage" />
+  </svg>
+);
+
 function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: ZoneId) => void }) {
   return (
     <div className="vector-plan-wrap">
       <svg className="vector-plan" viewBox="-90 -100 1320 1410" role="img" aria-label="Measured floor plan">
         <defs>
           <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(29,29,31,.07)" strokeWidth="2" />
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(42,50,44,.08)" strokeWidth="2" />
           </pattern>
         </defs>
         <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
@@ -86,10 +89,10 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
   );
 }
 
-const VIEWS: { id: View; label: string; icon: "cube" | "grid" | "layers" }[] = [
-  { id: "model", label: "House", icon: "cube" },
-  { id: "plan", label: "Plan", icon: "grid" },
-  { id: "references", label: "Mood", icon: "layers" },
+const VIEWS: { id: View; label: string }[] = [
+  { id: "model", label: "House" },
+  { id: "plan", label: "Plan" },
+  { id: "references", label: "Mood" },
 ];
 
 const isView = (value: string | null): value is View =>
@@ -223,7 +226,8 @@ export function HouseExplorer() {
     const nav = tab?.closest(".mood-index-nav");
     if (!tab || !nav) return;
     const left = tab.offsetLeft - (nav.clientWidth - tab.clientWidth) / 2;
-    nav.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nav.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
   }, [view, selectedMood]);
 
   useEffect(() => {
@@ -232,7 +236,8 @@ export function HouseExplorer() {
     const gallery = thumb?.closest(".mood-gallery");
     if (!thumb || !gallery) return;
     const left = thumb.offsetLeft - (gallery.clientWidth - thumb.clientWidth) / 2;
-    gallery.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gallery.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
   }, [view, selectedMood, moodImageIndex]);
 
   const moodTouch = useRef<{ x: number; y: number } | null>(null);
@@ -262,20 +267,6 @@ export function HouseExplorer() {
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
     stepMoodImage(dx < 0 ? 1 : -1);
   };
-
-  useGSAP(
-    () => {
-      const media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        const tl = gsap.timeline({ defaults: { ease: motionEase } });
-        tl.from(".app-bar", { y: -12, opacity: 0, duration: 0.55, clearProps: "all" })
-          .from(".stage", { opacity: 0, y: 16, duration: 0.65, clearProps: "all" }, "-=0.35")
-          .from(".detail", { opacity: 0, x: 16, duration: 0.5, clearProps: "opacity,x" }, "-=0.4");
-      });
-      media.add("(prefers-reduced-motion: reduce)", () => {});
-    },
-    { scope: shellRef },
-  );
 
   useGSAP(
     () => {
@@ -359,7 +350,7 @@ export function HouseExplorer() {
 
   const detailPanel = view === "references" ? (
     <>
-      <p className="detail-kicker">Board</p>
+      <p className="detail-kicker">{activeMood.finishes[0] ?? "Finishes"}</p>
       <h2>{activeMood.label}</h2>
       <p className="detail-copy">{activeMood.atmosphere}</p>
       <ul className="detail-list" aria-label="Finishes">
@@ -367,7 +358,7 @@ export function HouseExplorer() {
           <li key={finish}>{finish}</li>
         ))}
       </ul>
-      <p className="detail-note">Atmosphere only — walls stay on the measured plan.</p>
+      <p className="detail-note">Atmosphere — walls stay on the measured drawing.</p>
       <button
         type="button"
         className="detail-cta"
@@ -381,8 +372,8 @@ export function HouseExplorer() {
           <Image src={heroMoodImage.src} alt="" fill sizes="64px" unoptimized />
         </span>
         <span>
-          <small>Model</small>
-          Open {activeMood.label}
+          <small>House</small>
+          Walk {activeMood.label}
         </span>
       </button>
     </>
@@ -407,7 +398,7 @@ export function HouseExplorer() {
           <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
         </div>
       </dl>
-      <p className="detail-note">Dimensions from the survey drawing.</p>
+      <p className="detail-note">Taken from the survey drawing.</p>
       <button
         type="button"
         className="detail-cta"
@@ -430,8 +421,8 @@ export function HouseExplorer() {
           />
         </span>
         <span>
-          <small>Mood</small>
-          {active.label} references
+          <small>Materials</small>
+          {active.label} palette
         </span>
       </button>
     </>
@@ -441,7 +432,11 @@ export function HouseExplorer() {
     <main ref={shellRef} className={sheetOpen ? "shell is-sheet-open has-motion" : "shell has-motion"}>
       <header className="app-bar">
         <a className="logo" href="#top" aria-label={`${site.name} home`}>
-          <span className="logo-mark">{site.wordmark.primary}</span>
+          <FootprintMark />
+          <span className="logo-text">
+            <span className="logo-mark">{site.wordmark.primary}</span>
+            <span className="logo-meta">{site.wordmark.secondary}</span>
+          </span>
         </a>
 
         <nav className="view-switch desktop-only" aria-label="Views">
@@ -453,8 +448,7 @@ export function HouseExplorer() {
               className={view === entry.id ? "view-tab is-active" : "view-tab"}
               onClick={() => goToView(entry.id)}
             >
-              <Icon name={entry.icon} />
-              <span>{entry.label}</span>
+              {entry.label}
             </button>
           ))}
         </nav>
@@ -464,9 +458,10 @@ export function HouseExplorer() {
             <button
               type="button"
               className="ghost-button"
+              aria-pressed={quality === "light"}
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Full detail" : "Faster load"}
+              {quality === "high" ? "Use faster load" : "Use full detail"}
             </button>
           )}
         </div>
@@ -482,7 +477,7 @@ export function HouseExplorer() {
             <>
               <div className="three-stage">
                 {webglSupport === true && (
-                  <Suspense fallback={<div className="model-loading">Loading…</div>}>
+                  <Suspense fallback={<div className="model-loading">Settling the house…</div>}>
                     <MeasuredHouseScene
                       selectedZone={selectedZone}
                       onSelectZone={(id) => navigate({ zone: id }, "replace")}
@@ -496,10 +491,10 @@ export function HouseExplorer() {
                 {webglSupport === false && (
                   <div className="webgl-fallback">
                     <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
-                    <p>Plan only</p>
+                    <p>Plan only — WebGL unavailable</p>
                   </div>
                 )}
-                {webglSupport === null && <div className="model-loading">Preparing…</div>}
+                {webglSupport === null && <div className="model-loading">Settling the house…</div>}
               </div>
 
               <div className="stage-toolbar" role="group" aria-label="Model controls">
@@ -510,7 +505,7 @@ export function HouseExplorer() {
                     aria-pressed={!designMode}
                     onClick={() => setDesignMode(false)}
                   >
-                    As built
+                    Survey shell
                   </button>
                   <button
                     type="button"
@@ -518,7 +513,7 @@ export function HouseExplorer() {
                     aria-pressed={designMode}
                     onClick={() => setDesignMode(true)}
                   >
-                    Finished
+                    With finishes
                   </button>
                 </div>
                 {webglSupport === true && (
@@ -545,7 +540,7 @@ export function HouseExplorer() {
                     <div className="hud-card-text">
                       <p className="hud-kicker">{active.shortLabel}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag · pinch · open details</p>
+                      <p className="hud-hint">Orbit · pinch · open room note</p>
                     </div>
                     <span className="hud-open" aria-hidden="true">
                       <Icon name="chevron" />
@@ -556,7 +551,7 @@ export function HouseExplorer() {
                     <div className="hud-card-text">
                       <p className="hud-kicker">{active.shortLabel}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag · scroll · north on the right</p>
+                      <p className="hud-hint">Orbit · scroll · north on the right</p>
                     </div>
                   </div>
                 )}
@@ -576,9 +571,9 @@ export function HouseExplorer() {
           {view === "plan" && (
             <div className="plan-view">
               <header className="view-intro">
-                <p className="view-kicker">Survey</p>
-                <h2>Measured plan</h2>
-                <p>Photo under the vector outline — check wall runs before trusting the model.</p>
+                <p className="view-kicker">Measured drawing</p>
+                <h2>Plan under the photo</h2>
+                <p>Check wall runs against the survey before trusting the model.</p>
               </header>
               <DimensionedOverlay />
             </div>
@@ -588,7 +583,7 @@ export function HouseExplorer() {
             <div className={refsPending ? "references-view is-pending" : "references-view"}>
               <header className="mood-masthead">
                 <div className="mood-masthead-row">
-                  <p className="mood-masthead-kicker">Mood</p>
+                  <p className="mood-masthead-kicker">{site.tagline}</p>
                   <p className="mood-index" aria-live="polite">
                     {moodIndexLabel}
                   </p>
@@ -635,7 +630,7 @@ export function HouseExplorer() {
                   />
                   <figcaption>
                     <span>{heroMoodImage.caption}</span>
-                    <small className="desktop-only">← →</small>
+                    <small className="desktop-only">Arrow keys step photos</small>
                   </figcaption>
                 </figure>
                 <div className="mood-side">
@@ -680,7 +675,7 @@ export function HouseExplorer() {
                     className="mobile-inline-cta mobile-only"
                     onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
                   >
-                    Open house model
+                    Open the house
                   </button>
                 </div>
               </div>
@@ -755,7 +750,6 @@ export function HouseExplorer() {
             aria-current={view === entry.id ? "page" : undefined}
             onClick={() => goToView(entry.id)}
           >
-            <Icon name={entry.icon} />
             <span>{entry.label}</span>
           </button>
         ))}

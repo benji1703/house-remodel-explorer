@@ -216,9 +216,9 @@ export const house = {
 };
 
 export const statusCopy: Record<GeometryStatus, string> = {
-  measured: "Survey",
-  traced: "From plan",
-  "needs-confirmation": "Open",
+  measured: "On the drawing",
+  traced: "Read from plan",
+  "needs-confirmation": "Still open",
 };
 
 /**
@@ -344,7 +344,7 @@ export const geometryApprovalItems: ApprovalItem[] = [
     description: "New internal partition carving the ensuite out of the central-core volume",
     zone: "ensuite",
     approved: true,
-    notes: "Owner remodel decision 2026-08-07: 150 × 190 cm ensuite, 80 cm bedroom door between master and main bath.",
+    notes: "Owner remodel decision 2026-08-07: 150 × 190 cm ensuite; 80 cm sliding door on master↔ensuite partition (2026-08-08).",
   },
   {
     id: "floor-level-changes",

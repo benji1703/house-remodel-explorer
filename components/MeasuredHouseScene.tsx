@@ -67,9 +67,21 @@ const MASTER_EXIT_HEAD = designAssumptions.masterWestExit.headHeightCm / 100;
 const KITCHEN_ENTRY_WIDTH = designAssumptions.kitchenMainEntry.widthCm / 100;
 const KITCHEN_ENTRY_HEAD = designAssumptions.kitchenMainEntry.headHeightCm / 100;
 
-type Opening = { at: number; width: number; sill: number; head: number };
+type Opening = {
+  at: number;
+  width: number;
+  sill: number;
+  head: number;
+  style?: "hinged" | "sliding";
+};
 
-const door = (at: number, width = 0.9): Opening => ({ at, width, sill: 0, head: DOOR_HEAD });
+const door = (at: number, width = 0.9, style: "hinged" | "sliding" = "hinged"): Opening => ({
+  at,
+  width,
+  sill: 0,
+  head: DOOR_HEAD,
+  style,
+});
 const window_ = (at: number, width = 1.4): Opening => ({
   at,
   width,
@@ -108,7 +120,8 @@ function openingKind(opening: Opening): "window" | "door" | "terrace" {
 const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Opening[] }> = [
   { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8), door(4.3)] },
   { a: [7.6, 8.55], b: [11.4, 8.55], openings: [] },
-  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0), door(3.0, 0.8)] },
+  // Master↔bath wall: hinged into bath at z≈9.3; ensuite sliding at z≈11.3.
+  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0), door(3.0, 0.8, "sliding")] },
   { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8)] },
   { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
 ];

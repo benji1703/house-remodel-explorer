@@ -5,6 +5,13 @@ import { ContactShadows, Environment, Html, Lightformer, OrbitControls } from "@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
+import { Blk, CX, CZ, type Palette } from "./rooms/shared";
+import { Kitchen } from "./rooms/Kitchen";
+import { Living } from "./rooms/Living";
+import { MasterBedroom } from "./rooms/MasterBedroom";
+import { EastUpperRoom, EastLowerRoom } from "./rooms/EastRooms";
+import { MainBathroom, EnsuiteBathroom } from "./rooms/Bathrooms";
+import { Terrace } from "./rooms/Terrace";
 
 type Props = {
   selectedZone: ZoneId;
@@ -38,10 +45,6 @@ function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians:
   });
   return null;
 }
-
-// Scene centring, so the measured footprint orbits around the origin.
-const CX = 5.7;
-const CZ = 6.05;
 
 // First-pass design proposals, not measured values. The model is drawn as a
 // horizontal section so interiors stay visible; walls are cut at SECTION.
@@ -92,8 +95,6 @@ const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Op
   { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8)] },
   { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
 ];
-
-type Palette = ReturnType<typeof buildPalette>;
 
 function standard(color: string, roughness: number, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness });
@@ -181,55 +182,6 @@ function getPalette(designMode: boolean) {
   return built;
 }
 
-/** Axis-aligned box placed by plan coordinates (metres, un-centred). */
-function Blk({
-  x,
-  z,
-  y,
-  w,
-  d,
-  h,
-  material,
-}: {
-  x: number;
-  z: number;
-  y: number;
-  w: number;
-  d: number;
-  h: number;
-  material: THREE.Material;
-}) {
-  return (
-    <mesh position={[x - CX, y + h / 2, z - CZ]} material={material} castShadow receiveShadow>
-      <boxGeometry args={[w, h, d]} />
-    </mesh>
-  );
-}
-
-function Cyl({
-  x,
-  z,
-  y,
-  r,
-  h,
-  material,
-  segments = 20,
-}: {
-  x: number;
-  z: number;
-  y: number;
-  r: number;
-  h: number;
-  material: THREE.Material;
-  segments?: number;
-}) {
-  return (
-    <mesh position={[x - CX, y + h / 2, z - CZ]} material={material} castShadow receiveShadow>
-      <cylinderGeometry args={[r, r, h, segments]} />
-    </mesh>
-  );
-}
-
 /**
  * A straight wall run with door/window openings punched out. Solid spans are
  * emitted as separate boxes instead of using CSG, which keeps the mesh count
@@ -307,144 +259,7 @@ function WestGlazing({ palette }: { palette: Palette }) {
   );
 }
 
-function Kitchen({ base, palette }: { base: number; palette: Palette }) {
-  return (
-    <group>
-      <Blk x={5.7} z={0.55} y={base} w={3.8} d={0.65} h={0.9} material={palette.oak} />
-      <Blk x={7.25} z={2.2} y={base} w={0.6} d={2.6} h={0.9} material={palette.oak} />
-      <Blk x={5.7} z={0.55} y={base + 0.9} w={3.8} d={0.66} h={0.04} material={palette.stone} />
-      <Blk x={5.4} z={2.5} y={base} w={2.2} d={0.95} h={0.92} material={palette.oak} />
-      <Blk x={5.4} z={2.5} y={base + 0.92} w={2.3} d={1.05} h={0.05} material={palette.stone} />
-      <Blk x={4.0} z={0.6} y={base} w={0.78} d={0.72} h={1.9} material={palette.charcoal} />
-    </group>
-  );
-}
-
-function Living({ base, palette }: { base: number; palette: Palette }) {
-  return (
-    <group>
-      <Blk x={5.6} z={6.1} y={base + 0.005} w={3.4} d={3.8} h={0.02} material={palette.stone} />
-      {/* Low sofa facing the west opening. Sized down and pulled north
-          (2026-08-07) to clear the bedroom-door swing zone at the south end
-          of this wall (x=3.4, z≈8.75-9.65) with margin. */}
-      <Blk x={6.7} z={5.7} y={base} w={0.95} d={2.0} h={0.4} material={palette.upholstery} />
-      <Blk x={7.1} z={5.7} y={base + 0.4} w={0.16} d={2.0} h={0.4} material={palette.upholstery} />
-      <Blk x={6.7} z={4.75} y={base + 0.4} w={0.95} d={0.2} h={0.2} material={palette.upholstery} />
-      <Blk x={6.7} z={6.65} y={base + 0.4} w={0.95} d={0.2} h={0.2} material={palette.upholstery} />
-      <Cyl x={5.4} z={5.7} y={base + 0.3} r={0.5} h={0.1} material={palette.oak} />
-      <Cyl x={5.4} z={5.7} y={base} r={0.2} h={0.3} material={palette.oak} />
-      <Blk x={5.6} z={4.2} y={base} w={2.4} d={0.45} h={0.5} material={palette.oak} />
-      <Blk x={5.6} z={4.05} y={base + 0.85} w={1.6} d={0.06} h={0.92} material={palette.charcoal} />
-      {/* Woven lounge chair blockout, pulled further from the bedroom wall
-          (x=3.4) so it can't crowd the door swing either. */}
-      <Blk x={4.9} z={6.9} y={base} w={0.7} d={0.7} h={0.42} material={palette.upholstery} />
-      <Blk x={4.9} z={7.2} y={base + 0.42} w={0.7} d={0.12} h={0.38} material={palette.oak} />
-    </group>
-  );
-}
-
-function Bedroom({ base, palette }: { base: number; palette: Palette }) {
-  return (
-    <group>
-      <Blk x={1.7} z={11.4} y={base} w={1.6} d={2.0} h={0.32} material={palette.oak} />
-      <Blk x={1.7} z={11.35} y={base + 0.32} w={1.6} d={1.9} h={0.18} material={palette.upholstery} />
-      <Blk x={1.7} z={11.9} y={base} w={1.7} d={0.1} h={1.0} material={palette.oak} />
-      <Blk x={1.15} z={11.7} y={base + 0.5} w={0.5} d={0.28} h={0.14} material={palette.upholstery} />
-      <Blk x={2.25} z={11.7} y={base + 0.5} w={0.5} d={0.28} h={0.14} material={palette.upholstery} />
-      <Blk x={0.55} z={11.75} y={base} w={0.42} d={0.42} h={0.45} material={palette.oak} />
-      <Blk x={2.85} z={11.75} y={base} w={0.42} d={0.42} h={0.45} material={palette.oak} />
-    </group>
-  );
-}
-
-function Bathroom({
-  base,
-  palette,
-  vanity,
-  toilet,
-  shower,
-}: {
-  base: number;
-  palette: Palette;
-  vanity: { x: number; z: number; w: number };
-  toilet: { x: number; z: number };
-  shower?: { x: number; z: number };
-}) {
-  return (
-    <group>
-      <Blk x={vanity.x} z={vanity.z} y={base} w={vanity.w} d={0.48} h={0.82} material={palette.oak} />
-      <Blk x={vanity.x} z={vanity.z} y={base + 0.82} w={vanity.w} d={0.5} h={0.04} material={palette.stone} />
-      <Cyl x={vanity.x} z={vanity.z} y={base + 0.86} r={0.19} h={0.12} material={palette.stone} />
-      <Blk x={toilet.x} z={toilet.z} y={base} w={0.38} d={0.6} h={0.4} material={palette.stone} />
-      <Blk x={toilet.x} z={toilet.z + 0.34} y={base} w={0.38} d={0.16} h={0.78} material={palette.stone} />
-      {shower && (
-        <Blk x={shower.x} z={shower.z} y={base} w={0.9} d={0.9} h={0.05} material={palette.stone} />
-      )}
-    </group>
-  );
-}
-
-function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "light" }) {
-  const slats = quality === "high" ? 15 : 8;
-  const vines = quality === "high" ? 11 : 5;
-  const posts: Array<[number, number]> = [
-    [0.55, 4.0],
-    [3.1, 4.0],
-    [0.55, 7.8],
-    [3.1, 7.8],
-  ];
-  return (
-    <group>
-      <Blk x={1.8} z={5.9} y={0} w={3.2} d={5.0} h={0.08} material={palette.stone} />
-      {posts.map(([x, z]) => (
-        <Blk key={`${x}-${z}`} x={x} z={z} y={0.08} w={0.14} d={0.14} h={2.5} material={palette.timber} />
-      ))}
-      <Blk x={0.55} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
-      <Blk x={3.1} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
-      {Array.from({ length: slats }, (_, index) => (
-        <Blk
-          key={index}
-          x={1.83}
-          z={3.9 + (index * 4.0) / (slats - 1)}
-          y={designAssumptions.pergola.heightCm / 100}
-          w={2.9}
-          d={0.09}
-          h={0.14}
-          material={palette.timber}
-        />
-      ))}
-      {/* Climbing greenery over the pergola, as on the moodboard. */}
-      {Array.from({ length: vines }, (_, index) => {
-        const z = 4.1 + (index * 3.6) / (vines - 1);
-        const x = index % 2 === 0 ? 0.6 : 3.05;
-        const radius = 0.24 + ((index * 7) % 5) * 0.035;
-        return (
-          <mesh
-            key={`vine-${index}`}
-            position={[x - CX, designAssumptions.pergola.heightCm / 100 + 0.02, z - CZ]}
-            material={palette.vine}
-            castShadow
-          >
-            <icosahedronGeometry args={[radius, 0]} />
-          </mesh>
-        );
-      })}
-      {/* Olive trees in planters. */}
-      {[
-        [0.95, 3.4],
-        [2.9, 8.4],
-      ].map(([x, z]) => (
-        <group key={`${x}-${z}`}>
-          <Cyl x={x} z={z} y={0.08} r={0.32} h={0.55} material={palette.terracotta} segments={14} />
-          <Cyl x={x} z={z} y={0.63} r={0.07} h={0.7} material={palette.timber} segments={8} />
-          <mesh position={[x - CX, 1.6, z - CZ]} material={palette.greenery} castShadow>
-            <sphereGeometry args={[0.55, 12, 10]} />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
+// Room furniture: see components/rooms/*
 
 function ZoneFloor({
   zone,
@@ -705,20 +520,11 @@ export function MeasuredHouseScene({
           <Terrace palette={palette} quality={quality} />
           <Kitchen base={zoneById["north-extension"].level} palette={palette} />
           <Living base={zoneById["central-core"].level} palette={palette} />
-          <Bedroom base={zoneById["southwest-room"].level} palette={palette} />
-          <Bathroom
-            base={zoneById["service-core"].level}
-            palette={palette}
-            vanity={{ x: 6.2, z: 11.8, w: 1.6 }}
-            toilet={{ x: 5.25, z: 10.65 }}
-            shower={{ x: 7.05, z: 10.75 }}
-          />
-          <Bathroom
-            base={zoneById.ensuite.level}
-            palette={palette}
-            vanity={{ x: 4.15, z: 11.8, w: 1.1 }}
-            toilet={{ x: 3.8, z: 10.65 }}
-          />
+          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} />
+          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} />
+          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} />
+          <MainBathroom base={zoneById["service-core"].level} palette={palette} />
+          <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} />
         </>
       )}
 

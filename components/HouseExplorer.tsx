@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
+import { site } from "@/data/site";
 import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
@@ -85,9 +86,9 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
 }
 
 const VIEWS: { id: View; label: string; icon: "cube" | "grid" | "layers" }[] = [
-  { id: "model", label: "Model", icon: "cube" },
+  { id: "model", label: "House", icon: "cube" },
   { id: "plan", label: "Plan", icon: "grid" },
-  { id: "references", label: "Refs", icon: "layers" },
+  { id: "references", label: "Mood", icon: "layers" },
 ];
 
 const isView = (value: string | null): value is View =>
@@ -444,12 +445,12 @@ export function HouseExplorer() {
       <p className="detail-kicker">Board</p>
       <h2>{activeMood.label}</h2>
       <p className="detail-copy">{activeMood.atmosphere}</p>
-      <ul className="detail-list" aria-label="Palette">
+      <ul className="detail-list" aria-label="Finishes">
         {activeMood.finishes.map((finish) => (
           <li key={finish}>{finish}</li>
         ))}
       </ul>
-      <p className="detail-note">Images set tone. The measured plan owns walls and footprint.</p>
+      <p className="detail-note">Mood only — plan holds the walls.</p>
       <button
         type="button"
         className="detail-cta"
@@ -462,8 +463,8 @@ export function HouseExplorer() {
           <Image src={heroMoodImage.src} alt="" fill sizes="64px" unoptimized />
         </span>
         <span>
-          <small>Model</small>
-          Open in three dimensions
+          <small>House</small>
+          Step inside
         </span>
       </button>
     </>
@@ -489,7 +490,7 @@ export function HouseExplorer() {
           <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
         </div>
       </dl>
-      <p className="detail-note">Walls and footprint follow the survey drawing.</p>
+      <p className="detail-note">From the survey drawing.</p>
       <button
         type="button"
         className="detail-cta"
@@ -511,8 +512,8 @@ export function HouseExplorer() {
           />
         </span>
         <span>
-          <small>References</small>
-          {active.label} atmosphere
+          <small>Mood</small>
+          {active.label} mood
         </span>
       </button>
     </>
@@ -521,9 +522,9 @@ export function HouseExplorer() {
   return (
     <main ref={shellRef} className={sheetOpen ? "shell is-sheet-open has-motion" : "shell has-motion"}>
       <header className="app-bar">
-        <a className="logo" href="#top" aria-label="House remodel home">
-          <span className="logo-mark">House</span>
-          <span className="logo-meta">Remodel</span>
+        <a className="logo" href="#top" aria-label={`${site.name} home`}>
+          <span className="logo-mark">{site.wordmark.primary}</span>
+          <span className="logo-meta">{site.wordmark.secondary}</span>
         </a>
 
         <nav className="view-switch desktop-only" role="tablist" aria-label="Views">
@@ -537,7 +538,7 @@ export function HouseExplorer() {
               onClick={() => goToView(entry.id)}
             >
               <Icon name={entry.icon} />
-              <span>{entry.label === "Refs" ? "References" : entry.label}</span>
+              <span>{entry.label}</span>
             </button>
           ))}
         </nav>
@@ -549,7 +550,7 @@ export function HouseExplorer() {
               className="ghost-button"
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Lighter" : "Detail"}
+              {quality === "high" ? "Soft" : "Full"}
             </button>
           )}
         </div>
@@ -559,7 +560,7 @@ export function HouseExplorer() {
         <section
           ref={stageRef}
           className={`stage is-${view}`}
-          aria-label={view === "model" ? "House model" : view === "plan" ? "Measured plan" : "References"}
+          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : "Mood"}
         >
           {view === "model" && (
             <>
@@ -579,7 +580,7 @@ export function HouseExplorer() {
                 {webglSupport === false && (
                   <div className="webgl-fallback">
                     <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
-                    <p>Plan view — 3D unavailable</p>
+                    <p>Plan only</p>
                   </div>
                 )}
                 {webglSupport === null && <div className="model-loading">Preparing…</div>}
@@ -593,7 +594,7 @@ export function HouseExplorer() {
                     aria-pressed={!designMode}
                     onClick={() => setDesignMode(false)}
                   >
-                    Survey
+                    As built
                   </button>
                   <button
                     type="button"
@@ -601,7 +602,7 @@ export function HouseExplorer() {
                     aria-pressed={designMode}
                     onClick={() => setDesignMode(true)}
                   >
-                    Finishes
+                    Finished
                   </button>
                 </div>
                 {webglSupport === true && (
@@ -611,7 +612,7 @@ export function HouseExplorer() {
                     aria-pressed={showMeasurements}
                     onClick={() => setShowMeasurements((value) => !value)}
                   >
-                    Measures
+                    Dimensions
                   </button>
                 )}
               </div>
@@ -628,7 +629,7 @@ export function HouseExplorer() {
                     <div className="hud-card-text">
                       <p className="hud-kicker">{zoneIndex}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag · pinch · tap for details</p>
+                      <p className="hud-hint">Drag · pinch · details</p>
                     </div>
                     <span className="hud-open" aria-hidden="true">
                       <Icon name="chevron" />
@@ -639,7 +640,7 @@ export function HouseExplorer() {
                     <div className="hud-card-text">
                       <p className="hud-kicker">{zoneIndex}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag to orbit · scroll to zoom</p>
+                      <p className="hud-hint">Drag · scroll</p>
                     </div>
                   </div>
                 )}
@@ -654,9 +655,9 @@ export function HouseExplorer() {
           {view === "plan" && (
             <div className="plan-view">
               <header className="view-intro">
-                <p className="view-kicker">Survey</p>
+                <p className="view-kicker">Plan</p>
                 <h2>Measured plan</h2>
-                <p>Photograph against the traced shell.</p>
+                <p>Survey photo under the outline.</p>
               </header>
               <DimensionedOverlay />
             </div>
@@ -666,7 +667,7 @@ export function HouseExplorer() {
             <div className={refsPending ? "references-view is-pending" : "references-view"}>
               <header className="mood-masthead">
                 <div className="mood-masthead-row">
-                  <p className="mood-masthead-kicker">References</p>
+                  <p className="mood-masthead-kicker">Mood</p>
                   <p className="mood-index" aria-live="polite">
                     {moodIndexLabel}
                   </p>
@@ -752,7 +753,7 @@ export function HouseExplorer() {
                     })}
                   </div>
                   <div className="mood-finishes-block">
-                    <p className="mood-finishes-label">Palette</p>
+                    <p className="mood-finishes-label">Finishes</p>
                     <ul className="mood-finishes" aria-label="Finish palette">
                       {activeMood.finishes.map((finish) => (
                         <li key={finish}>{finish}</li>
@@ -764,7 +765,7 @@ export function HouseExplorer() {
                     className="mobile-inline-cta mobile-only"
                     onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
                   >
-                    Open in model
+                    Step inside
                   </button>
                 </div>
               </div>

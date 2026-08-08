@@ -100,8 +100,8 @@ export const designAssumptions = {
 } as const;
 
 export const house = {
-  title: "House Remodel",
-  revision: "Geometry audit 01",
+  title: "Sage Court",
+  revision: "Rev. 01",
   units: "cm",
   dimensions: {
     maximumWidth: 1140,
@@ -130,7 +130,7 @@ export const house = {
       shortLabel: "K",
       label: "Kitchen",
       description:
-        "North volume, 420 × 380 cm. Oak kitchen open to living; main entry on the east wall, bay window to the north.",
+        "North bay, 420 × 380 cm. Oak open to living; entry east, morning through the north window.",
       status: "measured",
       x: 3.4,
       z: 0,
@@ -141,9 +141,9 @@ export const house = {
     {
       id: "central-core",
       shortLabel: "LR",
-      label: "Living room",
+      label: "Living",
       description:
-        "Central living volume toward the west terrace. Wide glazed opening on the west wall — a remodel addition beyond the survey drawing.",
+        "Centre volume to the west terrace. Wide west glazing — a remodel addition — carries the room outdoors.",
       status: "traced",
       x: 3.4,
       z: 3.8,
@@ -156,7 +156,7 @@ export const house = {
       shortLabel: "BR",
       label: "Master bedroom",
       description:
-        "South-west bedroom, 340 × 380 cm. West door to a private timber court outside the measured footprint.",
+        "Southwest, 340 × 380 cm, on the 830 cm west jog. West door to a private timber court.",
       status: "measured",
       x: 0,
       z: 8.3,
@@ -168,7 +168,7 @@ export const house = {
       id: "east-upper-room",
       shortLabel: "E1",
       label: "Guest bedroom",
-      description: "East upper bedroom. Survey doors retained; east and north windows as designed.",
+      description: "East upper. Survey doors kept; east and north Belgian light.",
       status: "traced",
       x: 7.6,
       z: 5.0,
@@ -180,7 +180,7 @@ export const house = {
       id: "east-lower-room",
       shortLabel: "E2",
       label: "East bedroom",
-      description: "East lower room — bedroom or study. Survey doors retained; east and south windows as designed.",
+      description: "East lower — bed or desk. Survey doors; east and south windows as drawn.",
       status: "traced",
       x: 7.6,
       z: 8.55,
@@ -192,7 +192,7 @@ export const house = {
       id: "service-core",
       shortLabel: "B",
       label: "Bathroom",
-      description: "Main bath with vanity, toilet, and shower — working layout for the remodel.",
+      description: "Main wet room: vanity, toilet, shower in plaster and microcement.",
       status: "traced",
       x: 4.9,
       z: 10.2,
@@ -204,7 +204,7 @@ export const house = {
       id: "ensuite",
       shortLabel: "EN",
       label: "Ensuite",
-      description: "Private bath between master and main bath; 80 cm door from the bedroom.",
+      description: "Private to the master; 80 cm door. Short oak vanity, same palette, less of it.",
       status: "traced",
       x: 3.4,
       z: 10.2,
@@ -216,9 +216,9 @@ export const house = {
 };
 
 export const statusCopy: Record<GeometryStatus, string> = {
-  measured: "Measured",
-  traced: "Confirmed",
-  "needs-confirmation": "Pending",
+  measured: "Survey",
+  traced: "From plan",
+  "needs-confirmation": "Open",
 };
 
 /**

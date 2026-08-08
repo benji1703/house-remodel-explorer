@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Fraunces, Outfit, IBM_Plex_Mono } from "next/font/google";
+import { Cormorant_Garamond, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const fraunces = Fraunces({
+const display = Cormorant_Garamond({
   variable: "--font-display",
   subsets: ["latin"],
-  axes: ["SOFT", "opsz"],
+  weight: ["400", "500", "600"],
 });
 
-const outfit = Outfit({
+const sans = Source_Sans_3({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -22,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "House Remodel",
   description:
-    "Work-in-progress house remodel explorer — measured shell, room mood boards, and finishes.",
+    "House remodel explorer — measured shell, room references, and finishes.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -36,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${outfit.variable} ${plexMono.variable}`}>
+      <body className={`${display.variable} ${sans.variable} ${plexMono.variable}`}>
         {children}
       </body>
     </html>

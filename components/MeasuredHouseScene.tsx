@@ -88,8 +88,8 @@ const exteriorOpenings: Record<number, Opening[]> = {
   ],
   2: [window_(1.9)],
   3: [window_(1.8), window_(5.0)],
-  // South facade (east→west): E2, main bath, master.
-  4: [window_(1.9), window_(5.2, 1.0), window_(9.7, 1.5)],
+  // South facade (east→west): E2, main bath, ensuite, master.
+  4: [window_(1.9), window_(5.2, 1.0), window_(7.25, 0.7), window_(9.7, 1.5)],
   // Master west exit (remodel) — north of bed, clear of south nightstands.
   5: [{ at: 2.9, width: MASTER_EXIT_WIDTH, sill: 0, head: MASTER_EXIT_HEAD }],
   6: [window_(1.7)],

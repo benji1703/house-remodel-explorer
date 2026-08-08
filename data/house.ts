@@ -129,7 +129,8 @@ export const house = {
       id: "north-extension",
       shortLabel: "K",
       label: "Kitchen",
-      description: "Proposed kitchen (owner program, 2026-08-07) in the dimensioned 420 × 380 cm north volume. Main entry on the east wall (south of the east window); north bay keeps the window. See designAssumptions.kitchenMainEntry.",
+      description:
+        "North volume, 420 × 380 cm. Oak kitchen open to living; main entry on the east wall, bay window to the north.",
       status: "measured",
       x: 3.4,
       z: 0,
@@ -141,7 +142,8 @@ export const house = {
       id: "central-core",
       shortLabel: "LR",
       label: "Living room",
-      description: "Proposed living room (owner program, 2026-08-07). Owner has requested a large west-facing opening in this room's exterior wall (x=3.4 m) — a new remodel decision, not in the original measured plan; see geometryApprovalItems 'living-west-opening'. Shell south end overlaps the service-core/ensuite footprint below; depth trimmed to reduce that overlap.",
+      description:
+        "Central living volume toward the west terrace. Wide glazed opening on the west wall — a remodel addition beyond the survey drawing.",
       status: "traced",
       x: 3.4,
       z: 3.8,
@@ -153,7 +155,8 @@ export const house = {
       id: "southwest-room",
       shortLabel: "BR",
       label: "Master bedroom",
-      description: "Master bedroom in the dimensioned south-west volume, 340 × 380 cm (west chain 830 + 380 = 1210). Owner remodel: west exit door to a private boho timber pergola patio (not on measured plan).",
+      description:
+        "South-west bedroom, 340 × 380 cm. West door to a private timber court outside the measured footprint.",
       status: "measured",
       x: 0,
       z: 8.3,
@@ -164,8 +167,8 @@ export const house = {
     {
       id: "east-upper-room",
       shortLabel: "E1",
-      label: "East upper room",
-      description: "Guest bedroom. Plan openings retained; east + north windows at designAssumptions.bedroomWindow.",
+      label: "Guest bedroom",
+      description: "East upper bedroom. Survey doors retained; east and north windows as designed.",
       status: "traced",
       x: 7.6,
       z: 5.0,
@@ -176,8 +179,8 @@ export const house = {
     {
       id: "east-lower-room",
       shortLabel: "E2",
-      label: "East lower room",
-      description: "Flexible bedroom/study. Plan openings retained; east + south windows at designAssumptions.bedroomWindow.",
+      label: "East bedroom",
+      description: "East lower room — bedroom or study. Survey doors retained; east and south windows as designed.",
       status: "traced",
       x: 7.6,
       z: 8.55,
@@ -188,8 +191,8 @@ export const house = {
     {
       id: "service-core",
       shortLabel: "B",
-      label: "Main bathroom",
-      description: "Main bathroom with working vanity / toilet / shower layout for remodel visualisation.",
+      label: "Bathroom",
+      description: "Main bath with vanity, toilet, and shower — working layout for the remodel.",
       status: "traced",
       x: 4.9,
       z: 10.2,
@@ -200,8 +203,8 @@ export const house = {
     {
       id: "ensuite",
       shortLabel: "EN",
-      label: "Ensuite bathroom",
-      description: "Ensuite between master and main bath; 80 cm bedroom door (owner remodel decision).",
+      label: "Ensuite",
+      description: "Private bath between master and main bath; 80 cm door from the bedroom.",
       status: "traced",
       x: 3.4,
       z: 10.2,
@@ -213,9 +216,9 @@ export const house = {
 };
 
 export const statusCopy: Record<GeometryStatus, string> = {
-  measured: "Dimensioned",
-  traced: "Traced · closed",
-  "needs-confirmation": "Needs confirmation",
+  measured: "Measured",
+  traced: "Confirmed",
+  "needs-confirmation": "Pending",
 };
 
 /**

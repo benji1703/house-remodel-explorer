@@ -127,6 +127,7 @@ export function HouseExplorer() {
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [cameraAzimuth, setCameraAzimuth] = useState(0);
+  const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -150,6 +151,29 @@ export function HouseExplorer() {
     [selectedMood],
   );
 
+  const moodImageCount = activeMood.images.length;
+  const moodImageIndex = Math.min(moodImageByBoard[selectedMood] ?? 0, Math.max(moodImageCount - 1, 0));
+  const heroMoodImage = activeMood.images[moodImageIndex] ?? activeMood.images[0];
+  const moodIndexLabel = `${String(moodImageIndex + 1).padStart(2, "0")} / ${String(moodImageCount).padStart(2, "0")}`;
+
+  useEffect(() => {
+    if (view !== "references") return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      setMoodImageByBoard((prev) => {
+        const current = prev[selectedMood] ?? 0;
+        const next = ((current + step) % moodImageCount + moodImageCount) % moodImageCount;
+        return { ...prev, [selectedMood]: next };
+      });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [view, moodImageCount, selectedMood]);
+
   const zoneIndex = String(house.zones.findIndex((zone) => zone.id === active.id) + 1).padStart(2, "0");
 
   return (
@@ -161,7 +185,7 @@ export function HouseExplorer() {
         <nav>
           <button
             className={view === "model" ? "rail-button is-active" : "rail-button"}
-            aria-label="3D explorer"
+            aria-label="House model"
             aria-current={view === "model" ? "page" : undefined}
             onClick={() => navigate({ view: "model" })}
           >
@@ -177,7 +201,7 @@ export function HouseExplorer() {
           </button>
           <button
             className={view === "references" ? "rail-button is-active" : "rail-button"}
-            aria-label="Room mood boards"
+            aria-label="References"
             aria-current={view === "references" ? "page" : undefined}
             onClick={() => navigate({ view: "references", mood: selectedMood })}
           >
@@ -189,7 +213,7 @@ export function HouseExplorer() {
       <section className="workspace" id="top">
         <header className="topbar">
           <div className="topbar-brand">
-            <p className="eyebrow">Work in progress</p>
+            <p className="eyebrow">In progress</p>
             <h1>House remodel</h1>
           </div>
           <div className="topbar-actions">
@@ -199,20 +223,20 @@ export function HouseExplorer() {
                 className="quality-button"
                 onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
               >
-                {quality === "high" ? "Light mode" : "High detail"}
+                {quality === "high" ? "Lighter view" : "Full detail"}
               </button>
             )}
           </div>
         </header>
 
         <div className="content-grid">
-          <section className={`stage-card is-${view}`} aria-label={view === "model" ? "3D stage" : view === "plan" ? "Plan audit" : "Mood boards"}>
+          <section className={`stage-card is-${view}`} aria-label={view === "model" ? "House model" : view === "plan" ? "Measured plan" : "References"}>
             {view === "model" && (
               <>
                 <div className="stage-copy">
-                  <span className="overline">Selected room</span>
+                  <span className="overline">Room</span>
                   <h2>{active.label}</h2>
-                  <p>Orbit · zoom · tap a room</p>
+                  <p>Orbit, zoom, select a room</p>
                 </div>
                 <div className="stage-controls">
                   <div className="mode-toggle" role="group" aria-label="Model appearance">
@@ -230,7 +254,7 @@ export function HouseExplorer() {
                       aria-pressed={designMode}
                       onClick={() => setDesignMode(true)}
                     >
-                      Materials
+                      Finishes
                     </button>
                   </div>
                   {webglSupport === true && (
@@ -240,13 +264,13 @@ export function HouseExplorer() {
                       aria-pressed={showMeasurements}
                       onClick={() => setShowMeasurements((value) => !value)}
                     >
-                      {showMeasurements ? "Hide dims" : "Dims"}
+                      {showMeasurements ? "Hide measures" : "Measures"}
                     </button>
                   )}
                 </div>
                 <div className="three-stage">
                   {webglSupport === true && (
-                    <Suspense fallback={<div className="model-loading">Loading 3D shell…</div>}>
+                    <Suspense fallback={<div className="model-loading">Loading model…</div>}>
                       <MeasuredHouseScene
                         selectedZone={selectedZone}
                         onSelectZone={(id) => navigate({ zone: id }, "replace")}
@@ -260,10 +284,10 @@ export function HouseExplorer() {
                   {webglSupport === false && (
                     <div className="webgl-fallback">
                       <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
-                      <p>Plan fallback · 3D unavailable</p>
+                      <p>Plan view — 3D unavailable</p>
                     </div>
                   )}
-                  {webglSupport === null && <div className="model-loading">Preparing shell…</div>}
+                  {webglSupport === null && <div className="model-loading">Preparing…</div>}
                 </div>
                 <div className="orientation" aria-hidden="true">
                   <b>N</b>
@@ -275,9 +299,9 @@ export function HouseExplorer() {
             {view === "plan" && (
               <div className="plan-view">
                 <div className="stage-copy plan-copy">
-                  <span className="overline">Measured source</span>
-                  <h2>Plan audit</h2>
-                  <p>Photo vs vector trace. Geometry only.</p>
+                  <span className="overline">Survey</span>
+                  <h2>Measured plan</h2>
+                  <p>Photograph against the traced shell.</p>
                 </div>
                 <DimensionedOverlay />
               </div>
@@ -285,31 +309,37 @@ export function HouseExplorer() {
 
             {view === "references" && (
               <div className="references-view">
-                <header className="mood-header">
-                  <div className="stage-copy reference-copy">
-                    <span className="overline">Room mood board</span>
-                    <h2>{activeMood.label}</h2>
-                    <p>{activeMood.atmosphere}</p>
+                <header className="mood-masthead">
+                  <div className="mood-masthead-row">
+                    <p className="mood-masthead-kicker">References</p>
+                    <p className="mood-index" aria-live="polite">
+                      {moodIndexLabel}
+                    </p>
                   </div>
-                </header>
+                  <h2 className="mood-masthead-title">{activeMood.label}</h2>
+                  <p className="mood-masthead-lede">{activeMood.atmosphere}</p>
 
-                <div className="mood-room-rail" role="tablist" aria-label="Rooms">
-                  {roomMoodBoards.map((board) => (
-                    <button
-                      key={board.id}
-                      type="button"
-                      role="tab"
-                      id={`mood-tab-${board.id}`}
-                      aria-selected={selectedMood === board.id}
-                      aria-controls="mood-board-panel"
-                      className={selectedMood === board.id ? "mood-room-chip is-active" : "mood-room-chip"}
-                      onClick={() => navigate({ view: "references", mood: board.id }, "replace")}
-                    >
-                      <span>{board.shortLabel}</span>
-                      {board.label}
-                    </button>
-                  ))}
-                </div>
+                  <nav className="mood-index-nav" role="tablist" aria-label="Rooms">
+                    {roomMoodBoards.map((board, index) => {
+                      const selected = selectedMood === board.id;
+                      return (
+                        <button
+                          key={board.id}
+                          type="button"
+                          role="tab"
+                          id={`mood-tab-${board.id}`}
+                          aria-selected={selected}
+                          aria-controls="mood-board-panel"
+                          className={selected ? "mood-index-link is-active" : "mood-index-link"}
+                          onClick={() => navigate({ view: "references", mood: board.id }, "replace")}
+                        >
+                          <em>{String(index + 1).padStart(2, "0")}</em>
+                          {board.label}
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </header>
 
                 <div
                   className="mood-board-stage"
@@ -317,35 +347,56 @@ export function HouseExplorer() {
                   role="tabpanel"
                   aria-labelledby={`mood-tab-${activeMood.id}`}
                 >
-                  <figure className="mood-hero">
+                  <figure className="mood-hero" key={heroMoodImage.src}>
                     <Image
-                      src={activeMood.images[0].src}
-                      alt={activeMood.images[0].alt}
+                      src={heroMoodImage.src}
+                      alt={heroMoodImage.alt}
                       fill
-                      sizes="(max-width: 900px) 100vw, 55vw"
+                      sizes="(max-width: 900px) 100vw, 58vw"
                       priority
                       unoptimized
                     />
-                    <figcaption>{activeMood.images[0].caption}</figcaption>
+                    <figcaption>
+                      <span>{heroMoodImage.caption}</span>
+                      <small>← →</small>
+                    </figcaption>
                   </figure>
                   <div className="mood-side">
-                    <div className="mood-gallery" aria-label={`${activeMood.label} references`}>
-                      {activeMood.images.slice(1).map((image) => (
-                        <figure key={`${image.src}-${image.caption}`} className="mood-secondary">
-                          <Image
-                            src={image.src}
-                            alt={image.alt}
-                            fill
-                            sizes="(max-width: 900px) 50vw, 18vw"
-                            unoptimized
-                          />
-                          <figcaption>{image.caption}</figcaption>
-                        </figure>
-                      ))}
+                    <div
+                      className="mood-gallery"
+                      role="listbox"
+                      aria-label={`${activeMood.label} references`}
+                      aria-activedescendant={`mood-thumb-${moodImageIndex}`}
+                    >
+                      {activeMood.images.map((image, index) => {
+                        const selected = index === moodImageIndex;
+                        return (
+                          <button
+                            key={`${image.src}-${image.caption}`}
+                            type="button"
+                            id={`mood-thumb-${index}`}
+                            role="option"
+                            aria-selected={selected}
+                            className={selected ? "mood-thumb is-active" : "mood-thumb"}
+                            onClick={() =>
+                              setMoodImageByBoard((prev) => ({ ...prev, [selectedMood]: index }))
+                            }
+                          >
+                            <Image
+                              src={image.src}
+                              alt={image.alt}
+                              fill
+                              sizes="(max-width: 900px) 45vw, 16vw"
+                              unoptimized
+                            />
+                            <span className="mood-thumb-index">{String(index + 1).padStart(2, "0")}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                     <div className="mood-finishes-block">
-                      <p className="mood-finishes-label">Finish direction</p>
-                      <ul className="mood-finishes" aria-label="Finish direction">
+                      <p className="mood-finishes-label">Palette</p>
+                      <ul className="mood-finishes" aria-label="Finish palette">
                         {activeMood.finishes.map((finish) => (
                           <li key={finish}>{finish}</li>
                         ))}
@@ -361,14 +412,14 @@ export function HouseExplorer() {
             {view === "references" ? (
               <>
                 <div className="inspector-head">
-                  <span className="source-tag traced">Atmosphere</span>
+                  <span className="source-tag traced">Reference</span>
                   <span className="zone-number">{activeMood.shortLabel}</span>
                 </div>
-                <p className="eyebrow">Selected board</p>
+                <p className="eyebrow">Board</p>
                 <h2>{activeMood.label}</h2>
                 <p className="zone-description">{activeMood.atmosphere}</p>
 
-                <ul className="inspector-finishes" aria-label="Finishes">
+                <ul className="inspector-finishes" aria-label="Palette">
                   {activeMood.finishes.map((finish) => (
                     <li key={finish}>{finish}</li>
                   ))}
@@ -376,10 +427,10 @@ export function HouseExplorer() {
 
                 <div className="accuracy-note">
                   <div className="accuracy-title">
-                    <span>Rule</span>
-                    <b>Mood only</b>
+                    <span>Note</span>
+                    <b>Atmosphere</b>
                   </div>
-                  <p>Boards set feeling and finishes. Measured plan still owns walls and footprint.</p>
+                  <p>These images set tone and finish. Walls and footprint follow the measured plan.</p>
                 </div>
 
                 <button
@@ -388,11 +439,11 @@ export function HouseExplorer() {
                   onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
                 >
                   <span className="source-thumbnail">
-                    <Image src={activeMood.images[0].src} alt="" fill sizes="72px" unoptimized />
+                    <Image src={heroMoodImage.src} alt="" fill sizes="72px" unoptimized />
                   </span>
                   <span>
-                    <small>Open in 3D</small>
-                    See this room in the model
+                    <small>Model</small>
+                    View this room in three dimensions
                   </span>
                   <b aria-hidden="true">↗</b>
                 </button>
@@ -403,7 +454,7 @@ export function HouseExplorer() {
                   <span className={`source-tag ${active.status}`}>{statusCopy[active.status]}</span>
                   <span className="zone-number">{zoneIndex}</span>
                 </div>
-                <p className="eyebrow">Selected room</p>
+                <p className="eyebrow">Room</p>
                 <h2>{active.label}</h2>
                 <p className="zone-description">{active.description}</p>
 
@@ -425,9 +476,9 @@ export function HouseExplorer() {
                 <div className="accuracy-note">
                   <div className="accuracy-title">
                     <span>Geometry</span>
-                    <b>Locked</b>
+                    <b>Measured</b>
                   </div>
-                  <p>Measured plan controls walls and footprint.</p>
+                  <p>Walls and footprint follow the survey drawing.</p>
                 </div>
 
                 <button
@@ -448,8 +499,8 @@ export function HouseExplorer() {
                     />
                   </span>
                   <span>
-                    <small>Mood board</small>
-                    Open {active.label.toLowerCase()} board
+                    <small>References</small>
+                    {active.label} atmosphere
                   </span>
                   <b aria-hidden="true">↗</b>
                 </button>

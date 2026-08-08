@@ -154,13 +154,14 @@ export function MainBathroom({ base, palette }: { base: number; palette: Palette
 
 /**
  * Ensuite — 150 × 190 cm. Door on west ~z 10.9–11.7.
- * Short vanity south, WC north — no shower (width too tight).
+ * Short vanity south under small south window, WC north — no shower.
  */
 export function EnsuiteBathroom({ base, palette }: { base: number; palette: Palette }) {
   return (
     <group>
       <Toilet base={base} palette={palette} x={4.15} z={10.2} against="n" />
-      <Vanity base={base} palette={palette} x={4.15} z={11.86} w={0.95} />
+      {/* Vanity under south window — no tall mirror. */}
+      <Vanity base={base} palette={palette} x={4.15} z={11.86} w={0.95} mirror={false} />
     </group>
   );
 }

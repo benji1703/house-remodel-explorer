@@ -87,7 +87,7 @@ export function DimensionedOverlay() {
                 aria-label="Zoom the photo to check alignment against the vector trace"
               />
               <span>{Math.round(zoom * 100)}%</span>
-              <span className="overlay-hint">Drag photo to pan</span>
+          <span className="overlay-hint">Drag to pan</span>
               {(rotation !== 0 || zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
                 <button
                   type="button"
@@ -181,24 +181,23 @@ export function DimensionedOverlay() {
 
       <div className="approval-checklist">
         <div className="checklist-header">
-          <h3>{unresolved.length === 0 ? "Geometry questions" : "Open geometry questions"}</h3>
+          <h3>{unresolved.length === 0 ? "Survey ledger" : "Open survey questions"}</h3>
           <span className={unresolved.length === 0 ? "resolved-count" : "unresolved-count"}>
-            {unresolved.length === 0 ? "All closed" : `${unresolved.length} open`}
+            {unresolved.length === 0 ? "Complete" : `${unresolved.length} open`}
           </span>
         </div>
 
         {unresolved.length === 0 ? (
           <div className="checklist-closed">
             <p>
-              All ledger items closed 2026-08-08. Working model uses plan chains where readable
-              (including west jog <strong>830 + 380 = 1210</strong>) and standard Israeli
-              single-storey assumptions elsewhere — 20 cm exterior, 10 cm partitions, 2.5 m
-              ceilings, single floor level, plan-north.
+              Ledger closed. The working model follows the measured chains where they can be
+              read — including the west jog <strong>830 + 380 = 1210</strong> — with standard
+              single-storey assumptions elsewhere: 20 cm exterior walls, 10 cm partitions,
+              2.5 m ceilings, one floor level, plan north.
             </p>
             <p>
-              Still not a construction survey: elevations and site checks before build docs.
-              Full rationale lives in <code>docs/GEOMETRY_AUDIT.md</code> and{" "}
-              <code>geometryApprovalItems</code>.
+              Not yet a construction set. Elevations and a site check remain before build
+              documents. Full notes in <code>docs/GEOMETRY_AUDIT.md</code>.
             </p>
           </div>
         ) : (
@@ -227,8 +226,7 @@ export function DimensionedOverlay() {
         )}
 
         <p className="checklist-footnote">
-          Read-only. Decisions are recorded in <code>docs/GEOMETRY_AUDIT.md</code> and{" "}
-          <code>data/house.ts</code>; nothing on this page edits them.
+          Read-only. Decisions live in the audit notes; this page does not change them.
         </p>
       </div>
     </div>

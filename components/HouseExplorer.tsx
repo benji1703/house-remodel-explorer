@@ -18,11 +18,12 @@ const MeasuredHouseScene = lazy(() =>
 
 type View = "model" | "plan" | "references";
 
+/** Plan-derived glyphs — not generic dashboard icons. */
 const Icon = ({ name }: { name: "cube" | "layers" | "grid" | "close" | "chevron" }) => {
   const paths = {
-    cube: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z M4 7.5l8 4.5 8-4.5M12 12v9",
-    layers: "m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
-    grid: "M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z",
+    cube: "M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z M4 8.5l8 4.5 8-4.5 M12 13v7",
+    layers: "M3 11.5 12 7l9 4.5-9 4.5-9-4.5Z M5 14.2l7 3.5 7-3.5 M5 17l7 3.5 7-3.5",
+    grid: "M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z",
     close: "M6 6l12 12M18 6 6 18",
     chevron: "m6 9 6 6 6-6",
   };
@@ -147,8 +148,6 @@ export function HouseExplorer() {
   const stageRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLElement>(null);
   const scrimRef = useRef<HTMLButtonElement>(null);
-  const introDone = useRef(false);
-  const skipViewMotion = useRef(true);
   const sheetWasOpen = useRef(false);
 
   useEffect(() => {
@@ -269,87 +268,13 @@ export function HouseExplorer() {
       const media = gsap.matchMedia();
       media.add("(prefers-reduced-motion: no-preference)", () => {
         const tl = gsap.timeline({ defaults: { ease: motionEase } });
-        tl.from(".app-bar", { y: -18, opacity: 0, duration: 0.7, clearProps: "all" })
-          .from(".stage", { opacity: 0, y: 22, scale: 0.985, duration: 0.85, transformOrigin: "50% 50%", clearProps: "all" }, "-=0.45")
-          .from(".detail", { opacity: 0, x: 24, duration: 0.65, clearProps: "opacity,x" }, "-=0.55")
-          .from(".tab-bar", { y: 24, opacity: 0, duration: 0.5, clearProps: "all" }, "-=0.45")
-          .from(".mobile-room-rail", { y: 12, opacity: 0, duration: 0.4, clearProps: "all" }, "-=0.35");
-        introDone.current = true;
+        tl.from(".app-bar", { y: -12, opacity: 0, duration: 0.55, clearProps: "all" })
+          .from(".stage", { opacity: 0, y: 16, duration: 0.65, clearProps: "all" }, "-=0.35")
+          .from(".detail", { opacity: 0, x: 16, duration: 0.5, clearProps: "opacity,x" }, "-=0.4");
       });
-      media.add("(prefers-reduced-motion: reduce)", () => {
-        introDone.current = true;
-      });
+      media.add("(prefers-reduced-motion: reduce)", () => {});
     },
     { scope: shellRef },
-  );
-
-  useGSAP(
-    () => {
-      if (skipViewMotion.current) {
-        skipViewMotion.current = false;
-        return;
-      }
-      const media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        const stage = stageRef.current;
-        if (!stage) return;
-        gsap.fromTo(
-          stage,
-          { opacity: 0.35, y: 18 },
-          { opacity: 1, y: 0, duration: 0.55, ease: motionEase, overwrite: "auto" },
-        );
-        const hud = stage.querySelector(".stage-hud");
-        const toolbar = stage.querySelector(".stage-toolbar");
-        const masthead = stage.querySelector(".mood-masthead");
-        const intro = stage.querySelector(".view-intro");
-        gsap.fromTo(
-          [toolbar, hud, masthead, intro].filter(Boolean),
-          { opacity: 0, y: 14 },
-          { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: motionEase, delay: 0.05 },
-        );
-      });
-    },
-    { scope: shellRef, dependencies: [view] },
-  );
-
-  useGSAP(
-    () => {
-      if (view !== "references") return;
-      const media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.fromTo(
-          ".mood-masthead-title",
-          { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.6, ease: motionEase, overwrite: "auto" },
-        );
-        gsap.fromTo(
-          ".mood-masthead-lede",
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.5, ease: motionEase, delay: 0.05, overwrite: "auto" },
-        );
-        gsap.fromTo(
-          ".mood-board-stage",
-          { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.55, ease: motionEase, delay: 0.08, overwrite: "auto" },
-        );
-      });
-    },
-    { scope: shellRef, dependencies: [selectedMood, view] },
-  );
-
-  useGSAP(
-    () => {
-      if (view !== "model") return;
-      const media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.fromTo(
-          ".hud-card",
-          { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.45, ease: motionEase, overwrite: "auto" },
-        );
-      });
-    },
-    { scope: shellRef, dependencies: [selectedZone, view] },
   );
 
   useGSAP(
@@ -371,15 +296,9 @@ export function HouseExplorer() {
             { yPercent: 108 },
             { yPercent: 0, duration: 0.5, ease: motionEase, overwrite: "auto" },
           );
-          gsap.fromTo(
-            detail.querySelectorAll("h2, .detail-copy, .measure-list, .detail-list, .detail-cta, .detail-note, .detail-head, .detail-kicker"),
-            { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.4, stagger: 0.04, delay: 0.12, ease: motionEase, clearProps: "opacity,y" },
-          );
           return;
         }
 
-        // Already closed (view switch / remount) — park off-screen, never steal taps.
         gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
         gsap.set(detail, { yPercent: 108, pointerEvents: "none" });
         if (!wasOpen) return;
@@ -420,8 +339,6 @@ export function HouseExplorer() {
     });
   };
 
-  const zoneIndex = String(house.zones.findIndex((zone) => zone.id === active.id) + 1).padStart(2, "0");
-
   const goToView = (next: View) => {
     setSheetOpen(false);
     sheetWasOpen.current = false;
@@ -450,10 +367,11 @@ export function HouseExplorer() {
           <li key={finish}>{finish}</li>
         ))}
       </ul>
-      <p className="detail-note">Mood only — plan holds the walls.</p>
+      <p className="detail-note">Atmosphere only — walls stay on the measured plan.</p>
       <button
         type="button"
         className="detail-cta"
+        aria-label={`Open ${activeMood.label} in the house model`}
         onClick={() => {
           setSheetOpen(false);
           navigate({ view: "model", zone: zoneFromMood(activeMood.id) });
@@ -463,8 +381,8 @@ export function HouseExplorer() {
           <Image src={heroMoodImage.src} alt="" fill sizes="64px" unoptimized />
         </span>
         <span>
-          <small>House</small>
-          Step inside
+          <small>Model</small>
+          Open {activeMood.label}
         </span>
       </button>
     </>
@@ -472,7 +390,6 @@ export function HouseExplorer() {
     <>
       <div className="detail-head">
         <span className={`status-tag ${active.status}`}>{statusCopy[active.status]}</span>
-        <span className="detail-index">{zoneIndex}</span>
       </div>
       <h2>{active.label}</h2>
       <p className="detail-copy">{active.description}</p>
@@ -490,10 +407,11 @@ export function HouseExplorer() {
           <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
         </div>
       </dl>
-      <p className="detail-note">From the survey drawing.</p>
+      <p className="detail-note">Dimensions from the survey drawing.</p>
       <button
         type="button"
         className="detail-cta"
+        aria-label={`Open ${active.label} mood references`}
         onClick={() => {
           setSheetOpen(false);
           navigate({ view: "references", mood: active.id });
@@ -513,7 +431,7 @@ export function HouseExplorer() {
         </span>
         <span>
           <small>Mood</small>
-          {active.label} mood
+          {active.label} references
         </span>
       </button>
     </>
@@ -524,16 +442,14 @@ export function HouseExplorer() {
       <header className="app-bar">
         <a className="logo" href="#top" aria-label={`${site.name} home`}>
           <span className="logo-mark">{site.wordmark.primary}</span>
-          <span className="logo-meta">{site.wordmark.secondary}</span>
         </a>
 
-        <nav className="view-switch desktop-only" role="tablist" aria-label="Views">
+        <nav className="view-switch desktop-only" aria-label="Views">
           {VIEWS.map((entry) => (
             <button
               key={entry.id}
               type="button"
-              role="tab"
-              aria-selected={view === entry.id}
+              aria-current={view === entry.id ? "page" : undefined}
               className={view === entry.id ? "view-tab is-active" : "view-tab"}
               onClick={() => goToView(entry.id)}
             >
@@ -550,7 +466,7 @@ export function HouseExplorer() {
               className="ghost-button"
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Soft" : "Full"}
+              {quality === "high" ? "Full detail" : "Faster load"}
             </button>
           )}
         </div>
@@ -627,9 +543,9 @@ export function HouseExplorer() {
                     aria-controls="detail-sheet"
                   >
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{zoneIndex}</p>
+                      <p className="hud-kicker">{active.shortLabel}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag · pinch · details</p>
+                      <p className="hud-hint">Drag · pinch · open details</p>
                     </div>
                     <span className="hud-open" aria-hidden="true">
                       <Icon name="chevron" />
@@ -638,13 +554,18 @@ export function HouseExplorer() {
                 ) : (
                   <div className="hud-card">
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{zoneIndex}</p>
+                      <p className="hud-kicker">{active.shortLabel}</p>
                       <h2>{active.label}</h2>
-                      <p className="hud-hint">Drag · scroll</p>
+                      <p className="hud-hint">Drag · scroll · north on the right</p>
                     </div>
                   </div>
                 )}
-                <div className="orientation" aria-hidden="true">
+                <div
+                  className="orientation"
+                  role="status"
+                  aria-live="polite"
+                  aria-label={`North; camera heading ${Math.round(((cameraAzimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) * (180 / Math.PI))} degrees`}
+                >
                   <b>N</b>
                   <span style={webglSupport === true ? { transform: `rotate(${cameraAzimuth}rad)` } : undefined} />
                 </div>
@@ -655,9 +576,9 @@ export function HouseExplorer() {
           {view === "plan" && (
             <div className="plan-view">
               <header className="view-intro">
-                <p className="view-kicker">Plan</p>
+                <p className="view-kicker">Survey</p>
                 <h2>Measured plan</h2>
-                <p>Survey photo under the outline.</p>
+                <p>Photo under the vector outline — check wall runs before trusting the model.</p>
               </header>
               <DimensionedOverlay />
             </div>
@@ -675,21 +596,18 @@ export function HouseExplorer() {
                 <h2 className="mood-masthead-title">{activeMood.label}</h2>
                 <p className="mood-masthead-lede">{activeMood.atmosphere}</p>
 
-                <nav className="mood-index-nav" role="tablist" aria-label="Rooms">
-                  {roomMoodBoards.map((board, index) => {
+                <nav className="mood-index-nav" aria-label="Rooms">
+                  {roomMoodBoards.map((board) => {
                     const selected = selectedMood === board.id;
                     return (
                       <button
                         key={board.id}
                         type="button"
-                        role="tab"
                         id={`mood-tab-${board.id}`}
-                        aria-selected={selected}
-                        aria-controls="mood-board-panel"
+                        aria-current={selected ? "true" : undefined}
                         className={selected ? "mood-index-link is-active" : "mood-index-link"}
                         onClick={() => selectMoodBoard(board.id)}
                       >
-                        <em>{String(index + 1).padStart(2, "0")}</em>
                         {board.label}
                       </button>
                     );
@@ -700,8 +618,6 @@ export function HouseExplorer() {
               <div
                 className="mood-board-stage"
                 id="mood-board-panel"
-                role="tabpanel"
-                aria-labelledby={`mood-tab-${activeMood.id}`}
                 aria-busy={refsPending}
               >
                 <figure
@@ -725,9 +641,8 @@ export function HouseExplorer() {
                 <div className="mood-side">
                   <div
                     className="mood-gallery"
-                    role="listbox"
+                    role="group"
                     aria-label={`${activeMood.label} references`}
-                    aria-activedescendant={`mood-thumb-${moodImageIndex}`}
                   >
                     {activeMood.images.map((image, index) => {
                       const selected = index === moodImageIndex;
@@ -736,15 +651,15 @@ export function HouseExplorer() {
                           key={`${image.src}-${image.caption}`}
                           type="button"
                           id={`mood-thumb-${index}`}
-                          role="option"
-                          aria-selected={selected}
+                          aria-pressed={selected}
+                          aria-label={image.alt}
                           className={selected ? "mood-thumb is-active" : "mood-thumb"}
                           onClick={() => selectMoodImage(index)}
                         >
                           <MoodMedia
                             key={image.src}
                             src={image.src}
-                            alt={image.alt}
+                            alt=""
                             sizes="(max-width: 800px) 28vw, 14vw"
                             priority={index < 4}
                           />
@@ -765,7 +680,7 @@ export function HouseExplorer() {
                     className="mobile-inline-cta mobile-only"
                     onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
                   >
-                    Step inside
+                    Open house model
                   </button>
                 </div>
               </div>
@@ -804,6 +719,8 @@ export function HouseExplorer() {
               id="detail-sheet"
               className={sheetOpen ? "detail is-open" : "detail"}
               aria-live="polite"
+              aria-hidden={compact ? !sheetOpen : undefined}
+              inert={compact && !sheetOpen ? true : undefined}
             >
               <div className="sheet-chrome mobile-only">
                 <button

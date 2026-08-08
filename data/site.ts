@@ -1,18 +1,17 @@
 /**
  * Public brand + share surface for Sage Court.
- * Quiet luxury remodel of a measured single-storey house —
- * lime-wash, oak, microcement, Belgian sage frames.
+ * Single-storey remodel — lime-wash, oak, microcement, Belgian sage frames.
  */
 export const site = {
   name: "Sage Court",
   shortName: "Sage Court",
-  wordmark: { primary: "Sage", secondary: "Court" },
-  tagline: "A quiet single-storey remodel",
+  wordmark: { primary: "Sage Court", secondary: "" },
+  tagline: "Measured single-storey remodel",
   description:
-    "A measured single-storey remodel — plan, model, and room finishes in one quiet place.",
+    "Plan, model, and room finishes for a single-storey remodel — lime-wash, oak, microcement, Belgian sage frames.",
   /** ~150 chars — WhatsApp / iMessage preview. */
   shareDescription:
-    "A quiet single-storey remodel. Plan, model, and finishes — lime-wash, oak, sage Belgian frames.",
+    "Single-storey remodel in Israel. Measured plan, 3D model, finishes — lime-wash, oak, sage Belgian frames.",
   ogAlt:
     "Living opening to a timber terrace at dusk — lime-wash plaster, microcement, sage frames.",
   locale: "en_IL",

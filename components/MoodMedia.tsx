@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
-import { gsap, motionEase, useGSAP } from "@/lib/gsap";
 
 const loadedSrcs = new Set<string>();
 
@@ -29,28 +28,6 @@ type MoodMediaProps = {
 export function MoodMedia({ src, alt, sizes, priority = false, className }: MoodMediaProps) {
   const [loaded, setLoaded] = useState(() => loadedSrcs.has(src));
   const mediaRef = useRef<HTMLImageElement | null>(null);
-
-  useGSAP(
-    () => {
-      if (!loaded || !mediaRef.current) return;
-      const media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.fromTo(
-          mediaRef.current,
-          { opacity: 0, scale: 1.025 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.65,
-            ease: motionEase,
-            overwrite: "auto",
-            clearProps: "opacity,transform",
-          },
-        );
-      });
-    },
-    { dependencies: [loaded, src] },
-  );
 
   return (
     <>

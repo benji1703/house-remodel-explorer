@@ -1,18 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Figtree, Newsreader } from "next/font/google";
 import { site, siteUrl } from "@/data/site";
 import "./globals.css";
 
-const display = Fraunces({
+const display = Newsreader({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
 });
 
-const sans = Manrope({
+const sans = Figtree({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
 });
 
 const absoluteUrl = siteUrl();
@@ -75,7 +76,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#f5f5f7",
+  themeColor: "#e2e5df",
 };
 
 const jsonLd = {

@@ -186,7 +186,7 @@ export const house = {
 export const statusCopy: Record<GeometryStatus, string> = {
   measured: "Dimensioned",
   traced: "Visible in source",
-  "needs-confirmation": "Confirm",
+  "needs-confirmation": "Needs confirmation",
 };
 
 export const geometryApprovalItems: ApprovalItem[] = [

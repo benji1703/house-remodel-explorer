@@ -1,8 +1,8 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { ContactShadows, Environment, Html, Lightformer, OrbitControls } from "@react-three/drei";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
 
@@ -11,7 +11,33 @@ type Props = {
   onSelectZone: (id: ZoneId) => void;
   designMode: boolean;
   quality: "high" | "light";
+  showMeasurements?: boolean;
+  onCameraAzimuth?: (radians: number) => void;
 };
+
+// Matches OrbitControls' target below; shared so the azimuth tracker orbits
+// around the same point the camera actually does.
+const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
+// Minimum change (~0.5°) before we bother lifting a new azimuth value up.
+const AZIMUTH_EPSILON = 0.0087;
+
+/** Reports the camera's azimuth around ORBIT_TARGET, throttled to avoid excessive re-renders. */
+function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians: number) => void }) {
+  const last = useRef(0);
+  useFrame(({ camera }) => {
+    if (!onCameraAzimuth) return;
+    // The footprint's z=0 edge is north (see house.footprint / VectorPlan's
+    // top-dimension line), so -Z is north in this scene. With OrbitControls'
+    // up axis fixed to world Y, the needle's screen rotation equals this
+    // azimuth directly (see MeasuredHouseScene report for the derivation).
+    const azimuth = Math.atan2(camera.position.x - ORBIT_TARGET[0], camera.position.z - ORBIT_TARGET[2]);
+    if (Math.abs(azimuth - last.current) > AZIMUTH_EPSILON) {
+      last.current = azimuth;
+      onCameraAzimuth(azimuth);
+    }
+  });
+  return null;
+}
 
 // Scene centring, so the measured footprint orbits around the origin.
 const CX = 5.7;
@@ -425,11 +451,13 @@ function ZoneFloor({
   selected,
   onSelect,
   palette,
+  showMeasurements,
 }: {
   zone: HouseZone;
   selected: boolean;
   onSelect: () => void;
   palette: Palette;
+  showMeasurements: boolean;
 }) {
   const cx = zone.x + zone.width / 2 - CX;
   const cz = zone.z + zone.depth / 2 - CZ;
@@ -469,6 +497,18 @@ function ZoneFloor({
           {zone.shortLabel}
         </span>
       </Html>
+      {showMeasurements && (
+        <Html
+          center
+          position={[cx, zone.level + 1.55, cz]}
+          distanceFactor={13}
+          style={{ pointerEvents: "none" }}
+        >
+          <span className={`measurement-chip status-${zone.status}`}>
+            {Math.round(zone.width * 100)} × {Math.round(zone.depth * 100)} cm
+          </span>
+        </Html>
+      )}
     </group>
   );
 }
@@ -540,6 +580,8 @@ export function MeasuredHouseScene({
   onSelectZone,
   designMode,
   quality,
+  showMeasurements = false,
+  onCameraAzimuth,
 }: Props) {
   const palette = getPalette(designMode);
   const zoneById = useMemo(
@@ -630,6 +672,7 @@ export function MeasuredHouseScene({
           selected={selectedZone === zone.id}
           onSelect={() => onSelectZone(zone.id)}
           palette={palette}
+          showMeasurements={showMeasurements}
         />
       ))}
 
@@ -680,9 +723,10 @@ export function MeasuredHouseScene({
       )}
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
+      <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} />
       <OrbitControls
         makeDefault
-        target={[-1.2, 0.7, 0.4]}
+        target={ORBIT_TARGET}
         minDistance={9}
         maxDistance={28}
         minPolarAngle={0.24}

@@ -114,13 +114,20 @@ button { color: inherit; }
 .mode-toggle button { border: 0; border-radius: 999px; background: transparent; padding: 7px 11px; color: #6d7168; font-size: 10px; cursor: pointer; }
 .mode-toggle button.is-active { background: #2f342c; color: white; }
 
+.measurements-toggle { position: absolute; z-index: 6; top: 74px; right: 27px; display: flex; padding: 3px; border: 1px solid rgba(43,48,40,.12); border-radius: 999px; background: rgba(250,249,245,.7); backdrop-filter: blur(10px); }
+.measurements-toggle button { border: 0; border-radius: 999px; background: transparent; padding: 7px 11px; color: #6d7168; font-size: 10px; cursor: pointer; }
+.measurements-toggle button.is-active { background: #2f342c; color: white; }
+
 .orientation { position: absolute; z-index: 5; left: 28px; bottom: 25px; display: flex; flex-direction: column; align-items: center; font-size: 9px; }
-.orientation span { width: 1px; height: 24px; margin-top: 4px; background: #4f554c; position: relative; }
+.orientation span { width: 1px; height: 24px; margin-top: 4px; background: #4f554c; position: relative; transition: transform .1s linear; }
 .orientation span::before { content: ""; position: absolute; top: -2px; left: -3px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-bottom: 5px solid #4f554c; }
 .stage-note { position: absolute; z-index: 5; right: 25px; bottom: 23px; padding: 7px 9px; background: rgba(244,242,236,.72); color: #666b62; font-size: 9px; letter-spacing: .02em; backdrop-filter: blur(8px); }
 
 .scene-label { display: grid; place-items: center; min-width: 28px; height: 20px; padding: 0 6px; border: 1px solid rgba(40,44,37,.16); border-radius: 999px; background: rgba(251,250,246,.86); box-shadow: 0 3px 12px rgba(54,50,43,.12); color: #474c43; font: 700 8px/1 var(--font-geist-mono), monospace; white-space: nowrap; }
 .scene-label.is-selected { background: #bd6a38; border-color: #bd6a38; color: white; }
+
+.measurement-chip { display: grid; place-items: center; min-width: 28px; height: 18px; padding: 0 6px; border: 1px solid rgba(40,44,37,.16); border-radius: 999px; background: rgba(251,250,246,.92); box-shadow: 0 3px 10px rgba(54,50,43,.1); color: #666b62; font: 500 8px/1 var(--font-geist-mono), monospace; white-space: nowrap; }
+.measurement-chip.status-needs-confirmation { background: #f3e2d6; color: #9a572f; }
 
 .inspector { min-height: 610px; padding: 26px 24px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); display: flex; flex-direction: column; }
 .inspector-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 34px; }

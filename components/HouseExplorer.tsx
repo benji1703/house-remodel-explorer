@@ -111,6 +111,8 @@ export function HouseExplorer() {
   const [designMode, setDesignMode] = useState(true);
   const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
+  const [showMeasurements, setShowMeasurements] = useState(false);
+  const [cameraAzimuth, setCameraAzimuth] = useState(0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -175,10 +177,28 @@ export function HouseExplorer() {
                   <button className={!designMode ? "is-active" : ""} onClick={() => setDesignMode(false)}>Survey</button>
                   <button className={designMode ? "is-active" : ""} onClick={() => setDesignMode(true)}>Material study</button>
                 </div>
+                {webglSupport === true && (
+                  <div className="measurements-toggle">
+                    <button
+                      className={showMeasurements ? "is-active" : ""}
+                      aria-pressed={showMeasurements}
+                      onClick={() => setShowMeasurements((value) => !value)}
+                    >
+                      {showMeasurements ? "Hide measurements" : "Show measurements"}
+                    </button>
+                  </div>
+                )}
                 <div className="three-stage">
                   {webglSupport === true && (
                     <Suspense fallback={<div className="model-loading">Loading 3D shell…</div>}>
-                      <MeasuredHouseScene selectedZone={selectedZone} onSelectZone={(id) => navigate({ zone: id }, "replace")} designMode={designMode} quality={quality} />
+                      <MeasuredHouseScene
+                        selectedZone={selectedZone}
+                        onSelectZone={(id) => navigate({ zone: id }, "replace")}
+                        designMode={designMode}
+                        quality={quality}
+                        showMeasurements={showMeasurements}
+                        onCameraAzimuth={setCameraAzimuth}
+                      />
                     </Suspense>
                   )}
                   {webglSupport === false && (
@@ -189,7 +209,10 @@ export function HouseExplorer() {
                   )}
                   {webglSupport === null && <div className="model-loading">Preparing measured shell…</div>}
                 </div>
-                <div className="orientation"><b>N</b><span /></div>
+                <div className="orientation">
+                  <b>N</b>
+                  <span style={webglSupport === true ? { transform: `rotate(${cameraAzimuth}rad)` } : undefined} />
+                </div>
                 <div className="stage-note">Outer shell: dimensioned source · Walls sectioned at 1.5 m · Partitions, openings and furniture: first-pass design proposal</div>
               </>
             )}

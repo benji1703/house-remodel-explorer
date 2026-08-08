@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-17.jpeg",
+    "caption": "Shadow",
+    "alt": "Kitchen plaster wall in east shadow",
+    "prompt": "Photoreal interior photo, 3:2 landscape, soft east daylight casting restrained frame shadows across warm lime-wash plaster, edge of a light oak cabinet run and honed travertine counter, microcement floor, calm architectural material study, no people, no text, no purple, no cold gray, no busy decor.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-17.jpeg",
+    "caption": "Bench",
+    "alt": "Living room oak bench in terrace light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, low light European oak bench near sage aluminium terrace glazing #b8c9a8, woven natural-fiber cushion, lime-wash plaster wall, microcement floor, filtered west light, quiet-luxury restraint, no people, no text, no purple, no cold gray.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-17.jpeg",
+    "caption": "Planter",
+    "alt": "Terrace stone planter in pergola light",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, low honed stone planter with restrained green foliage beside warm lime-wash wall, pergola-filtered light, mineral paving and sage-painted opening in background, quiet-luxury simplicity, no people, no text, no purple plants, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-17.jpeg",
+    "caption": "Footboard",
+    "alt": "Bedroom oak footboard in window light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, low pale European oak bed footboard with crisp linen bedding above, warm microcement floor, lime-wash plaster background, natural window light raking across the grain, no people, no text, no purple, no cold gray, no busy decor.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-17.jpeg",
+    "caption": "Latch",
+    "alt": "Bronze latch on sage aluminium frame",
+    "prompt": "Photoreal architectural close-up, 3:2 landscape, compact bronze latch fitted to a sage aluminium Belgian frame #b8c9a8, warm lime-wash plaster reveal and soft natural light, precise restrained detailing, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-17.jpeg",
+    "caption": "Niche",
+    "alt": "Guest wall niche in plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, simple plaster wall niche beside a guest bed, lime-wash finish, light European oak floor, sage Belgian aluminium window light, chair in background, warm minimal interior, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-17.jpeg",
+    "caption": "Shadow",
+    "alt": "East bedroom plaster in window light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, daylight shadows across lime-wash plaster in east bedroom, edge of oak dresser and daybed, light European oak floor, sage Belgian aluminium window, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-17.jpeg",
+    "caption": "Towel",
+    "alt": "Bathroom towel on plaster wall",
+    "prompt": "Photoreal interior photo, 3:2 landscape, natural towel on simple bathroom hook against lime-wash plaster, microcement floor, oak vanity, daylight from sage Belgian aluminium window, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-17.jpeg",
+    "caption": "Shelf",
+    "alt": "Ensuite oak shelf beside mirror",
+    "prompt": "Photoreal interior photo, 3:2 landscape, small light European oak shelf beside an ensuite mirror, lime-wash plaster, microcement floor, soft natural light, minimal bathroom objects, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

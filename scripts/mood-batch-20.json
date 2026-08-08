@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-20.jpeg",
+    "caption": "Patina",
+    "alt": "Kitchen travertine and oak in soft light",
+    "prompt": "Photoreal interior close-up, 3:2 landscape, junction of honed travertine, light European oak and hand-finished lime-wash plaster, subtle natural variation and use marks, soft side light, refined quiet-luxury material photography, no people, no text, no purple, no cold gray, no staged clutter.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-20.jpeg",
+    "caption": "Twilight",
+    "alt": "Living room plaster volume at evening light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, living room at blue-hour transition with warm residual west light, lime-wash plaster retaining warm tones, low linen furniture, light oak details, microcement floor, terrace glazing softly reflective, no people, no text, no purple cast, no cold office gray, no clutter.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-20.jpeg",
+    "caption": "Lantern",
+    "alt": "Terrace wall lantern at dusk light",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, small bronze wall lantern mounted on warm lime-wash plaster beside sage aluminium doors #b8c9a8, pergola vine silhouette and mineral paving at dusk, low warm illumination, no people, no text, no purple cast, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-20.jpeg",
+    "caption": "Morning",
+    "alt": "Bedroom linen and plaster in morning light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, unoccupied bedroom with cream linen bedding, pale European oak joinery, warm lime-wash plaster and microcement floor under soft morning daylight, minimal quiet-luxury styling, no people, no text, no purple, no cold gray, no clutter.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-20.jpeg",
+    "caption": "Threshold",
+    "alt": "Oak door threshold in natural light",
+    "prompt": "Photoreal architectural detail, 3:2 landscape, light European oak door leaf meeting a restrained mineral threshold and warm microcement floor, lime-wash plaster jamb left visibly hand-finished, soft natural light, no people, no text, no purple, no cold gray, no added ornament.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-20.jpeg",
+    "caption": "Corner",
+    "alt": "Guest bed corner in window light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, guest bedroom corner with bed, chair, lime-wash plaster, light European oak floor, sage Belgian aluminium window, soft natural light, floor left empty, quiet-luxury warm minimalism, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-20.jpeg",
+    "caption": "Sill",
+    "alt": "East bedroom sill in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, sage Belgian aluminium bedroom window sill with lime-wash plaster reveal, oak dresser below, bed edge, light European oak floor, soft natural daylight, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-20.jpeg",
+    "caption": "Threshold",
+    "alt": "Bathroom oak threshold at microcement floor",
+    "prompt": "Photoreal interior photo, 3:2 landscape, light European oak threshold meeting microcement bathroom floor, lime-wash plaster, oak vanity and sage Belgian aluminium window light, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-20.jpeg",
+    "caption": "Corner",
+    "alt": "Ensuite vanity and toilet in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, compact master ensuite corner with light European oak vanity, toilet, mirror, lime-wash plaster and microcement, soft natural daylight, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

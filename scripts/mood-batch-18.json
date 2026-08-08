@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-18.jpeg",
+    "caption": "Shelf",
+    "alt": "Kitchen oak shelf in north light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, single thick light European oak shelf recessed into lime-wash plaster, two neutral ceramics, honed travertine surface below, diffuse north daylight, warm quiet-luxury restraint, tactile natural materials, no people, no text, no purple, no cold gray.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-18.jpeg",
+    "caption": "Rug",
+    "alt": "Living room wool rug in west light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, close low view of an undyed wool rug over warm microcement, edge of low linen seating and light oak furniture, long soft west light, lime-wash plaster background, minimal quiet-luxury styling, no people, no text, no purple, no cold gray.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-18.jpeg",
+    "caption": "Eaves",
+    "alt": "Terrace pergola edge in afternoon light",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, upward architectural view of a simple pergola edge, vine leaves and warm lime-wash facade, soft afternoon light producing delicate shadows, sage aluminium frame #b8c9a8 below, no people, no text, no purple, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-18.jpeg",
+    "caption": "Sconce",
+    "alt": "Bedroom plaster sconce in evening light",
+    "prompt": "Photoreal interior detail, 3:2 landscape, small sculptural plaster wall sconce beside a linen headboard, warm lime-wash wall, pale oak bedside shelf, soft evening illumination balanced with residual daylight, no people, no text, no purple cast, no cold gray.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-18.jpeg",
+    "caption": "Pivot",
+    "alt": "Light oak pivot door in daylight",
+    "prompt": "Photoreal interior architectural photo, 3:2 landscape, simple light European oak pivot door partially open within a warm lime-wash plaster opening, soft daylight passing around the leaf, microcement floor continuing through, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-18.jpeg",
+    "caption": "Curtain",
+    "alt": "Guest window curtain in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, linen curtain beside sage Belgian aluminium window in a guest bedroom, lime-wash plaster, light European oak floor, bed edge and chair, soft natural daylight, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-18.jpeg",
+    "caption": "Bench",
+    "alt": "East bedroom oak bench by bed",
+    "prompt": "Photoreal interior photo, 3:2 landscape, simple light European oak bench beside a bed in east bedroom, lime-wash plaster walls, sage Belgian aluminium window, soft south and east daylight, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-18.jpeg",
+    "caption": "Plaster",
+    "alt": "Bathroom plaster beside microcement",
+    "prompt": "Photoreal interior photo, 3:2 landscape, lime-wash plaster meeting microcement in a wet room, light European oak vanity, sage Belgian aluminium window light, minimal bathroom fittings, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-18.jpeg",
+    "caption": "Tap",
+    "alt": "Ensuite tap above oak vanity",
+    "prompt": "Photoreal interior photo, 3:2 landscape, minimal basin tap above light European oak vanity in master ensuite, lime-wash plaster wall, microcement floor, natural light, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

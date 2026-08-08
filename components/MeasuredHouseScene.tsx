@@ -73,14 +73,24 @@ type Opening = {
   sill: number;
   head: number;
   style?: "hinged" | "sliding";
+  /** Hinged: +1 opens toward local +Z, −1 toward local −Z. */
+  swing?: 1 | -1;
+  /** Sliding: +1 stacks toward local +X, −1 toward local −X. */
+  slide?: 1 | -1;
 };
 
-const door = (at: number, width = 0.9, style: "hinged" | "sliding" = "hinged"): Opening => ({
+const door = (
+  at: number,
+  width = 0.9,
+  opts: { style?: "hinged" | "sliding"; swing?: 1 | -1; slide?: 1 | -1 } = {},
+): Opening => ({
   at,
   width,
   sill: 0,
   head: DOOR_HEAD,
-  style,
+  style: opts.style ?? "hinged",
+  swing: opts.swing ?? 1,
+  slide: opts.slide ?? 1,
 });
 const window_ = (at: number, width = 1.4): Opening => ({
   at,
@@ -96,14 +106,14 @@ const exteriorOpenings: Record<number, Opening[]> = {
   // Kitchen east: window north; main entry further south (near living open).
   1: [
     window_(0.85, 1.2),
-    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD },
+    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD, swing: 1 },
   ],
   2: [window_(1.9)],
   3: [window_(1.8), window_(5.0)],
   // South facade (east→west): E2, main bath, ensuite, master.
   4: [window_(1.9), window_(5.2, 1.0), window_(7.25, 0.7), window_(9.7, 1.5)],
   // Master west exit (remodel) — north of bed, clear of south nightstands.
-  5: [{ at: 2.9, width: MASTER_EXIT_WIDTH, sill: 0, head: MASTER_EXIT_HEAD }],
+  5: [{ at: 2.9, width: MASTER_EXIT_WIDTH, sill: 0, head: MASTER_EXIT_HEAD, swing: 1 }],
   6: [window_(1.7)],
   7: [{ at: 2.2, width: WEST_OPENING_WIDTH, sill: 0, head: WEST_OPENING_HEAD }],
 };
@@ -117,12 +127,17 @@ function openingKind(opening: Opening): "window" | "door" | "terrace" {
 // Proposed internal partitions, derived from the zone boxes in data/house.ts.
 // Owner request (2026-08-07): no wall between kitchen and living room — that
 // run (a=[3.4,3.8] b=[7.6,3.8]) is intentionally omitted, open-plan.
+//
+// Wall local frame: +X along a→b, exterior/right-hand side is local −Z for
+// northbound partitions — bedrooms & baths sit on −Z, so swing −1 into them.
 const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Opening[] }> = [
-  { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8), door(4.3)] },
+  // Living↔E1/E2: open into bedrooms (local −Z / east).
+  { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8, 0.9, { swing: -1 }), door(4.3, 0.9, { swing: -1 })] },
   { a: [7.6, 8.55], b: [11.4, 8.55], openings: [] },
-  // Master↔bath wall: hinged into bath at z≈9.3; ensuite sliding at z≈11.3.
-  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0), door(3.0, 0.8, "sliding")] },
-  { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8)] },
+  // Master↔bath: hinged into bath (−Z); ensuite slides toward −X (south along wall).
+  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0, 0.9, { swing: -1 }), door(3.0, 0.8, { style: "sliding", slide: -1 })] },
+  // Living↔main bath: open into bath (local +Z / south).
+  { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8, { swing: 1 })] },
   { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
 ];
 

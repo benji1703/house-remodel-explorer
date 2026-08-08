@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-15.jpeg",
+    "caption": "Ledge",
+    "alt": "Kitchen travertine ledge in east light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, honed travertine window ledge holding one handmade stoneware bowl, lime-wash plaster reveal, sage aluminium frame #b8c9a8, soft east light across the stone, light oak visible beyond, warm minimal quiet-luxury composition, no people, no text, no purple, no cold gray.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-15.jpeg",
+    "caption": "Daybed",
+    "alt": "Living room linen daybed by terrace light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, low linen-upholstered daybed positioned near west terrace glazing, light European oak base, lime-wash plaster volume and warm microcement floor, soft afternoon light, sparse tonal textiles, no people, no text, no purple, no cold gray, no clutter.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-15.jpeg",
+    "caption": "Climber",
+    "alt": "Terrace vine against lime-wash plaster",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, green climbing vine loosely trained across warm lime-wash plaster, filtered afternoon light, sage aluminium door frame #b8c9a8 at the edge, minimal planting palette, no people, no text, no purple blooms, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-15.jpeg",
+    "caption": "Bedding",
+    "alt": "Bedroom linen bedding in afternoon light",
+    "prompt": "Photoreal interior detail, 3:2 landscape, layered washed flax linen bedding in cream and oat tones, pale oak bed base, warm lime-wash wall, soft afternoon daylight, tactile quiet-luxury material focus, no people, no text, no purple, no cold gray.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-15.jpeg",
+    "caption": "Handle",
+    "alt": "Bronze handle on light oak door",
+    "prompt": "Photoreal close-up, 3:2 landscape, unlacquered bronze lever handle on a light European oak door leaf, visible oak grain, warm plaster softly out of focus, natural window light, quiet-luxury hardware study, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-15.jpeg",
+    "caption": "Floor",
+    "alt": "Guest room oak floor in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, guest bedroom viewed across an empty light European oak floor toward a bed and chair, lime-wash plaster, sage Belgian aluminium window, soft daylight, warm minimal styling, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-15.jpeg",
+    "caption": "Linen",
+    "alt": "East bed linen in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, layered natural linen on east bedroom bed, lime-wash plaster, light European oak floor, sage Belgian aluminium fenestration, soft cross light, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-15.jpeg",
+    "caption": "Mirror",
+    "alt": "Bathroom mirror above oak vanity",
+    "prompt": "Photoreal interior photo, 3:2 landscape, simple mirror above a light European oak bathroom vanity, lime-wash plaster, microcement floor, natural light from sage Belgian aluminium window, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-15.jpeg",
+    "caption": "Plaster",
+    "alt": "Ensuite plaster wall in daylight",
+    "prompt": "Photoreal interior photo, 3:2 landscape, lime-wash plaster wall in a master ensuite with mirror and oak vanity edge, microcement floor, soft natural light, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

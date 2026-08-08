@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-14.jpeg",
+    "caption": "Toe Kick",
+    "alt": "Kitchen oak base units in floor light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, low-angle material view of light European oak base cabinets with recessed toe kick above a seamless warm microcement floor, honed travertine counter, grazing natural light, precise shadow lines, quiet-luxury restraint, no people, no text, no purple, no cold gray, no busy accessories.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-14.jpeg",
+    "caption": "Plaster",
+    "alt": "Living room lime-wash wall in grazing light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, close architectural study of hand-applied warm lime-wash plaster under grazing west light, subtle tonal movement, light oak skirting detail and microcement floor, minimal quiet-luxury styling, no people, no text, no purple, no cold gray.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-14.jpeg",
+    "caption": "Paving",
+    "alt": "Terrace mineral paving in dappled light",
+    "prompt": "Photoreal exterior detail, 3:2 landscape, warm honed mineral paving with subtle tonal variation under dappled vine shade, lime-wash wall edge and sage-painted threshold nearby, restrained quiet-luxury material study, no people, no text, no purple, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-14.jpeg",
+    "caption": "Wardrobe",
+    "alt": "Bedroom oak wardrobe in soft light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, flush pale European oak wardrobe fronts with matched grain and discreet pulls, warm lime-wash plaster return, microcement floor, diffuse natural light, quiet-luxury restraint, no people, no text, no purple, no cold gray, no clutter.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-14.jpeg",
+    "caption": "Jamb",
+    "alt": "Plaster door jamb in side light",
+    "prompt": "Photoreal architectural detail, 3:2 landscape, honest hand-finished lime-wash plaster jamb meeting a light oak door leaf, fine shadow gap and soft side light, warm microcement floor at the base, no people, no text, no purple, no cold gray, no decorative trim.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-14.jpeg",
+    "caption": "Headboard",
+    "alt": "Guest bed against lime-wash plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, upholstered guest bed headboard against lime-wash plaster, light European oak floor, sage Belgian aluminium window light, minimal bedside object, warm quiet-luxury interior, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-14.jpeg",
+    "caption": "Window",
+    "alt": "East bedroom window in plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, sage Belgian aluminium window framed by lime-wash plaster in an east bedroom, oak dresser and bed edge, natural light entering from two directions, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-14.jpeg",
+    "caption": "Window",
+    "alt": "Bathroom Belgian window with plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, sage Belgian aluminium bathroom window set in lime-wash plaster, microcement floor, edge of oak vanity, daylight entering wet room, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-14.jpeg",
+    "caption": "Basin",
+    "alt": "Ensuite basin on oak vanity",
+    "prompt": "Photoreal interior photo, 3:2 landscape, basin on a compact light European oak vanity, lime-wash plaster, microcement surface, soft daylight in master ensuite, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

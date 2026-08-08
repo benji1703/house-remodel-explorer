@@ -630,7 +630,7 @@ export function HouseExplorer() {
                   />
                   <figcaption>
                     <span>{heroMoodImage.caption}</span>
-                    <small className="desktop-only">Arrow keys step photos</small>
+                    <small className="desktop-only">Keys step</small>
                   </figcaption>
                 </figure>
                 <div className="mood-side">
@@ -655,7 +655,7 @@ export function HouseExplorer() {
                             key={image.src}
                             src={image.src}
                             alt=""
-                            sizes="(max-width: 800px) 28vw, 14vw"
+                            sizes="80px"
                             priority={index < 4}
                           />
                         </button>

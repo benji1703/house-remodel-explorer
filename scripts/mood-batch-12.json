@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-12.jpeg",
+    "caption": "Travertine",
+    "alt": "Kitchen travertine worktop in window light",
+    "prompt": "Photoreal interior detail, 3:2 landscape, honed cream travertine worktop meeting flat-front light European oak cabinetry, subtle stone pores and eased edge, lime-wash plaster behind, soft natural window light from the east, warm quiet-luxury material study, sparse styling, no people, no text, no purple, no cold gray.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-12.jpeg",
+    "caption": "Console",
+    "alt": "Living room oak console in natural light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, slim light European oak console against textured lime-wash plaster, one stone vessel, warm microcement floor, soft natural side light, restrained quiet-luxury composition, no people, no text, no purple, no cold gray, no busy decor.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-12.jpeg",
+    "caption": "Trellis",
+    "alt": "Terrace vine trellis in morning light",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, close view of a simple trellis supporting green vine against warm lime-wash plaster, soft morning light, pale oak-toned outdoor detail and mineral paving, sparse planting, no people, no text, no purple flowers, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-12.jpeg",
+    "caption": "Bedside",
+    "alt": "Bedroom oak bedside shelf in natural light",
+    "prompt": "Photoreal interior detail, 3:2 landscape, floating pale European oak bedside shelf against tactile lime-wash plaster, one ceramic lamp and folded linen, soft natural side light, minimal Bottega-inspired material styling, no people, no text, no purple, no cold gray.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-12.jpeg",
+    "caption": "Casement",
+    "alt": "Sage aluminium casement in morning light",
+    "prompt": "Photoreal architectural photo, 3:2 landscape, open sage aluminium casement #b8c9a8 against warm lime-wash plaster, slim Belgian frame profile, soft morning light across the honest reveal, light oak detail nearby, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-12.jpeg",
+    "caption": "Chair",
+    "alt": "Guest chair beside oak floor",
+    "prompt": "Photoreal interior photo, 3:2 landscape, guest bedroom reading chair near lime-wash plaster wall, light European oak floor, Belgian fenestration in sage aluminium, soft natural light, open empty floor, warm minimal material palette, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-12.jpeg",
+    "caption": "Dresser",
+    "alt": "East oak dresser near window",
+    "prompt": "Photoreal interior photo, 3:2 landscape, light European oak dresser in east bedroom, lime-wash plaster wall, sage Belgian aluminium window, soft daylight from two directions, restrained objects, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-12.jpeg",
+    "caption": "Shower",
+    "alt": "Bathroom microcement shower with plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, wet room shower surface in microcement and lime-wash plaster, light European oak vanity edge, sage Belgian aluminium window light, minimal fittings, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-12.jpeg",
+    "caption": "Mirror",
+    "alt": "Ensuite mirror above plaster vanity",
+    "prompt": "Photoreal interior photo, 3:2 landscape, simple mirror above a light European oak vanity in master ensuite, lime-wash plaster wall, microcement floor, natural daylight, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

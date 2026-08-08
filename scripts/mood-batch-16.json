@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-16.jpeg",
+    "caption": "Joinery",
+    "alt": "Kitchen oak joinery in natural light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, frontal study of flush light European oak joinery with integrated pulls and matched grain, honed travertine work surface, lime-wash plaster surround, soft natural daylight, Bottega-inspired quiet-luxury detailing, minimal objects, no people, no text, no purple, no cold gray.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-16.jpeg",
+    "caption": "Corner",
+    "alt": "Living room plaster corner in west light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, quiet corner where two lime-wash plaster planes meet a seamless microcement floor, low oak side piece and one linen cushion, soft west daylight, warm minimal Bottega-inspired material palette, no people, no text, no purple, no cold gray.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-16.jpeg",
+    "caption": "Return",
+    "alt": "Terrace painted doors in shaded light",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, view from the shaded terrace back through painted sage aluminium Belgian doors #b8c9a8 into a warm plaster and oak interior, vine shadows crossing mineral paving, soft balanced daylight, no people, no text, no purple, no cold gray.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-16.jpeg",
+    "caption": "Court",
+    "alt": "Bedroom court exit in west light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, view toward the west exit to a private planted court, sage aluminium Belgian frame #b8c9a8, natural linen curtain, lime-wash plaster reveal, pale oak furniture edge, soft late daylight, no people, no text, no purple, no cold gray.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-16.jpeg",
+    "caption": "Transom",
+    "alt": "Sage aluminium transom in north light",
+    "prompt": "Photoreal architectural photo, 3:2 landscape, Belgian-style sage aluminium transom #b8c9a8 within a warm lime-wash plaster opening, diffuse north light through clear glass, slender frame profiles and honest reveals, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-16.jpeg",
+    "caption": "Linen",
+    "alt": "Guest bed linen in window light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, natural bed linen on a guest bed, lime-wash plaster wall, Belgian sage aluminium window, light European oak floor, soft daylight across bedding, floor kept empty, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-16.jpeg",
+    "caption": "Oak",
+    "alt": "East dresser with oak grain",
+    "prompt": "Photoreal interior photo, 3:2 landscape, close interior view of light European oak dresser grain, lime-wash plaster wall, bedroom bed in background, sage Belgian aluminium window light, soft natural light, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-16.jpeg",
+    "caption": "Drain",
+    "alt": "Bathroom microcement floor with drain",
+    "prompt": "Photoreal interior photo, 3:2 landscape, close view of microcement wet-room floor and linear drain, lime-wash plaster wall, oak vanity in background, soft light from Belgian sage aluminium window, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-16.jpeg",
+    "caption": "Floor",
+    "alt": "Ensuite microcement floor with oak",
+    "prompt": "Photoreal interior photo, 3:2 landscape, master ensuite microcement floor meeting light European oak vanity, lime-wash plaster wall, toilet in background, soft daylight, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

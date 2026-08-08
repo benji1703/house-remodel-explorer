@@ -1,0 +1,74 @@
+[
+  {
+    "boardId": "north-extension",
+    "file": "mood-kitchen-19.jpeg",
+    "caption": "Passage",
+    "alt": "Kitchen passage with oak and plaster",
+    "prompt": "Photoreal interior photo, 3:2 landscape, view from the oak-and-travertine kitchen toward the open living threshold, lime-wash plaster continuing between spaces, seamless warm microcement floor, soft natural light from east and west, low uncluttered furnishings beyond, no people, no text, no purple, no cold gray.",
+    "ref": "mood-kitchen.jpeg"
+  },
+  {
+    "boardId": "central-core",
+    "file": "mood-living-19.jpeg",
+    "caption": "Portal",
+    "alt": "Living room plaster opening in natural light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, broad plaster-lined opening linking the living volume to the oak kitchen, continuous warm microcement floor, lime-wash surfaces, layered natural light, low furnishings kept clear of the passage, no people, no text, no purple, no cold gray.",
+    "ref": "mood-living.jpeg"
+  },
+  {
+    "boardId": "terrace",
+    "file": "mood-terrace-19.jpeg",
+    "caption": "Shade",
+    "alt": "Terrace dining area in vine shade",
+    "prompt": "Photoreal exterior photo, 3:2 landscape, broad patch of vine-filtered shade sheltering a restrained oak dining setting, warm mineral paving, lime-wash house return and sage-painted doors, soft natural contrast, no people, no text, no purple, no cold gray, no busy decor.",
+    "ref": "mood-terrace.jpeg"
+  },
+  {
+    "boardId": "southwest-room",
+    "file": "mood-master-19.jpeg",
+    "caption": "Dresser",
+    "alt": "Bedroom oak dresser in west light",
+    "prompt": "Photoreal interior photo, 3:2 landscape, low pale European oak dresser against lime-wash plaster, one honed stone tray, soft west light and warm microcement floor, restrained quiet-luxury composition, no people, no text, no purple, no cold gray.",
+    "ref": "mood-master.jpeg"
+  },
+  {
+    "boardId": "openings",
+    "file": "mood-openings-19.jpeg",
+    "caption": "Glazing",
+    "alt": "Sage aluminium glazing in west light",
+    "prompt": "Photoreal architectural photo, 3:2 landscape, sage aluminium Belgian glazing #b8c9a8 catching soft west light, warm plaster reveal, subtle garden reflection and light oak interior edge, quiet-luxury material palette, no people, no text, no purple, no cold gray.",
+    "ref": "mood-openings-01.jpeg"
+  },
+  {
+    "boardId": "east-upper-room",
+    "file": "mood-east-upper-19.jpeg",
+    "caption": "Lamp",
+    "alt": "Guest bedside lamp on oak",
+    "prompt": "Photoreal interior photo, 3:2 landscape, compact bedside lamp on light European oak furniture, guest bed against lime-wash plaster, soft daylight from sage Belgian aluminium window, open floor, warm minimalism, no people, no text.",
+    "ref": "mood-east-upper.jpeg"
+  },
+  {
+    "boardId": "east-lower-room",
+    "file": "mood-east-lower-19.jpeg",
+    "caption": "Corner",
+    "alt": "East bedroom corner with dresser",
+    "prompt": "Photoreal interior photo, 3:2 landscape, east bedroom corner with light European oak dresser and daybed, lime-wash plaster, sage Belgian aluminium fenestration, soft cross light, warm minimal furnishings, no people, no text.",
+    "ref": "mood-east-lower.jpeg"
+  },
+  {
+    "boardId": "service-core",
+    "file": "mood-bath-19.jpeg",
+    "caption": "Fittings",
+    "alt": "Bathroom fittings on microcement wall",
+    "prompt": "Photoreal interior photo, 3:2 landscape, restrained shower fittings on microcement wall, lime-wash plaster adjoining wall, oak vanity edge, soft natural bathroom light, no people, no text.",
+    "ref": "mood-bath.jpeg"
+  },
+  {
+    "boardId": "ensuite",
+    "file": "mood-ensuite-19.jpeg",
+    "caption": "Towel",
+    "alt": "Ensuite towel on plaster wall",
+    "prompt": "Photoreal interior photo, 3:2 landscape, natural towel on a hook in master ensuite, lime-wash plaster, microcement floor, oak vanity and mirror, soft daylight, no people, no text.",
+    "ref": "mood-ensuite.jpeg"
+  }
+]

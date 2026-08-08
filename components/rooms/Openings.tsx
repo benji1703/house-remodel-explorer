@@ -19,6 +19,10 @@ export type OpeningSpec = {
   head: number;
   /** Hinged (default) or wall-sliding leaf. */
   style?: "hinged" | "sliding";
+  /** Hinged: +1 → local +Z, −1 → local −Z. */
+  swing?: 1 | -1;
+  /** Sliding: +1 stacks toward local +X, −1 toward −X. */
+  slide?: 1 | -1;
 };
 
 const FRAME = 0.04; // ~40 mm outer frame — narrow Belgian profile
@@ -185,20 +189,23 @@ export function BelgianWindow({
   );
 }
 
-/** Light-oak hinged door — full jamb through the wall, leaf opens inward (+Z). */
+/** Light-oak hinged door — full jamb through the wall. */
 export function BelgianDoor({
   width,
   head,
   palette,
   ajar = 0.55,
+  swing = 1,
   exterior = false,
   wallThickness = 0.2,
 }: {
   width: number;
   head: number;
   palette: Palette;
-  /** Radians open into the room (local +Z). */
+  /** Radians open. */
   ajar?: number;
+  /** +1 opens toward local +Z, −1 toward local −Z. */
+  swing?: 1 | -1;
   exterior?: boolean;
   wallThickness?: number;
 }) {
@@ -210,19 +217,18 @@ export function BelgianDoor({
   const leafW = width - FRAME * 2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
-  // Closed leaf centered in the wall; swings toward local +Z (interior / into room).
   const hingeZ = 0;
+  // Left hinge: −Y rot → +Z; flip with swing.
+  const rotY = -swing * ajar;
 
   return (
     <group position={[0, midY, 0]}>
       <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} />
-      {/* Hinge on left jamb — negative Y rotation opens the leaf into +Z. */}
-      <group position={[-(width / 2 - FRAME), 0, hingeZ]} rotation-y={-ajar}>
+      <group position={[-(width / 2 - FRAME), 0, hingeZ]} rotation-y={rotY}>
         <group position={[leafW / 2, 0, 0]}>
           <mesh material={wood} castShadow receiveShadow>
             <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />
           </mesh>
-          {/* Second face plate so the leaf reads solid from both rooms */}
           <mesh position={[0, 0, DOOR_LEAF_THICK / 2 + 0.002]} material={wood} castShadow>
             <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
           </mesh>
@@ -238,7 +244,6 @@ export function BelgianDoor({
           <mesh position={[0, glassY, -(DOOR_LEAF_THICK / 2 + 0.006)]} material={wood}>
             <boxGeometry args={[MUNTIN, glassH, 0.012]} />
           </mesh>
-          {/* Handles both faces */}
           <mesh
             position={[leafW * 0.35, -h * 0.05, DOOR_LEAF_THICK / 2 + 0.018]}
             material={palette.charcoal}
@@ -272,6 +277,7 @@ export function SlidingDoor({
   head,
   palette,
   open = 0.72,
+  slide = 1,
   wallThickness = 0.12,
 }: {
   width: number;
@@ -279,6 +285,8 @@ export function SlidingDoor({
   palette: Palette;
   /** 0 = closed, 1 = fully stacked clear of the opening. */
   open?: number;
+  /** +1 stacks toward local +X, −1 toward −X. */
+  slide?: 1 | -1;
   wallThickness?: number;
 }) {
   const h = head;
@@ -287,17 +295,17 @@ export function SlidingDoor({
   const leafW = width - FRAME * 1.2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
-  const slide = Math.min(Math.max(open, 0), 0.92) * leafW;
+  const travel = Math.min(Math.max(open, 0), 0.92) * leafW * slide;
   const trackZ = 0;
+  const closedX = -width / 2 + FRAME * 0.6 + leafW / 2;
 
   return (
     <group position={[0, midY, 0]}>
       <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} />
-      {/* Top track */}
       <mesh position={[0, h / 2 - FRAME * 0.6, trackZ]} material={palette.charcoal}>
         <boxGeometry args={[width - FRAME, 0.02, 0.028]} />
       </mesh>
-      <group position={[-width / 2 + FRAME * 0.6 + leafW / 2 + slide, 0, trackZ]}>
+      <group position={[closedX + travel, 0, trackZ]}>
         <mesh material={wood} castShadow receiveShadow>
           <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />
         </mesh>
@@ -308,13 +316,13 @@ export function SlidingDoor({
           <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
         </mesh>
         <mesh
-          position={[leafW * 0.32, 0, DOOR_LEAF_THICK / 2 + 0.016]}
+          position={[leafW * 0.32 * slide, 0, DOOR_LEAF_THICK / 2 + 0.016]}
           material={palette.charcoal}
         >
           <boxGeometry args={[0.018, 0.1, 0.028]} />
         </mesh>
         <mesh
-          position={[leafW * 0.32, 0, -(DOOR_LEAF_THICK / 2 + 0.016)]}
+          position={[leafW * 0.32 * slide, 0, -(DOOR_LEAF_THICK / 2 + 0.016)]}
           material={palette.charcoal}
         >
           <boxGeometry args={[0.018, 0.1, 0.028]} />
@@ -417,6 +425,7 @@ export function OpeningOnWall({
           head={opening.head}
           palette={palette}
           open={0.7}
+          slide={opening.slide ?? 1}
           wallThickness={wallThickness}
         />
       )}
@@ -426,6 +435,7 @@ export function OpeningOnWall({
           head={opening.head}
           palette={palette}
           ajar={exterior ? 0.62 : 0.7}
+          swing={opening.swing ?? 1}
           exterior={exterior}
           wallThickness={wallThickness}
         />

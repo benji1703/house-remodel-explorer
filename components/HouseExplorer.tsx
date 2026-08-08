@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import { DimensionedOverlay } from "./DimensionedOverlay";
@@ -83,9 +84,30 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
   );
 }
 
+const VIEWS: View[] = ["model", "plan", "references"];
+const isView = (value: string | null): value is View => VIEWS.includes(value as View);
+const isZoneId = (value: string | null): value is ZoneId =>
+  house.zones.some((zone) => zone.id === value);
+
 export function HouseExplorer() {
-  const [view, setView] = useState<View>("model");
-  const [selectedZone, setSelectedZone] = useState<ZoneId>("north-extension");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const viewParam = searchParams.get("view");
+  const zoneParam = searchParams.get("zone");
+  const view: View = isView(viewParam) ? viewParam : "model";
+  const selectedZone: ZoneId = isZoneId(zoneParam) ? zoneParam : "north-extension";
+
+  const navigate = (next: { view?: View; zone?: ZoneId }, mode: "push" | "replace" = "push") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", next.view ?? view);
+    params.set("zone", next.zone ?? selectedZone);
+    const url = `${pathname}?${params.toString()}`;
+    if (mode === "replace") router.replace(url, { scroll: false });
+    else router.push(url, { scroll: false });
+  };
+
   const [designMode, setDesignMode] = useState(true);
   const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
@@ -112,10 +134,10 @@ export function HouseExplorer() {
       <aside className="side-rail" aria-label="Primary navigation">
         <a className="brand-mark" href="#top" aria-label="House remodel home">H<span>01</span></a>
         <nav>
-          <button className="rail-button is-active" aria-label="House overview"><Icon name="home" /></button>
-          <button className="rail-button" aria-label="3D explorer" onClick={() => setView("model")}><Icon name="cube" /></button>
-          <button className="rail-button" aria-label="Measured plan" onClick={() => setView("plan")}><Icon name="grid" /></button>
-          <button className="rail-button" aria-label="Reference materials" onClick={() => setView("references")}><Icon name="layers" /></button>
+          <button className="rail-button" aria-label="Reset to overview" onClick={() => navigate({ view: "model", zone: "north-extension" })}><Icon name="home" /></button>
+          <button className={view === "model" ? "rail-button is-active" : "rail-button"} aria-label="3D explorer" aria-current={view === "model"} onClick={() => navigate({ view: "model" })}><Icon name="cube" /></button>
+          <button className={view === "plan" ? "rail-button is-active" : "rail-button"} aria-label="Measured plan" aria-current={view === "plan"} onClick={() => navigate({ view: "plan" })}><Icon name="grid" /></button>
+          <button className={view === "references" ? "rail-button is-active" : "rail-button"} aria-label="Reference materials" aria-current={view === "references"} onClick={() => navigate({ view: "references" })}><Icon name="layers" /></button>
         </nav>
         <button className="rail-button rail-bottom" aria-label="Design mode" onClick={() => setDesignMode((value) => !value)}><Icon name="sun" /></button>
       </aside>
@@ -135,9 +157,9 @@ export function HouseExplorer() {
         </header>
 
         <div className="view-tabs" role="tablist" aria-label="Explorer views">
-          <button className={view === "model" ? "is-active" : ""} onClick={() => setView("model")} role="tab">3D shell</button>
-          <button className={view === "plan" ? "is-active" : ""} onClick={() => setView("plan")} role="tab">Plan audit</button>
-          <button className={view === "references" ? "is-active" : ""} onClick={() => setView("references")} role="tab">Visual references</button>
+          <button className={view === "model" ? "is-active" : ""} onClick={() => navigate({ view: "model" })} role="tab">3D shell</button>
+          <button className={view === "plan" ? "is-active" : ""} onClick={() => navigate({ view: "plan" })} role="tab">Plan audit</button>
+          <button className={view === "references" ? "is-active" : ""} onClick={() => navigate({ view: "references" })} role="tab">Visual references</button>
         </div>
 
         <div className="content-grid">
@@ -156,12 +178,12 @@ export function HouseExplorer() {
                 <div className="three-stage">
                   {webglSupport === true && (
                     <Suspense fallback={<div className="model-loading">Loading 3D shell…</div>}>
-                      <MeasuredHouseScene selectedZone={selectedZone} onSelectZone={setSelectedZone} designMode={designMode} quality={quality} />
+                      <MeasuredHouseScene selectedZone={selectedZone} onSelectZone={(id) => navigate({ zone: id }, "replace")} designMode={designMode} quality={quality} />
                     </Suspense>
                   )}
                   {webglSupport === false && (
                     <div className="webgl-fallback">
-                      <VectorPlan selected={selectedZone} onSelect={setSelectedZone} />
+                      <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
                       <p>Interactive plan fallback · 3D is unavailable on this device</p>
                     </div>
                   )}
@@ -240,7 +262,7 @@ export function HouseExplorer() {
           </div>
           <div className="zone-cards">
             {house.zones.map((zone, index) => (
-              <button key={zone.id} className={selectedZone === zone.id ? "zone-card is-active" : "zone-card"} onClick={() => { setSelectedZone(zone.id); setView("model"); }}>
+              <button key={zone.id} className={selectedZone === zone.id ? "zone-card is-active" : "zone-card"} onClick={() => navigate({ zone: zone.id, view: "model" })}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 <strong>{zone.label}</strong>
                 <small>{statusCopy[zone.status]}</small>

@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { HouseExplorer } from "@/components/HouseExplorer";
 
 export default function Home() {
-  return <HouseExplorer />;
+  return (
+    <Suspense fallback={null}>
+      <HouseExplorer />
+    </Suspense>
+  );
 }

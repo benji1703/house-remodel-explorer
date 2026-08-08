@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition } from "react";
+import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
@@ -216,6 +216,52 @@ export function HouseExplorer() {
     const boardCovers = roomMoodBoards.map((board) => board.images[0]?.src).filter(Boolean) as string[];
     prefetchMoodSrcs([...current, ...neighbors, ...boardCovers]);
   }, [view, activeMood, moodImageIndex, moodImageCount]);
+
+  useEffect(() => {
+    if (view !== "references") return;
+    const tab = document.getElementById(`mood-tab-${selectedMood}`);
+    const nav = tab?.closest(".mood-index-nav");
+    if (!tab || !nav) return;
+    const left = tab.offsetLeft - (nav.clientWidth - tab.clientWidth) / 2;
+    nav.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [view, selectedMood]);
+
+  useEffect(() => {
+    if (view !== "references") return;
+    const thumb = document.getElementById(`mood-thumb-${moodImageIndex}`);
+    const gallery = thumb?.closest(".mood-gallery");
+    if (!thumb || !gallery) return;
+    const left = thumb.offsetLeft - (gallery.clientWidth - thumb.clientWidth) / 2;
+    gallery.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [view, selectedMood, moodImageIndex]);
+
+  const moodTouch = useRef<{ x: number; y: number } | null>(null);
+
+  const stepMoodImage = (step: number) => {
+    if (moodImageCount < 2) return;
+    setMoodImageByBoard((prev) => {
+      const current = prev[selectedMood] ?? 0;
+      const next = ((current + step) % moodImageCount + moodImageCount) % moodImageCount;
+      return { ...prev, [selectedMood]: next };
+    });
+  };
+
+  const onMoodHeroTouchStart = (event: TouchEvent<HTMLElement>) => {
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    moodTouch.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const onMoodHeroTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    const start = moodTouch.current;
+    moodTouch.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    stepMoodImage(dx < 0 ? 1 : -1);
+  };
 
   useGSAP(
     () => {
@@ -657,7 +703,12 @@ export function HouseExplorer() {
                 aria-labelledby={`mood-tab-${activeMood.id}`}
                 aria-busy={refsPending}
               >
-                <figure className="mood-hero" key={heroMoodImage.src}>
+                <figure
+                  className="mood-hero"
+                  key={heroMoodImage.src}
+                  onTouchStart={onMoodHeroTouchStart}
+                  onTouchEnd={onMoodHeroTouchEnd}
+                >
                   <MoodMedia
                     key={heroMoodImage.src}
                     src={heroMoodImage.src}
@@ -707,14 +758,14 @@ export function HouseExplorer() {
                         <li key={finish}>{finish}</li>
                       ))}
                     </ul>
-                    <button
-                      type="button"
-                      className="mobile-inline-cta mobile-only"
-                      onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
-                    >
-                      Open in model
-                    </button>
                   </div>
+                  <button
+                    type="button"
+                    className="mobile-inline-cta mobile-only"
+                    onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
+                  >
+                    Open in model
+                  </button>
                 </div>
               </div>
             </div>

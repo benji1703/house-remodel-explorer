@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Html, OrbitControls } from "@react-three/drei";
+import { ContactShadows, Environment, Html, Lightformer, OrbitControls } from "@react-three/drei";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
@@ -20,6 +20,10 @@ const CZ = 6.05;
 // First-pass design proposals, not measured values. The model is drawn as a
 // horizontal section so interiors stay visible; walls are cut at SECTION.
 const SECTION = 1.5;
+// Low west sun: the terrace and the big living opening face west, so a late
+// afternoon key light rakes in through the pergola like the moodboard photos.
+const SUN_POSITION: [number, number, number] = [-14, 7.5, -3.5];
+const SUN_DIRECTION = new THREE.Vector3(...SUN_POSITION).normalize();
 const EXT_THICKNESS = designAssumptions.exteriorWallThicknessCm / 100;
 const INT_THICKNESS = designAssumptions.interiorWallThicknessCm / 100;
 const DOOR_HEAD = 2.1;
@@ -84,10 +88,12 @@ function buildPalette(designMode: boolean) {
       }),
       frame: standard("#7a7a76", 0.6),
       oak: grey,
+      timber: grey,
       upholstery: standard("#c4c3bd", 0.9),
       stone: standard("#c9c8c2", 0.7),
       charcoal: standard("#6f6f6b", 0.7),
       greenery: standard("#a5a9a0", 0.9),
+      vine: standard("#9ca396", 0.9),
       terracotta: standard("#b7b3aa", 0.85),
       floors: {
         "north-extension": grey,
@@ -102,31 +108,36 @@ function buildPalette(designMode: boolean) {
   }
 
   // Finishes read from the outdoor moodboard: lime wash, microcement,
-  // natural oak, light travertine, warm beige/taupe/charcoal.
-  const travertine = standard("#cfc7b7", 0.72);
-  const microcement = standard("#c4bcae", 0.88);
+  // natural oak, light travertine, warm beige/taupe/charcoal. Plaster and
+  // textiles are pushed to full roughness so the low sun never leaves a
+  // plastic specular hotspot on them.
+  const travertine = standard("#d6cec0", 0.78);
+  const microcement = standard("#cdc5b7", 0.9);
   return {
-    exterior: standard("#e4dacb", 0.95),
-    interior: standard("#efe7db", 0.94),
-    ground: standard("#cdc6b8", 0.94),
+    exterior: standard("#eae1d2", 0.98),
+    interior: standard("#f2ebe0", 0.97),
+    ground: standard("#c8bfae", 0.95),
     glass: new THREE.MeshStandardMaterial({
-      color: "#cddfe0",
-      roughness: 0.08,
-      metalness: 0.1,
+      color: "#bcd2d6",
+      roughness: 0.05,
+      metalness: 0.25,
+      envMapIntensity: 1.5,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.18,
     }),
-    frame: standard("#33312d", 0.5, 0.2),
-    oak: standard("#a9743f", 0.68),
-    upholstery: standard("#ded2be", 0.95),
+    frame: standard("#2f2d2a", 0.42, 0.28),
+    oak: standard("#bd8a51", 0.62),
+    timber: standard("#8f6238", 0.78),
+    upholstery: standard("#e3d9c7", 1),
     stone: travertine,
-    charcoal: standard("#3a3733", 0.7),
-    greenery: standard("#7f8f6e", 0.9),
-    terracotta: standard("#b98f6c", 0.85),
+    charcoal: standard("#38352f", 0.62),
+    greenery: standard("#8b9a76", 0.95),
+    vine: standard("#63784f", 0.92),
+    terracotta: standard("#c0906a", 0.88),
     floors: {
-      "north-extension": standard("#b98d5c", 0.7),
-      "central-core": standard("#c19768", 0.68),
-      "southwest-room": standard("#b5895a", 0.72),
+      "north-extension": standard("#c99a63", 0.6),
+      "central-core": standard("#cfa26b", 0.58),
+      "southwest-room": standard("#c4945f", 0.62),
       "east-upper-room": microcement,
       "east-lower-room": microcement,
       "service-core": travertine,
@@ -349,6 +360,7 @@ function Bathroom({
 
 function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "light" }) {
   const slats = quality === "high" ? 15 : 8;
+  const vines = quality === "high" ? 11 : 5;
   const posts: Array<[number, number]> = [
     [0.55, 4.0],
     [3.1, 4.0],
@@ -359,10 +371,10 @@ function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "li
     <group>
       <Blk x={1.8} z={5.9} y={0} w={3.2} d={5.0} h={0.08} material={palette.stone} />
       {posts.map(([x, z]) => (
-        <Blk key={`${x}-${z}`} x={x} z={z} y={0.08} w={0.14} d={0.14} h={2.5} material={palette.oak} />
+        <Blk key={`${x}-${z}`} x={x} z={z} y={0.08} w={0.14} d={0.14} h={2.5} material={palette.timber} />
       ))}
-      <Blk x={0.55} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.oak} />
-      <Blk x={3.1} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.oak} />
+      <Blk x={0.55} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
+      <Blk x={3.1} z={5.9} y={designAssumptions.pergola.heightCm / 100 - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
       {Array.from({ length: slats }, (_, index) => (
         <Blk
           key={index}
@@ -372,9 +384,25 @@ function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "li
           w={2.9}
           d={0.09}
           h={0.14}
-          material={palette.oak}
+          material={palette.timber}
         />
       ))}
+      {/* Climbing greenery over the pergola, as on the moodboard. */}
+      {Array.from({ length: vines }, (_, index) => {
+        const z = 4.1 + (index * 3.6) / (vines - 1);
+        const x = index % 2 === 0 ? 0.6 : 3.05;
+        const radius = 0.24 + ((index * 7) % 5) * 0.035;
+        return (
+          <mesh
+            key={`vine-${index}`}
+            position={[x - CX, designAssumptions.pergola.heightCm / 100 + 0.02, z - CZ]}
+            material={palette.vine}
+            castShadow
+          >
+            <icosahedronGeometry args={[radius, 0]} />
+          </mesh>
+        );
+      })}
       {/* Olive trees in planters. */}
       {[
         [0.95, 3.4],
@@ -382,7 +410,7 @@ function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "li
       ].map(([x, z]) => (
         <group key={`${x}-${z}`}>
           <Cyl x={x} z={z} y={0.08} r={0.32} h={0.55} material={palette.terracotta} segments={14} />
-          <Cyl x={x} z={z} y={0.63} r={0.07} h={0.7} material={palette.oak} segments={8} />
+          <Cyl x={x} z={z} y={0.63} r={0.07} h={0.7} material={palette.timber} segments={8} />
           <mesh position={[x - CX, 1.6, z - CZ]} material={palette.greenery} castShadow>
             <sphereGeometry args={[0.55, 12, 10]} />
           </mesh>
@@ -445,6 +473,52 @@ function ZoneFloor({
   );
 }
 
+/**
+ * Dusk gradient dome, vertex-coloured in JS so no texture or shader chunk is
+ * needed: lavender-blue zenith down to a warm peach horizon that brightens
+ * towards the sun, matching the evening sky in the outdoor moodboard.
+ */
+function SkyDome() {
+  const geometry = useMemo(() => {
+    const zenith = new THREE.Color("#8ea4c6");
+    const horizon = new THREE.Color("#f0dcc1");
+    const haze = new THREE.Color("#cfc3ac");
+    const glow = new THREE.Color("#ffcf9a");
+    const sun = SUN_DIRECTION;
+
+    const sphere = new THREE.SphereGeometry(60, 32, 20);
+    const position = sphere.getAttribute("position");
+    const colors = new Float32Array(position.count * 3);
+    const dir = new THREE.Vector3();
+    const color = new THREE.Color();
+
+    for (let i = 0; i < position.count; i += 1) {
+      dir.fromBufferAttribute(position, i).normalize();
+      const up = dir.y;
+      if (up >= 0) {
+        color.copy(horizon).lerp(zenith, THREE.MathUtils.smoothstep(up, 0, 0.55));
+      } else {
+        color.copy(horizon).lerp(haze, THREE.MathUtils.smoothstep(-up, 0, 0.3));
+      }
+      const towardsSun = Math.max(0, dir.dot(sun));
+      const nearHorizon = 1 - THREE.MathUtils.smoothstep(Math.abs(up), 0, 0.7);
+      color.lerp(glow, Math.pow(towardsSun, 4) * nearHorizon * 0.6);
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
+    }
+
+    sphere.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    return sphere;
+  }, []);
+
+  return (
+    <mesh geometry={geometry} frustumCulled={false}>
+      <meshBasicMaterial vertexColors side={THREE.BackSide} fog={false} depthWrite={false} />
+    </mesh>
+  );
+}
+
 function GroundSlab({ palette }: { palette: Palette }) {
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
@@ -482,34 +556,70 @@ export function MeasuredHouseScene({
   return (
     <Canvas
       dpr={quality === "high" ? [1, 1.75] : [0.75, 1.15]}
-      shadows={quality === "high"}
-      camera={{ position: [11.5, 10.5, 12.5], fov: 34, near: 0.1, far: 120 }}
+      shadows={quality === "high" ? "soft" : false}
+      // Framed from the west, across the pergola and through the big living
+      // opening — the moodboard's hero angle — rather than the old plan-like
+      // view from the blank south-east corner.
+      camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
       gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
     >
-      <color attach="background" args={[designMode ? "#ece5d8" : "#e9e5dc"]} />
-      <fog attach="fog" args={[designMode ? "#ece5d8" : "#e9e5dc", 22, 42]} />
+      <color attach="background" args={[designMode ? "#e9dcc6" : "#e9e5dc"]} />
+      <fog attach="fog" args={[designMode ? "#e6d8c2" : "#e9e5dc", 24, 46]} />
+      {designMode && <SkyDome />}
 
-      <hemisphereLight args={["#e2e8f0", "#c2ab8d", 1.1]} />
-      <ambientLight intensity={0.45} />
+      {/* A single-frame lightformer probe stands in for an HDRI: warm sun wall
+          to the west, cool sky overhead, sand bounce below. No external asset. */}
+      {designMode && (
+        <Environment frames={1} resolution={quality === "high" ? 256 : 64}>
+          <color attach="background" args={["#3a3730"]} />
+          <Lightformer form="rect" intensity={3.2} color="#ffd7a3" scale={[16, 6, 1]} position={[-14, 4, -3]} />
+          <Lightformer form="rect" intensity={1.1} color="#b7cde9" scale={[18, 18, 1]} position={[0, 14, 0]} />
+          <Lightformer form="rect" intensity={0.5} color="#c8b28e" scale={[20, 20, 1]} position={[0, -8, 0]} />
+        </Environment>
+      )}
+
+      <hemisphereLight args={["#c9d8ea", "#c2a681", designMode ? 0.5 : 1.1]} />
+      <ambientLight intensity={designMode ? 0.16 : 0.45} />
       <directionalLight
-        position={[9, 13, 6]}
-        intensity={2.3}
-        color="#fff1dc"
+        position={designMode ? SUN_POSITION : [9, 13, 6]}
+        intensity={designMode ? 3 : 2.3}
+        color={designMode ? "#ffd3a1" : "#fff1dc"}
         castShadow={quality === "high"}
         shadow-mapSize-width={quality === "high" ? 2048 : 512}
         shadow-mapSize-height={quality === "high" ? 2048 : 512}
-        shadow-camera-left={-11}
-        shadow-camera-right={11}
-        shadow-camera-top={11}
-        shadow-camera-bottom={-11}
+        shadow-camera-left={-13}
+        shadow-camera-right={13}
+        shadow-camera-top={13}
+        shadow-camera-bottom={-13}
         shadow-camera-far={45}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.03}
+        shadow-radius={quality === "high" ? 3 : 1}
       />
-      <directionalLight position={[-8, 6, -6]} intensity={0.55} color="#ccd8e8" />
+      <directionalLight
+        position={designMode ? [9, 6, 7] : [-8, 6, -6]}
+        intensity={designMode ? 0.45 : 0.55}
+        color={designMode ? "#a9c2e0" : "#ccd8e8"}
+      />
       {designMode && quality === "high" && (
         <>
           <pointLight position={[0, 2.1, 0.2]} intensity={9} distance={7} color="#ffb877" />
           <pointLight position={[-0.1, 2.1, -4.2]} intensity={7} distance={6} color="#ffbe86" />
+          {/* Pergola downlight, matching the terrace spots on the moodboard. */}
+          <pointLight position={[-3.9, 2.4, -0.15]} intensity={6} distance={6.5} color="#ffc27f" />
         </>
+      )}
+      {designMode && quality === "light" && (
+        <ContactShadows
+          frames={1}
+          position={[0, 0.105, 0]}
+          scale={17}
+          resolution={512}
+          blur={2.6}
+          far={2.4}
+          opacity={0.42}
+          color="#6b5a44"
+        />
       )}
 
       <GroundSlab palette={palette} />
@@ -569,10 +679,10 @@ export function MeasuredHouseScene({
         </>
       )}
 
-      <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />
+      {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
       <OrbitControls
         makeDefault
-        target={[0, 0.6, 0]}
+        target={[-1.2, 0.7, 0.4]}
         minDistance={9}
         maxDistance={28}
         minPolarAngle={0.24}

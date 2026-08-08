@@ -1,17 +1,17 @@
 /**
- * Public brand + share surface for Sage Court.
+ * Public brand + share surface for Villa Nehama.
  * Single-storey remodel — lime-wash, oak, microcement, Belgian sage frames.
  */
 export const site = {
-  name: "Sage Court",
-  shortName: "Sage Court",
-  wordmark: { primary: "Sage Court", secondary: "" },
+  name: "Villa Nehama",
+  shortName: "Villa Nehama",
+  wordmark: { primary: "Villa Nehama", secondary: "" },
   tagline: "Measured single-storey remodel",
   description:
-    "Plan, model, and room finishes for a single-storey remodel — lime-wash, oak, microcement, Belgian sage frames.",
+    "Plan, model, and room finishes for Villa Nehama — lime-wash, oak, microcement, Belgian sage frames.",
   /** ~150 chars — WhatsApp / iMessage preview. */
   shareDescription:
-    "Single-storey remodel in Israel. Measured plan, 3D model, finishes — lime-wash, oak, sage Belgian frames.",
+    "Villa Nehama remodel in Israel. Measured plan, 3D model, finishes — lime-wash, oak, sage Belgian frames.",
   ogAlt:
     "Living opening to a timber terrace at dusk — lime-wash plaster, microcement, sage frames.",
   locale: "en_IL",

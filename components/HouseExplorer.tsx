@@ -158,12 +158,6 @@ export function HouseExplorer() {
           </div>
         </header>
 
-        <div className="view-tabs" role="tablist" aria-label="Explorer views">
-          <button className={view === "model" ? "is-active" : ""} onClick={() => navigate({ view: "model" })} role="tab">3D shell</button>
-          <button className={view === "plan" ? "is-active" : ""} onClick={() => navigate({ view: "plan" })} role="tab">Plan audit</button>
-          <button className={view === "references" ? "is-active" : ""} onClick={() => navigate({ view: "references" })} role="tab">Visual references</button>
-        </div>
-
         <div className="content-grid">
           <section className="stage-card">
             {view === "model" && (

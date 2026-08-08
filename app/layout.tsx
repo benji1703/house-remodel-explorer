@@ -16,9 +16,6 @@ export const metadata: Metadata = {
   title: "House Remodel Explorer",
   description:
     "An accurate, room-by-room digital record of the house remodel.",
-  other: {
-    "codex-preview": "development",
-  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

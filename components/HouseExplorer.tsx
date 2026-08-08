@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { lazy, Suspense, startTransition, useEffect, useState, useTransition } from "react";
+import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
+import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
@@ -141,6 +142,13 @@ export function HouseExplorer() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [refsPending, startRefsTransition] = useTransition();
+  const shellRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLElement>(null);
+  const detailRef = useRef<HTMLElement>(null);
+  const scrimRef = useRef<HTMLButtonElement>(null);
+  const introDone = useRef(false);
+  const skipViewMotion = useRef(true);
+  const sheetWasOpen = useRef(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -209,6 +217,150 @@ export function HouseExplorer() {
     prefetchMoodSrcs([...current, ...neighbors, ...boardCovers]);
   }, [view, activeMood, moodImageIndex, moodImageCount]);
 
+  useGSAP(
+    () => {
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({ defaults: { ease: motionEase } });
+        tl.from(".app-bar", { y: -18, opacity: 0, duration: 0.7, clearProps: "all" })
+          .from(".stage", { opacity: 0, y: 22, scale: 0.985, duration: 0.85, transformOrigin: "50% 50%", clearProps: "all" }, "-=0.45")
+          .from(".detail", { opacity: 0, x: 24, duration: 0.65, clearProps: "opacity,x" }, "-=0.55")
+          .from(".tab-bar", { y: 24, opacity: 0, duration: 0.5, clearProps: "all" }, "-=0.45")
+          .from(".mobile-room-rail", { y: 12, opacity: 0, duration: 0.4, clearProps: "all" }, "-=0.35");
+        introDone.current = true;
+      });
+      media.add("(prefers-reduced-motion: reduce)", () => {
+        introDone.current = true;
+      });
+    },
+    { scope: shellRef },
+  );
+
+  useGSAP(
+    () => {
+      if (skipViewMotion.current) {
+        skipViewMotion.current = false;
+        return;
+      }
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const stage = stageRef.current;
+        if (!stage) return;
+        gsap.fromTo(
+          stage,
+          { opacity: 0.35, y: 18 },
+          { opacity: 1, y: 0, duration: 0.55, ease: motionEase, overwrite: "auto" },
+        );
+        const hud = stage.querySelector(".stage-hud");
+        const toolbar = stage.querySelector(".stage-toolbar");
+        const masthead = stage.querySelector(".mood-masthead");
+        const intro = stage.querySelector(".view-intro");
+        gsap.fromTo(
+          [toolbar, hud, masthead, intro].filter(Boolean),
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: motionEase, delay: 0.05 },
+        );
+      });
+    },
+    { scope: shellRef, dependencies: [view] },
+  );
+
+  useGSAP(
+    () => {
+      if (view !== "references") return;
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          ".mood-masthead-title",
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.6, ease: motionEase, overwrite: "auto" },
+        );
+        gsap.fromTo(
+          ".mood-masthead-lede",
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.5, ease: motionEase, delay: 0.05, overwrite: "auto" },
+        );
+        gsap.fromTo(
+          ".mood-board-stage",
+          { opacity: 0, y: 18 },
+          { opacity: 1, y: 0, duration: 0.55, ease: motionEase, delay: 0.08, overwrite: "auto" },
+        );
+      });
+    },
+    { scope: shellRef, dependencies: [selectedMood, view] },
+  );
+
+  useGSAP(
+    () => {
+      if (view !== "model") return;
+      const media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        gsap.fromTo(
+          ".hud-card",
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.45, ease: motionEase, overwrite: "auto" },
+        );
+      });
+    },
+    { scope: shellRef, dependencies: [selectedZone, view] },
+  );
+
+  useGSAP(
+    () => {
+      const media = gsap.matchMedia();
+      media.add("(max-width: 800px) and (prefers-reduced-motion: no-preference)", () => {
+        const detail = detailRef.current;
+        const scrim = scrimRef.current;
+        if (!detail) return;
+        const wasOpen = sheetWasOpen.current;
+        sheetWasOpen.current = sheetOpen;
+
+        if (sheetOpen) {
+          gsap.set(detail, { display: "flex", pointerEvents: "auto" });
+          gsap.set(scrim, { pointerEvents: "auto" });
+          gsap.fromTo(scrim, { opacity: 0 }, { opacity: 1, duration: 0.28, ease: motionEase, overwrite: "auto" });
+          gsap.fromTo(
+            detail,
+            { yPercent: 108 },
+            { yPercent: 0, duration: 0.5, ease: motionEase, overwrite: "auto" },
+          );
+          gsap.fromTo(
+            detail.querySelectorAll("h2, .detail-copy, .measure-list, .detail-list, .detail-cta, .detail-note, .detail-head, .detail-kicker"),
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.4, stagger: 0.04, delay: 0.12, ease: motionEase, clearProps: "opacity,y" },
+          );
+          return;
+        }
+
+        // Already closed (view switch / remount) — park off-screen, never steal taps.
+        gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
+        gsap.set(detail, { yPercent: 108, pointerEvents: "none" });
+        if (!wasOpen) return;
+
+        gsap.to(scrim, {
+          opacity: 0,
+          duration: 0.22,
+          ease: motionEaseIn,
+          overwrite: "auto",
+        });
+        gsap.fromTo(
+          detail,
+          { yPercent: 0, pointerEvents: "none" },
+          { yPercent: 108, duration: 0.38, ease: motionEaseIn, overwrite: "auto" },
+        );
+      });
+      media.add("(max-width: 800px) and (prefers-reduced-motion: reduce)", () => {
+        const detail = detailRef.current;
+        const scrim = scrimRef.current;
+        sheetWasOpen.current = sheetOpen;
+        if (!detail) return;
+        gsap.set(detail, { clearProps: "transform,y,yPercent", pointerEvents: sheetOpen ? "auto" : "none" });
+        gsap.set(scrim, { opacity: sheetOpen ? 1 : 0, pointerEvents: sheetOpen ? "auto" : "none" });
+      });
+    },
+    { scope: shellRef, dependencies: [sheetOpen, compact, view] },
+  );
+
   const selectMoodBoard = (id: MoodBoardId) => {
     startRefsTransition(() => {
       navigate({ view: "references", mood: id }, "replace");
@@ -225,7 +377,20 @@ export function HouseExplorer() {
 
   const goToView = (next: View) => {
     setSheetOpen(false);
-    navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next });
+    sheetWasOpen.current = false;
+    // Kill any leftover sheet transforms so the tab bar stays tappable.
+    const detail = detailRef.current;
+    const scrim = scrimRef.current;
+    if (detail) {
+      gsap.killTweensOf(detail);
+      gsap.set(detail, { yPercent: 108, pointerEvents: "none", clearProps: "transform,y" });
+    }
+    if (scrim) {
+      gsap.killTweensOf(scrim);
+      gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
+    }
+    if (next === view) return;
+    navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next }, "replace");
   };
 
   const detailPanel = view === "references" ? (
@@ -308,7 +473,7 @@ export function HouseExplorer() {
   );
 
   return (
-    <main className={sheetOpen ? "shell is-sheet-open" : "shell"}>
+    <main ref={shellRef} className={sheetOpen ? "shell is-sheet-open has-motion" : "shell has-motion"}>
       <header className="app-bar">
         <a className="logo" href="#top" aria-label="House remodel home">
           <span className="logo-mark">House</span>
@@ -332,7 +497,6 @@ export function HouseExplorer() {
         </nav>
 
         <div className="app-bar-end">
-          <span className="status-pill desktop-only">In progress</span>
           {view === "model" && (
             <button
               type="button"
@@ -347,6 +511,7 @@ export function HouseExplorer() {
 
       <div className={`app-body is-${view}`} id="top">
         <section
+          ref={stageRef}
           className={`stage is-${view}`}
           aria-label={view === "model" ? "House model" : view === "plan" ? "Measured plan" : "References"}
         >
@@ -575,6 +740,7 @@ export function HouseExplorer() {
         {view !== "plan" && (
           <>
             <button
+              ref={scrimRef}
               type="button"
               className={sheetOpen ? "sheet-scrim is-open mobile-only" : "sheet-scrim mobile-only"}
               aria-label="Close details"
@@ -582,10 +748,10 @@ export function HouseExplorer() {
               onClick={() => setSheetOpen(false)}
             />
             <aside
+              ref={detailRef}
               id="detail-sheet"
               className={sheetOpen ? "detail is-open" : "detail"}
               aria-live="polite"
-              aria-hidden={undefined}
             >
               <div className="sheet-chrome mobile-only">
                 <button

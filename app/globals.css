@@ -139,13 +139,6 @@ button { color: inherit; }
   gap: 10px;
 }
 
-.status-pill {
-  color: var(--faint);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
-
 .ghost-button {
   border: 0;
   border-radius: 999px;
@@ -1154,7 +1147,7 @@ button { color: inherit; }
     flex-direction: column;
   }
 
-  .shell.is-sheet-open {
+  .shell.is-sheet-open .app-body {
     touch-action: none;
   }
 
@@ -1306,6 +1299,8 @@ button { color: inherit; }
 
   .tab-bar {
     display: grid !important;
+    position: relative;
+    z-index: 80;
     grid-template-columns: repeat(3, 1fr);
     flex: 0 0 auto;
     min-height: calc(var(--tab-h) + env(safe-area-inset-bottom));
@@ -1314,6 +1309,7 @@ button { color: inherit; }
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-top: 1px solid var(--line);
+    touch-action: manipulation;
   }
 
   .tab-item {
@@ -1331,6 +1327,14 @@ button { color: inherit; }
     font-weight: 600;
     letter-spacing: 0.01em;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .tab-item:active {
+    transform: scale(0.96);
+    transition: transform 0.12s ease;
   }
 
   .tab-item svg {
@@ -1346,23 +1350,6 @@ button { color: inherit; }
   .tab-item.is-active {
     color: var(--ink);
     background: rgba(0, 0, 0, 0.04);
-  }
-
-  .sheet-scrim {
-    display: block;
-    position: absolute;
-    inset: 0;
-    z-index: 40;
-    border: 0;
-    background: rgba(0, 0, 0, 0.28);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s var(--ease);
-  }
-
-  .sheet-scrim.is-open {
-    opacity: 1;
-    pointer-events: auto;
   }
 
   .detail {
@@ -1381,6 +1368,32 @@ button { color: inherit; }
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    pointer-events: none;
+  }
+
+  .has-motion .detail {
+    transition: none;
+  }
+
+  .sheet-scrim {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    border: 0;
+    background: rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s var(--ease);
+  }
+
+  .has-motion .sheet-scrim {
+    transition: none;
+  }
+
+  .sheet-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .app-body.is-references .detail {
@@ -1389,6 +1402,14 @@ button { color: inherit; }
 
   .detail.is-open {
     transform: translate3d(0, 0, 0);
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .has-motion .detail,
+    .has-motion .sheet-scrim {
+      transition: transform 0.01ms, opacity 0.01ms;
+    }
   }
 
   .sheet-chrome {

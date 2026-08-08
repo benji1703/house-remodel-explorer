@@ -70,18 +70,20 @@ function LouvreShutterLeaf({
   const count = Math.max(4, Math.floor((h - FRAME * 2) / pitch));
   const innerH = h - FRAME * 2;
   const start = -innerH / 2 + SLAT / 2;
+  const depth = 0.036;
   return (
     <group>
-      <FrameRect w={w} h={h} depth={0.028} material={material} />
+      <FrameRect w={w} h={h} depth={depth} material={material} />
       {Array.from({ length: count }, (_, i) => (
         <mesh
           key={i}
-          position={[0, start + i * pitch, 0.002]}
-          rotation={[0.28, 0, 0]}
+          position={[0, start + i * pitch, depth * 0.15]}
+          rotation={[0.32, 0, 0]}
           material={material}
           castShadow
+          receiveShadow
         >
-          <boxGeometry args={[w - FRAME * 2 - 0.01, SLAT * 0.65, 0.01]} />
+          <boxGeometry args={[w - FRAME * 2 - 0.01, SLAT * 0.62, 0.012]} />
         </mesh>
       ))}
     </group>
@@ -90,8 +92,8 @@ function LouvreShutterLeaf({
 
 /**
  * Belgian casement window in a punched opening.
- * Frame sits in the exterior half of the wall (not buried mid-slab);
- * louvre shutters park clear of the exterior face.
+ * Frame sits in the exterior half of the wall; louvre shutters hinge on the
+ * jamb and park proud of the plaster — never mid-slab.
  */
 export function BelgianWindow({
   width,
@@ -116,8 +118,12 @@ export function BelgianWindow({
   // Thin frame in the outer half — avoids looking painted onto solid wall.
   const frameDepth = Math.min(0.07, wallThickness * 0.4);
   const frameZ = -(wallThickness / 2) + frameDepth / 2 + 0.002;
-  const extFace = -(wallThickness / 2) - 0.02;
-  const shutterW = Math.min(width * 0.42, 0.58);
+  // Exterior plaster face (local −Z). Shutters live fully outside this plane.
+  const face = -(wallThickness / 2);
+  const hingeZ = face - 0.045;
+  const shutterW = Math.min(width * 0.44, 0.62);
+  const shutterClear = 0.018;
+  const openAngle = 0.48; // ~27° off the facade — readable depth
   const muntins = useMemo(() => {
     const bars: Array<{ x?: number; y?: number; w: number; h: number }> = [];
     bars.push({ y: h * 0.18, w: width - FRAME * 2, h: MUNTIN });
@@ -152,18 +158,24 @@ export function BelgianWindow({
           ))}
       </group>
 
-      {/* Exterior sill — outside the wall face */}
-      <mesh position={[0, -h / 2 + 0.01, extFace + 0.035]} material={palette.frame} castShadow>
-        <boxGeometry args={[width + 0.04, 0.028, 0.08]} />
+      {/* Exterior sill — proud of plaster */}
+      <mesh position={[0, -h / 2 + 0.01, face - 0.05]} material={palette.frame} castShadow receiveShadow>
+        <boxGeometry args={[width + 0.08, 0.03, 0.1]} />
       </mesh>
 
       {shutters && (
         <>
-          <group position={[-(width / 2 + shutterW / 2 + 0.03), 0, extFace]} rotation-y={-0.22}>
-            <LouvreShutterLeaf w={shutterW} h={h} material={palette.frame} />
+          {/* Left leaf: hinge on left jamb, swings onto the facade */}
+          <group position={[-(width / 2) - shutterClear, 0, hingeZ]} rotation-y={-openAngle}>
+            <group position={[-(shutterW / 2), 0, -0.02]}>
+              <LouvreShutterLeaf w={shutterW} h={h} material={palette.frame} />
+            </group>
           </group>
-          <group position={[width / 2 + shutterW / 2 + 0.03, 0, extFace]} rotation-y={0.22}>
-            <LouvreShutterLeaf w={shutterW} h={h} material={palette.frame} />
+          {/* Right leaf: hinge on right jamb */}
+          <group position={[width / 2 + shutterClear, 0, hingeZ]} rotation-y={openAngle}>
+            <group position={[shutterW / 2, 0, -0.02]}>
+              <LouvreShutterLeaf w={shutterW} h={h} material={palette.frame} />
+            </group>
           </group>
         </>
       )}
@@ -194,7 +206,7 @@ export function BelgianDoor({
   const glassY = h * 0.22;
   const frameDepth = Math.min(0.07, wallThickness * 0.4);
   const frameZ = -(wallThickness / 2) + frameDepth / 2 + 0.002;
-  const extFace = -(wallThickness / 2) - 0.02;
+  const face = -(wallThickness / 2);
   const wood = palette.oak;
 
   return (
@@ -222,8 +234,8 @@ export function BelgianDoor({
         </group>
       </group>
       {exterior && (
-        <mesh position={[0, -(h / 2) + 0.02, extFace + 0.04]} material={wood}>
-          <boxGeometry args={[width + 0.04, 0.04, 0.1]} />
+        <mesh position={[0, -(h / 2) + 0.02, face - 0.05]} material={wood} castShadow>
+          <boxGeometry args={[width + 0.06, 0.04, 0.12]} />
         </mesh>
       )}
     </group>

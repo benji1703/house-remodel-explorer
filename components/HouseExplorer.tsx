@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, startTransition, useEffect, useState, useTransition } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { DimensionedOverlay } from "./DimensionedOverlay";
+import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
 const MeasuredHouseScene = lazy(() =>
   import("./MeasuredHouseScene").then((module) => ({
@@ -15,14 +16,16 @@ const MeasuredHouseScene = lazy(() =>
 
 type View = "model" | "plan" | "references";
 
-const Icon = ({ name }: { name: "cube" | "layers" | "grid" }) => {
+const Icon = ({ name }: { name: "cube" | "layers" | "grid" | "close" | "chevron" }) => {
   const paths = {
     cube: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z M4 7.5l8 4.5 8-4.5M12 12v9",
     layers: "m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
     grid: "M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z",
+    close: "M6 6l12 12M18 6 6 18",
+    chevron: "m6 9 6 6 6-6",
   };
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d={paths[name]} />
     </svg>
   );
@@ -31,10 +34,10 @@ const Icon = ({ name }: { name: "cube" | "layers" | "grid" }) => {
 function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: ZoneId) => void }) {
   return (
     <div className="vector-plan-wrap">
-      <svg className="vector-plan" viewBox="-90 -100 1320 1410" role="img" aria-label="Measured floor plan audit">
+      <svg className="vector-plan" viewBox="-90 -100 1320 1410" role="img" aria-label="Measured floor plan">
         <defs>
           <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(43,48,40,.08)" strokeWidth="2" />
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(29,29,31,.07)" strokeWidth="2" />
           </pattern>
         </defs>
         <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
@@ -55,7 +58,7 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
               y={zone.z * 100 + 8}
               width={zone.width * 100 - 16}
               height={zone.depth * 100 - 16}
-              rx="12"
+              rx="8"
             />
             <text x={(zone.x + zone.width / 2) * 100} y={(zone.z + zone.depth / 2) * 100}>
               {zone.shortLabel}
@@ -66,22 +69,29 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
           <line x1="0" y1="-45" x2="1140" y2="-45" />
           <line x1="0" y1="-65" x2="0" y2="-25" />
           <line x1="1140" y1="-65" x2="1140" y2="-25" />
-          <text x="570" y="-60">11.40 m maximum width</text>
+          <text x="570" y="-60">11.40 m</text>
         </g>
         <g className="dimension-line side-dimension">
           <line x1="1185" y1="0" x2="1185" y2="1210" />
           <line x1="1165" y1="0" x2="1205" y2="0" />
           <line x1="1165" y1="1210" x2="1205" y2="1210" />
-          <text x="1205" y="605" transform="rotate(90 1205 605)">12.10 m maximum depth</text>
+          <text x="1205" y="605" transform="rotate(90 1205 605)">12.10 m</text>
         </g>
       </svg>
-      <div className="plan-scale"><span /> 1 grid square = 1 m</div>
+      <p className="plan-scale">1 square = 1 m</p>
     </div>
   );
 }
 
-const VIEWS: View[] = ["model", "plan", "references"];
-const isView = (value: string | null): value is View => VIEWS.includes(value as View);
+const VIEWS: { id: View; label: string; icon: "cube" | "grid" | "layers" }[] = [
+  { id: "model", label: "Model", icon: "cube" },
+  { id: "plan", label: "Plan", icon: "grid" },
+  { id: "references", label: "Refs", icon: "layers" },
+];
+
+const isView = (value: string | null): value is View =>
+  VIEWS.some((entry) => entry.id === value);
+
 const isZoneId = (value: string | null): value is ZoneId =>
   house.zones.some((zone) => zone.id === value);
 
@@ -128,33 +138,47 @@ export function HouseExplorer() {
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [cameraAzimuth, setCameraAzimuth] = useState(0);
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [compact, setCompact] = useState(false);
+  const [refsPending, startRefsTransition] = useTransition();
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const isSmall = window.matchMedia("(max-width: 760px)").matches;
-      const saveData = "connection" in navigator && Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
+      const isSmall = window.matchMedia("(max-width: 800px)").matches;
+      const saveData =
+        "connection" in navigator &&
+        Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
       if (isSmall || saveData) setQuality("light");
       const canvas = document.createElement("canvas");
       setWebglSupport(Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl")));
     }, 0);
-
     return () => window.clearTimeout(timer);
   }, []);
 
-  const active = useMemo(
-    () => house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0],
-    [selectedZone],
-  );
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 800px)");
+    const sync = () => setCompact(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
-  const activeMood = useMemo(
-    () => roomMoodBoards.find((board) => board.id === selectedMood) ?? roomMoodBoards[1],
-    [selectedMood],
-  );
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSheetOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sheetOpen]);
+
+  const active = house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0];
+  const activeMood = roomMoodBoards.find((board) => board.id === selectedMood) ?? roomMoodBoards[1];
 
   const moodImageCount = activeMood.images.length;
   const moodImageIndex = Math.min(moodImageByBoard[selectedMood] ?? 0, Math.max(moodImageCount - 1, 0));
   const heroMoodImage = activeMood.images[moodImageIndex] ?? activeMood.images[0];
-  const moodIndexLabel = `${String(moodImageIndex + 1).padStart(2, "0")} / ${String(moodImageCount).padStart(2, "0")}`;
+  const moodIndexLabel = `${moodImageIndex + 1} / ${moodImageCount}`;
 
   useEffect(() => {
     if (view !== "references") return;
@@ -174,341 +198,433 @@ export function HouseExplorer() {
     return () => window.removeEventListener("keydown", onKey);
   }, [view, moodImageCount, selectedMood]);
 
+  useEffect(() => {
+    if (view !== "references") return;
+    const current = activeMood.images.map((image) => image.src);
+    const neighbors = [
+      activeMood.images[(moodImageIndex + 1) % moodImageCount]?.src,
+      activeMood.images[(moodImageIndex - 1 + moodImageCount) % moodImageCount]?.src,
+    ].filter(Boolean) as string[];
+    const boardCovers = roomMoodBoards.map((board) => board.images[0]?.src).filter(Boolean) as string[];
+    prefetchMoodSrcs([...current, ...neighbors, ...boardCovers]);
+  }, [view, activeMood, moodImageIndex, moodImageCount]);
+
+  const selectMoodBoard = (id: MoodBoardId) => {
+    startRefsTransition(() => {
+      navigate({ view: "references", mood: id }, "replace");
+    });
+  };
+
+  const selectMoodImage = (index: number) => {
+    startTransition(() => {
+      setMoodImageByBoard((prev) => ({ ...prev, [selectedMood]: index }));
+    });
+  };
+
   const zoneIndex = String(house.zones.findIndex((zone) => zone.id === active.id) + 1).padStart(2, "0");
 
+  const goToView = (next: View) => {
+    setSheetOpen(false);
+    navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next });
+  };
+
+  const detailPanel = view === "references" ? (
+    <>
+      <p className="detail-kicker">Board</p>
+      <h2>{activeMood.label}</h2>
+      <p className="detail-copy">{activeMood.atmosphere}</p>
+      <ul className="detail-list" aria-label="Palette">
+        {activeMood.finishes.map((finish) => (
+          <li key={finish}>{finish}</li>
+        ))}
+      </ul>
+      <p className="detail-note">Images set tone. The measured plan owns walls and footprint.</p>
+      <button
+        type="button"
+        className="detail-cta"
+        onClick={() => {
+          setSheetOpen(false);
+          navigate({ view: "model", zone: zoneFromMood(activeMood.id) });
+        }}
+      >
+        <span className="detail-thumb">
+          <Image src={heroMoodImage.src} alt="" fill sizes="64px" unoptimized />
+        </span>
+        <span>
+          <small>Model</small>
+          Open in three dimensions
+        </span>
+      </button>
+    </>
+  ) : (
+    <>
+      <div className="detail-head">
+        <span className={`status-tag ${active.status}`}>{statusCopy[active.status]}</span>
+        <span className="detail-index">{zoneIndex}</span>
+      </div>
+      <h2>{active.label}</h2>
+      <p className="detail-copy">{active.description}</p>
+      <dl className="measure-list">
+        <div>
+          <dt>Width</dt>
+          <dd>{Math.round(active.width * 100)} cm</dd>
+        </div>
+        <div>
+          <dt>Depth</dt>
+          <dd>{Math.round(active.depth * 100)} cm</dd>
+        </div>
+        <div>
+          <dt>Area</dt>
+          <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
+        </div>
+      </dl>
+      <p className="detail-note">Walls and footprint follow the survey drawing.</p>
+      <button
+        type="button"
+        className="detail-cta"
+        onClick={() => {
+          setSheetOpen(false);
+          navigate({ view: "references", mood: active.id });
+        }}
+      >
+        <span className="detail-thumb">
+          <Image
+            src={
+              roomMoodBoards.find((board) => board.id === active.id)?.images[0].src ??
+              "/references/moods/mood-living.jpeg"
+            }
+            alt=""
+            fill
+            sizes="64px"
+            unoptimized
+          />
+        </span>
+        <span>
+          <small>References</small>
+          {active.label} atmosphere
+        </span>
+      </button>
+    </>
+  );
+
   return (
-    <main className="explorer-shell">
-      <aside className="side-rail" aria-label="Primary navigation">
-        <a className="brand-mark" href="#top" aria-label="House remodel home">
-          H<span>01</span>
+    <main className={sheetOpen ? "shell is-sheet-open" : "shell"}>
+      <header className="app-bar">
+        <a className="logo" href="#top" aria-label="House remodel home">
+          <span className="logo-mark">House</span>
+          <span className="logo-meta">Remodel</span>
         </a>
-        <nav>
-          <button
-            className={view === "model" ? "rail-button is-active" : "rail-button"}
-            aria-label="House model"
-            aria-current={view === "model" ? "page" : undefined}
-            onClick={() => navigate({ view: "model" })}
-          >
-            <Icon name="cube" />
-          </button>
-          <button
-            className={view === "plan" ? "rail-button is-active" : "rail-button"}
-            aria-label="Measured plan"
-            aria-current={view === "plan" ? "page" : undefined}
-            onClick={() => navigate({ view: "plan" })}
-          >
-            <Icon name="grid" />
-          </button>
-          <button
-            className={view === "references" ? "rail-button is-active" : "rail-button"}
-            aria-label="References"
-            aria-current={view === "references" ? "page" : undefined}
-            onClick={() => navigate({ view: "references", mood: selectedMood })}
-          >
-            <Icon name="layers" />
-          </button>
+
+        <nav className="view-switch desktop-only" role="tablist" aria-label="Views">
+          {VIEWS.map((entry) => (
+            <button
+              key={entry.id}
+              type="button"
+              role="tab"
+              aria-selected={view === entry.id}
+              className={view === entry.id ? "view-tab is-active" : "view-tab"}
+              onClick={() => goToView(entry.id)}
+            >
+              <Icon name={entry.icon} />
+              <span>{entry.label === "Refs" ? "References" : entry.label}</span>
+            </button>
+          ))}
         </nav>
-      </aside>
 
-      <section className="workspace" id="top">
-        <header className="topbar">
-          <div className="topbar-brand">
-            <p className="eyebrow">In progress</p>
-            <h1>House remodel</h1>
-          </div>
-          <div className="topbar-actions">
-            {view === "model" && (
-              <button
-                type="button"
-                className="quality-button"
-                onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
-              >
-                {quality === "high" ? "Lighter view" : "Full detail"}
-              </button>
-            )}
-          </div>
-        </header>
+        <div className="app-bar-end">
+          <span className="status-pill desktop-only">In progress</span>
+          {view === "model" && (
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
+            >
+              {quality === "high" ? "Lighter" : "Detail"}
+            </button>
+          )}
+        </div>
+      </header>
 
-        <div className="content-grid">
-          <section className={`stage-card is-${view}`} aria-label={view === "model" ? "House model" : view === "plan" ? "Measured plan" : "References"}>
-            {view === "model" && (
-              <>
-                <div className="stage-copy">
-                  <span className="overline">Room</span>
-                  <h2>{active.label}</h2>
-                  <p>Orbit, zoom, select a room</p>
-                </div>
-                <div className="stage-controls">
-                  <div className="mode-toggle" role="group" aria-label="Model appearance">
-                    <button
-                      type="button"
-                      className={!designMode ? "is-active" : ""}
-                      aria-pressed={!designMode}
-                      onClick={() => setDesignMode(false)}
-                    >
-                      Survey
-                    </button>
-                    <button
-                      type="button"
-                      className={designMode ? "is-active" : ""}
-                      aria-pressed={designMode}
-                      onClick={() => setDesignMode(true)}
-                    >
-                      Finishes
-                    </button>
+      <div className={`app-body is-${view}`} id="top">
+        <section
+          className={`stage is-${view}`}
+          aria-label={view === "model" ? "House model" : view === "plan" ? "Measured plan" : "References"}
+        >
+          {view === "model" && (
+            <>
+              <div className="three-stage">
+                {webglSupport === true && (
+                  <Suspense fallback={<div className="model-loading">Loading…</div>}>
+                    <MeasuredHouseScene
+                      selectedZone={selectedZone}
+                      onSelectZone={(id) => navigate({ zone: id }, "replace")}
+                      designMode={designMode}
+                      quality={quality}
+                      showMeasurements={showMeasurements}
+                      onCameraAzimuth={setCameraAzimuth}
+                    />
+                  </Suspense>
+                )}
+                {webglSupport === false && (
+                  <div className="webgl-fallback">
+                    <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
+                    <p>Plan view — 3D unavailable</p>
                   </div>
-                  {webglSupport === true && (
-                    <button
-                      type="button"
-                      className={showMeasurements ? "chip-toggle is-active" : "chip-toggle"}
-                      aria-pressed={showMeasurements}
-                      onClick={() => setShowMeasurements((value) => !value)}
-                    >
-                      {showMeasurements ? "Hide measures" : "Measures"}
-                    </button>
-                  )}
+                )}
+                {webglSupport === null && <div className="model-loading">Preparing…</div>}
+              </div>
+
+              <div className="stage-toolbar" role="group" aria-label="Model controls">
+                <div className="segmented">
+                  <button
+                    type="button"
+                    className={!designMode ? "is-active" : ""}
+                    aria-pressed={!designMode}
+                    onClick={() => setDesignMode(false)}
+                  >
+                    Survey
+                  </button>
+                  <button
+                    type="button"
+                    className={designMode ? "is-active" : ""}
+                    aria-pressed={designMode}
+                    onClick={() => setDesignMode(true)}
+                  >
+                    Finishes
+                  </button>
                 </div>
-                <div className="three-stage">
-                  {webglSupport === true && (
-                    <Suspense fallback={<div className="model-loading">Loading model…</div>}>
-                      <MeasuredHouseScene
-                        selectedZone={selectedZone}
-                        onSelectZone={(id) => navigate({ zone: id }, "replace")}
-                        designMode={designMode}
-                        quality={quality}
-                        showMeasurements={showMeasurements}
-                        onCameraAzimuth={setCameraAzimuth}
-                      />
-                    </Suspense>
-                  )}
-                  {webglSupport === false && (
-                    <div className="webgl-fallback">
-                      <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
-                      <p>Plan view — 3D unavailable</p>
+                {webglSupport === true && (
+                  <button
+                    type="button"
+                    className={showMeasurements ? "toolbar-chip is-active" : "toolbar-chip"}
+                    aria-pressed={showMeasurements}
+                    onClick={() => setShowMeasurements((value) => !value)}
+                  >
+                    Measures
+                  </button>
+                )}
+              </div>
+
+              <div className="stage-hud">
+                {compact ? (
+                  <button
+                    type="button"
+                    className="hud-card"
+                    onClick={() => setSheetOpen(true)}
+                    aria-expanded={sheetOpen}
+                    aria-controls="detail-sheet"
+                  >
+                    <div className="hud-card-text">
+                      <p className="hud-kicker">{zoneIndex}</p>
+                      <h2>{active.label}</h2>
+                      <p className="hud-hint">Drag · pinch · tap for details</p>
                     </div>
-                  )}
-                  {webglSupport === null && <div className="model-loading">Preparing…</div>}
-                </div>
+                    <span className="hud-open" aria-hidden="true">
+                      <Icon name="chevron" />
+                    </span>
+                  </button>
+                ) : (
+                  <div className="hud-card">
+                    <div className="hud-card-text">
+                      <p className="hud-kicker">{zoneIndex}</p>
+                      <h2>{active.label}</h2>
+                      <p className="hud-hint">Drag to orbit · scroll to zoom</p>
+                    </div>
+                  </div>
+                )}
                 <div className="orientation" aria-hidden="true">
                   <b>N</b>
                   <span style={webglSupport === true ? { transform: `rotate(${cameraAzimuth}rad)` } : undefined} />
                 </div>
-              </>
-            )}
-
-            {view === "plan" && (
-              <div className="plan-view">
-                <div className="stage-copy plan-copy">
-                  <span className="overline">Survey</span>
-                  <h2>Measured plan</h2>
-                  <p>Photograph against the traced shell.</p>
-                </div>
-                <DimensionedOverlay />
               </div>
-            )}
+            </>
+          )}
 
-            {view === "references" && (
-              <div className="references-view">
-                <header className="mood-masthead">
-                  <div className="mood-masthead-row">
-                    <p className="mood-masthead-kicker">References</p>
-                    <p className="mood-index" aria-live="polite">
-                      {moodIndexLabel}
-                    </p>
-                  </div>
-                  <h2 className="mood-masthead-title">{activeMood.label}</h2>
-                  <p className="mood-masthead-lede">{activeMood.atmosphere}</p>
+          {view === "plan" && (
+            <div className="plan-view">
+              <header className="view-intro">
+                <p className="view-kicker">Survey</p>
+                <h2>Measured plan</h2>
+                <p>Photograph against the traced shell.</p>
+              </header>
+              <DimensionedOverlay />
+            </div>
+          )}
 
-                  <nav className="mood-index-nav" role="tablist" aria-label="Rooms">
-                    {roomMoodBoards.map((board, index) => {
-                      const selected = selectedMood === board.id;
+          {view === "references" && (
+            <div className={refsPending ? "references-view is-pending" : "references-view"}>
+              <header className="mood-masthead">
+                <div className="mood-masthead-row">
+                  <p className="mood-masthead-kicker">References</p>
+                  <p className="mood-index" aria-live="polite">
+                    {moodIndexLabel}
+                  </p>
+                </div>
+                <h2 className="mood-masthead-title">{activeMood.label}</h2>
+                <p className="mood-masthead-lede">{activeMood.atmosphere}</p>
+
+                <nav className="mood-index-nav" role="tablist" aria-label="Rooms">
+                  {roomMoodBoards.map((board, index) => {
+                    const selected = selectedMood === board.id;
+                    return (
+                      <button
+                        key={board.id}
+                        type="button"
+                        role="tab"
+                        id={`mood-tab-${board.id}`}
+                        aria-selected={selected}
+                        aria-controls="mood-board-panel"
+                        className={selected ? "mood-index-link is-active" : "mood-index-link"}
+                        onClick={() => selectMoodBoard(board.id)}
+                      >
+                        <em>{String(index + 1).padStart(2, "0")}</em>
+                        {board.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+              </header>
+
+              <div
+                className="mood-board-stage"
+                id="mood-board-panel"
+                role="tabpanel"
+                aria-labelledby={`mood-tab-${activeMood.id}`}
+                aria-busy={refsPending}
+              >
+                <figure className="mood-hero" key={heroMoodImage.src}>
+                  <MoodMedia
+                    key={heroMoodImage.src}
+                    src={heroMoodImage.src}
+                    alt={heroMoodImage.alt}
+                    sizes="(max-width: 800px) 100vw, 62vw"
+                    priority
+                  />
+                  <figcaption>
+                    <span>{heroMoodImage.caption}</span>
+                    <small className="desktop-only">← →</small>
+                  </figcaption>
+                </figure>
+                <div className="mood-side">
+                  <div
+                    className="mood-gallery"
+                    role="listbox"
+                    aria-label={`${activeMood.label} references`}
+                    aria-activedescendant={`mood-thumb-${moodImageIndex}`}
+                  >
+                    {activeMood.images.map((image, index) => {
+                      const selected = index === moodImageIndex;
                       return (
                         <button
-                          key={board.id}
+                          key={`${image.src}-${image.caption}`}
                           type="button"
-                          role="tab"
-                          id={`mood-tab-${board.id}`}
+                          id={`mood-thumb-${index}`}
+                          role="option"
                           aria-selected={selected}
-                          aria-controls="mood-board-panel"
-                          className={selected ? "mood-index-link is-active" : "mood-index-link"}
-                          onClick={() => navigate({ view: "references", mood: board.id }, "replace")}
+                          className={selected ? "mood-thumb is-active" : "mood-thumb"}
+                          onClick={() => selectMoodImage(index)}
                         >
-                          <em>{String(index + 1).padStart(2, "0")}</em>
-                          {board.label}
+                          <MoodMedia
+                            key={image.src}
+                            src={image.src}
+                            alt={image.alt}
+                            sizes="(max-width: 800px) 28vw, 14vw"
+                            priority={index < 4}
+                          />
                         </button>
                       );
                     })}
-                  </nav>
-                </header>
-
-                <div
-                  className="mood-board-stage"
-                  id="mood-board-panel"
-                  role="tabpanel"
-                  aria-labelledby={`mood-tab-${activeMood.id}`}
-                >
-                  <figure className="mood-hero" key={heroMoodImage.src}>
-                    <Image
-                      src={heroMoodImage.src}
-                      alt={heroMoodImage.alt}
-                      fill
-                      sizes="(max-width: 900px) 100vw, 58vw"
-                      priority
-                      unoptimized
-                    />
-                    <figcaption>
-                      <span>{heroMoodImage.caption}</span>
-                      <small>← →</small>
-                    </figcaption>
-                  </figure>
-                  <div className="mood-side">
-                    <div
-                      className="mood-gallery"
-                      role="listbox"
-                      aria-label={`${activeMood.label} references`}
-                      aria-activedescendant={`mood-thumb-${moodImageIndex}`}
+                  </div>
+                  <div className="mood-finishes-block">
+                    <p className="mood-finishes-label">Palette</p>
+                    <ul className="mood-finishes" aria-label="Finish palette">
+                      {activeMood.finishes.map((finish) => (
+                        <li key={finish}>{finish}</li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      className="mobile-inline-cta mobile-only"
+                      onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
                     >
-                      {activeMood.images.map((image, index) => {
-                        const selected = index === moodImageIndex;
-                        return (
-                          <button
-                            key={`${image.src}-${image.caption}`}
-                            type="button"
-                            id={`mood-thumb-${index}`}
-                            role="option"
-                            aria-selected={selected}
-                            className={selected ? "mood-thumb is-active" : "mood-thumb"}
-                            onClick={() =>
-                              setMoodImageByBoard((prev) => ({ ...prev, [selectedMood]: index }))
-                            }
-                          >
-                            <Image
-                              src={image.src}
-                              alt={image.alt}
-                              fill
-                              sizes="(max-width: 900px) 45vw, 16vw"
-                              unoptimized
-                            />
-                            <span className="mood-thumb-index">{String(index + 1).padStart(2, "0")}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="mood-finishes-block">
-                      <p className="mood-finishes-label">Palette</p>
-                      <ul className="mood-finishes" aria-label="Finish palette">
-                        {activeMood.finishes.map((finish) => (
-                          <li key={finish}>{finish}</li>
-                        ))}
-                      </ul>
-                    </div>
+                      Open in model
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
-          </section>
+            </div>
+          )}
+        </section>
 
-          <aside className="inspector" aria-live="polite">
-            {view === "references" ? (
-              <>
-                <div className="inspector-head">
-                  <span className="source-tag traced">Reference</span>
-                  <span className="zone-number">{activeMood.shortLabel}</span>
-                </div>
-                <p className="eyebrow">Board</p>
-                <h2>{activeMood.label}</h2>
-                <p className="zone-description">{activeMood.atmosphere}</p>
+        {view === "model" && (
+          <div className="mobile-room-rail mobile-only" aria-label="Rooms">
+            {house.zones.map((zone) => (
+              <button
+                key={zone.id}
+                type="button"
+                className={selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
+                onClick={() => navigate({ zone: zone.id }, "replace")}
+              >
+                <em>{zone.shortLabel}</em>
+                {zone.label}
+              </button>
+            ))}
+          </div>
+        )}
 
-                <ul className="inspector-finishes" aria-label="Palette">
-                  {activeMood.finishes.map((finish) => (
-                    <li key={finish}>{finish}</li>
-                  ))}
-                </ul>
-
-                <div className="accuracy-note">
-                  <div className="accuracy-title">
-                    <span>Note</span>
-                    <b>Atmosphere</b>
-                  </div>
-                  <p>These images set tone and finish. Walls and footprint follow the measured plan.</p>
-                </div>
-
+        {view !== "plan" && (
+          <>
+            <button
+              type="button"
+              className={sheetOpen ? "sheet-scrim is-open mobile-only" : "sheet-scrim mobile-only"}
+              aria-label="Close details"
+              tabIndex={sheetOpen ? 0 : -1}
+              onClick={() => setSheetOpen(false)}
+            />
+            <aside
+              id="detail-sheet"
+              className={sheetOpen ? "detail is-open" : "detail"}
+              aria-live="polite"
+              aria-hidden={undefined}
+            >
+              <div className="sheet-chrome mobile-only">
                 <button
                   type="button"
-                  className="source-link"
-                  onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
+                  className="sheet-handle"
+                  aria-label="Close details"
+                  onClick={() => setSheetOpen(false)}
                 >
-                  <span className="source-thumbnail">
-                    <Image src={heroMoodImage.src} alt="" fill sizes="72px" unoptimized />
-                  </span>
-                  <span>
-                    <small>Model</small>
-                    View this room in three dimensions
-                  </span>
-                  <b aria-hidden="true">↗</b>
+                  <span />
                 </button>
-              </>
-            ) : (
-              <>
-                <div className="inspector-head">
-                  <span className={`source-tag ${active.status}`}>{statusCopy[active.status]}</span>
-                  <span className="zone-number">{zoneIndex}</span>
-                </div>
-                <p className="eyebrow">Room</p>
-                <h2>{active.label}</h2>
-                <p className="zone-description">{active.description}</p>
-
-                <dl className="measure-list">
-                  <div>
-                    <dt>Width</dt>
-                    <dd>{Math.round(active.width * 100)} cm</dd>
-                  </div>
-                  <div>
-                    <dt>Depth</dt>
-                    <dd>{Math.round(active.depth * 100)} cm</dd>
-                  </div>
-                  <div>
-                    <dt>Area</dt>
-                    <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
-                  </div>
-                </dl>
-
-                <div className="accuracy-note">
-                  <div className="accuracy-title">
-                    <span>Geometry</span>
-                    <b>Measured</b>
-                  </div>
-                  <p>Walls and footprint follow the survey drawing.</p>
-                </div>
-
                 <button
                   type="button"
-                  className="source-link"
-                  onClick={() => navigate({ view: "references", mood: active.id })}
+                  className="sheet-close"
+                  aria-label="Close"
+                  onClick={() => setSheetOpen(false)}
                 >
-                  <span className="source-thumbnail">
-                    <Image
-                      src={
-                        roomMoodBoards.find((b) => b.id === active.id)?.images[0].src ??
-                        "/references/moods/mood-living.jpeg"
-                      }
-                      alt=""
-                      fill
-                      sizes="72px"
-                      unoptimized
-                    />
-                  </span>
-                  <span>
-                    <small>References</small>
-                    {active.label} atmosphere
-                  </span>
-                  <b aria-hidden="true">↗</b>
+                  <Icon name="close" />
                 </button>
-              </>
-            )}
-          </aside>
-        </div>
-      </section>
+              </div>
+              {detailPanel}
+            </aside>
+          </>
+        )}
+      </div>
+
+      <nav className="tab-bar mobile-only" aria-label="Primary">
+        {VIEWS.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            className={view === entry.id ? "tab-item is-active" : "tab-item"}
+            aria-current={view === entry.id ? "page" : undefined}
+            onClick={() => goToView(entry.id)}
+          >
+            <Icon name={entry.icon} />
+            <span>{entry.label}</span>
+          </button>
+        ))}
+      </nav>
     </main>
   );
 }

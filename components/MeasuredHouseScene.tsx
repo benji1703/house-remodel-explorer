@@ -431,8 +431,8 @@ export function MeasuredHouseScene({
       gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
       style={{ width: "100%", height: "100%", display: "block" }}
     >
-      <color attach="background" args={[designMode ? "#e9dcc6" : "#e9e5dc"]} />
-      <fog attach="fog" args={[designMode ? "#e6d8c2" : "#e9e5dc", 24, 46]} />
+      <color attach="background" args={[designMode ? "#e8e8ed" : "#e5e5ea"]} />
+      <fog attach="fog" args={[designMode ? "#e8e8ed" : "#e5e5ea", 24, 46]} />
       {designMode && <SkyDome />}
 
       {/* A single-frame lightformer probe stands in for an HDRI: warm sun wall
@@ -573,12 +573,16 @@ export function MeasuredHouseScene({
       <OrbitControls
         makeDefault
         target={ORBIT_TARGET}
-        minDistance={9}
-        maxDistance={28}
+        minDistance={quality === "light" ? 5.5 : 9}
+        maxDistance={quality === "light" ? 20 : 28}
         minPolarAngle={0.24}
         maxPolarAngle={Math.PI / 2.3}
         enableDamping
-        dampingFactor={0.06}
+        dampingFactor={quality === "light" ? 0.08 : 0.06}
+        rotateSpeed={quality === "light" ? 0.7 : 1}
+        zoomSpeed={quality === "light" ? 0.85 : 1}
+        panSpeed={quality === "light" ? 0.7 : 1}
+        enablePan={quality === "high"}
       />
     </Canvas>
   );

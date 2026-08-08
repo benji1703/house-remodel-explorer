@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import { Cormorant_Garamond, Source_Sans_3, IBM_Plex_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Newsreader, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const display = Cormorant_Garamond({
+const display = Newsreader({
   variable: "--font-display",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -14,20 +14,25 @@ const sans = Source_Sans_3({
   weight: ["400", "500", "600"],
 });
 
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
 export const metadata: Metadata = {
   title: "House Remodel",
-  description:
-    "House remodel explorer — measured shell, room references, and finishes.",
+  description: "Measured shell, room references, and finishes.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "House",
+  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f5f5f7",
 };
 
 export default function RootLayout({
@@ -37,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${sans.variable} ${plexMono.variable}`}>
+      <body className={`${display.variable} ${sans.variable}`}>
         {children}
       </body>
     </html>

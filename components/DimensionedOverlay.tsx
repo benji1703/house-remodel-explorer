@@ -13,17 +13,15 @@ export function DimensionedOverlay() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState<{ x: number; y: number; pan: { x: number; y: number } } | null>(null);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  const approvalByCategory = geometryApprovalItems.reduce(
+  const unresolved = geometryApprovalItems.filter((i) => !i.approved);
+  const unresolvedByCategory = unresolved.reduce(
     (acc, item) => {
-      acc[item.category] = (acc[item.category] || 0) + (item.approved ? 0 : 1);
+      (acc[item.category] ||= []).push(item);
       return acc;
     },
-    {} as Record<string, number>,
+    {} as Record<string, typeof unresolved>,
   );
-
-  const totalUnresolved = geometryApprovalItems.filter((i) => !i.approved).length;
 
   return (
     <div className="dimensioned-overlay-container">
@@ -183,55 +181,37 @@ export function DimensionedOverlay() {
 
       <div className="approval-checklist">
         <div className="checklist-header">
-          <h3>Geometry Approval Checklist</h3>
-          <span className="unresolved-count" title={`${totalUnresolved} items need approval`}>
-            {totalUnresolved} unresolved
-          </span>
+          <h3>Open geometry questions</h3>
+          <span className="unresolved-count">{unresolved.length} open</span>
         </div>
 
         <div className="checklist-categories">
-          {Object.entries(approvalByCategory).map(([category, count]) => (
+          {Object.entries(unresolvedByCategory).map(([category, items]) => (
             <div key={category} className="category-group">
-              <button
-                className={`category-header ${expandedCategory === category ? "is-expanded" : ""}`}
-                onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
-                aria-expanded={expandedCategory === category}
-              >
+              <div className="category-header">
                 <span className="category-name">
                   {category.replace(/-/g, " ").charAt(0).toUpperCase() + category.replace(/-/g, " ").slice(1)}
                 </span>
-                {count > 0 && <span className="unresolved-badge">{count}</span>}
-              </button>
+                <span className="unresolved-badge">{items.length}</span>
+              </div>
 
-              {expandedCategory === category && (
-                <div className="category-items">
-                  {geometryApprovalItems
-                    .filter((item) => item.category === category)
-                    .map((item) => (
-                      <div key={item.id} className={`approval-item ${item.approved ? "is-approved" : ""}`}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={item.approved}
-                            onChange={(e) => {
-                              // In production, this would update to persistent storage
-                              console.log(`Toggled ${item.id}: ${e.target.checked}`);
-                            }}
-                            aria-label={item.description}
-                          />
-                          <span className="item-text">
-                            <strong>{item.description}</strong>
-                            {item.zone && <em> ({item.zone})</em>}
-                            {item.notes && <p className="item-notes">{item.notes}</p>}
-                          </span>
-                        </label>
-                      </div>
-                    ))}
-                </div>
-              )}
+              <div className="category-items">
+                {items.map((item) => (
+                  <div key={item.id} className="approval-item">
+                    <strong>{item.description}</strong>
+                    {item.zone && <em> ({item.zone})</em>}
+                    {item.notes && <p className="item-notes">{item.notes}</p>}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
+
+        <p className="checklist-footnote">
+          Read-only. Approvals are recorded by hand in <code>docs/GEOMETRY_AUDIT.md</code>; nothing on this page changes
+          them.
+        </p>
       </div>
     </div>
   );

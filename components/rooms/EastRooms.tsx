@@ -1,17 +1,22 @@
 "use client";
-import { Blk, Prop } from "./shared";
 import type { Palette } from "./shared";
+import { Dresser, LoungeChair, Nightstand, QueenBed } from "./furniture";
 
+/**
+ * East bedrooms — queen 160×200.
+ * West doors at z≈6.8 (E1) / 9.3 (E2) — beds on east wall so leaves stay clear.
+ * Envelopes: E1 x∈[7.6,11.4] z∈[5.0,8.55]; E2 x∈[7.6,11.4] z∈[8.55,12.1].
+ */
 export function EastUpperRoom({ base, palette }: { base: number; palette: Palette }) {
   return (
     <group>
-      <Prop slug="old_bed_frame" x={8.5} z={5.8} y={base} rotationY={Math.PI / 2} />
-      <Blk x={8.5} z={5.8} y={base + 0.32} w={2.0} d={1.5} h={0.18} material={palette.upholstery} />
-      <Prop slug="painted_wooden_nightstand" x={8.5} z={7.0} y={base} rotationY={Math.PI / 2} />
+      {/* Queen on east wall — west door at z≈6.8 stays clear. */}
+      <QueenBed base={base} palette={palette} x={10.5} z={6.4} along="z" headToward="-" />
 
-      {/* Reading corner. */}
-      <Prop slug="WoodenChair_01" x={10.6} z={5.5} y={base} rotationY={-Math.PI / 2} />
-      <Prop slug="side_table_01" x={10.6} z={6.1} y={base} />
+      <Nightstand base={base} palette={palette} x={9.45} z={5.5} />
+
+      {/* Chair south-west, south of door swing. */}
+      <LoungeChair base={base} palette={palette} x={8.35} z={7.7} face="n" />
     </group>
   );
 }
@@ -19,9 +24,13 @@ export function EastUpperRoom({ base, palette }: { base: number; palette: Palett
 export function EastLowerRoom({ base, palette }: { base: number; palette: Palette }) {
   return (
     <group>
-      <Prop slug="vintage_day_bed" x={8.6} z={9.4} y={base} rotationY={Math.PI / 2} />
-      <Prop slug="painted_wooden_nightstand" x={8.6} z={10.7} y={base} rotationY={Math.PI / 2} />
-      <Prop slug="Ottoman_01" x={10.6} z={11.4} y={base} />
+      {/* Queen on east wall — west door at z≈9.3 stays clear. */}
+      <QueenBed base={base} palette={palette} x={10.5} z={10.7} along="z" headToward="+" />
+
+      <Nightstand base={base} palette={palette} x={9.45} z={11.55} />
+
+      {/* Dresser on south wall, west of bed foot clearance. */}
+      <Dresser base={base} palette={palette} x={8.5} z={11.75} along="x" />
     </group>
   );
 }

@@ -5,13 +5,15 @@ import { ContactShadows, Environment, Html, Lightformer, OrbitControls } from "@
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
-import { Blk, CX, CZ, type Palette } from "./rooms/shared";
+import { CX, CZ, type Palette } from "./rooms/shared";
 import { Kitchen } from "./rooms/Kitchen";
 import { Living } from "./rooms/Living";
 import { MasterBedroom } from "./rooms/MasterBedroom";
+import { MasterPatio } from "./rooms/MasterPatio";
 import { EastUpperRoom, EastLowerRoom } from "./rooms/EastRooms";
 import { MainBathroom, EnsuiteBathroom } from "./rooms/Bathrooms";
 import { Terrace } from "./rooms/Terrace";
+import { OpeningOnWall } from "./rooms/Openings";
 
 type Props = {
   selectedZone: ZoneId;
@@ -46,9 +48,9 @@ function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians:
   return null;
 }
 
-// First-pass design proposals, not measured values. The model is drawn as a
-// horizontal section so interiors stay visible; walls are cut at SECTION.
-const SECTION = 1.5;
+// Dollhouse cut: above window heads so punched openings read as true holes
+// (bedroom window head 2.20) while still allowing an overhead look into rooms.
+const SECTION = 2.35;
 // Low west sun: the terrace and the big living opening face west, so a late
 // afternoon key light rakes in through the pergola like the moodboard photos.
 const SUN_POSITION: [number, number, number] = [-14, 7.5, -3.5];
@@ -60,6 +62,10 @@ const WINDOW_SILL = designAssumptions.bedroomWindow.sillHeightCm / 100;
 const WINDOW_HEAD = designAssumptions.bedroomWindow.headHeightCm / 100;
 const WEST_OPENING_WIDTH = designAssumptions.livingWestOpening.widthCm / 100;
 const WEST_OPENING_HEAD = designAssumptions.livingWestOpening.headHeightCm / 100;
+const MASTER_EXIT_WIDTH = designAssumptions.masterWestExit.widthCm / 100;
+const MASTER_EXIT_HEAD = designAssumptions.masterWestExit.headHeightCm / 100;
+const KITCHEN_ENTRY_WIDTH = designAssumptions.kitchenMainEntry.widthCm / 100;
+const KITCHEN_ENTRY_HEAD = designAssumptions.kitchenMainEntry.headHeightCm / 100;
 
 type Opening = { at: number; width: number; sill: number; head: number };
 
@@ -73,17 +79,28 @@ const window_ = (at: number, width = 1.4): Opening => ({
 
 // Keyed by footprint edge index (edge n runs from point n to point n+1).
 const exteriorOpenings: Record<number, Opening[]> = {
+  // Kitchen north bay window.
   0: [window_(2.1, 1.6)],
-  1: [window_(2.0, 1.2)],
+  // Kitchen east: window north; main entry further south (near living open).
+  1: [
+    window_(0.85, 1.2),
+    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD },
+  ],
   2: [window_(1.9)],
   3: [window_(1.8), window_(5.0)],
-  // The 1.9 m opening is the architect-proposed south window for the
-  // east-lower bedroom; the existing plan opening is retained at 9.7 m.
-  4: [door(2.4, 1.0), window_(1.9), window_(9.7, 1.5)],
-  5: [window_(1.9, 1.2)],
+  // South facade (east→west): E2, main bath, master.
+  4: [window_(1.9), window_(5.2, 1.0), window_(9.7, 1.5)],
+  // Master west exit (remodel) — north of bed, clear of south nightstands.
+  5: [{ at: 2.9, width: MASTER_EXIT_WIDTH, sill: 0, head: MASTER_EXIT_HEAD }],
   6: [window_(1.7)],
   7: [{ at: 2.2, width: WEST_OPENING_WIDTH, sill: 0, head: WEST_OPENING_HEAD }],
 };
+
+function openingKind(opening: Opening): "window" | "door" | "terrace" {
+  if (opening.sill <= 0 && opening.width >= 2.4) return "terrace";
+  if (opening.sill <= 0) return "door";
+  return "window";
+}
 
 // Proposed internal partitions, derived from the zone boxes in data/house.ts.
 // Owner request (2026-08-07): no wall between kitchen and living room — that
@@ -91,7 +108,7 @@ const exteriorOpenings: Record<number, Opening[]> = {
 const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Opening[] }> = [
   { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8), door(4.3)] },
   { a: [7.6, 8.55], b: [11.4, 8.55], openings: [] },
-  { a: [3.4, 8.2], b: [3.4, 12.1], openings: [door(1.0), door(3.0, 0.8)] },
+  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0), door(3.0, 0.8)] },
   { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8)] },
   { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
 ];
@@ -100,12 +117,20 @@ function standard(color: string, roughness: number, metalness = 0) {
   return new THREE.MeshStandardMaterial({ color, roughness, metalness });
 }
 
+/** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
+const FRAME_GREEN = "#b8c9a8";
+/** Warm plaster beige for shell walls. */
+const WALL_BEIGE_EXT = "#e2d4bc";
+const WALL_BEIGE_INT = "#ebe0cc";
+/** Light oak — hinged doors + warm joinery. */
+const LIGHT_OAK = "#e2c9a4";
+
 function buildPalette(designMode: boolean) {
   if (!designMode) {
     const grey = standard("#b6b5b0", 0.9);
     return {
-      exterior: standard("#c6c4bd", 0.92),
-      interior: standard("#cfcdc6", 0.92),
+      exterior: standard("#d9cdb8", 0.92),
+      interior: standard("#e2d8c6", 0.92),
       ground: standard("#bebdb7", 0.94),
       glass: new THREE.MeshStandardMaterial({
         color: "#d6dcdd",
@@ -113,8 +138,8 @@ function buildPalette(designMode: boolean) {
         transparent: true,
         opacity: 0.2,
       }),
-      frame: standard("#7a7a76", 0.6),
-      oak: grey,
+      frame: standard(FRAME_GREEN, 0.7, 0.08),
+      oak: standard("#cfc4b4", 0.75),
       timber: grey,
       upholstery: standard("#c4c3bd", 0.9),
       stone: standard("#c9c8c2", 0.7),
@@ -134,15 +159,12 @@ function buildPalette(designMode: boolean) {
     };
   }
 
-  // Finishes read from the outdoor moodboard: lime wash, microcement,
-  // natural oak, light travertine, warm beige/taupe/charcoal. Plaster and
-  // textiles are pushed to full roughness so the low sun never leaves a
-  // plastic specular hotspot on them.
+  // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
   const travertine = standard("#d6cec0", 0.78);
   const microcement = standard("#cdc5b7", 0.9);
   return {
-    exterior: standard("#eae1d2", 0.98),
-    interior: standard("#f2ebe0", 0.97),
+    exterior: standard(WALL_BEIGE_EXT, 0.98),
+    interior: standard(WALL_BEIGE_INT, 0.97),
     ground: standard("#c8bfae", 0.95),
     glass: new THREE.MeshStandardMaterial({
       color: "#bcd2d6",
@@ -152,8 +174,8 @@ function buildPalette(designMode: boolean) {
       transparent: true,
       opacity: 0.18,
     }),
-    frame: standard("#2f2d2a", 0.42, 0.28),
-    oak: standard("#bd8a51", 0.62),
+    frame: standard(FRAME_GREEN, 0.62, 0.1),
+    oak: standard(LIGHT_OAK, 0.72),
     timber: standard("#8f6238", 0.78),
     upholstery: standard("#e3d9c7", 1),
     stone: travertine,
@@ -167,13 +189,14 @@ function buildPalette(designMode: boolean) {
       "southwest-room": standard("#c4945f", 0.62),
       "east-upper-room": microcement,
       "east-lower-room": microcement,
-      "service-core": travertine,
-      ensuite: travertine,
+      "service-core": microcement,
+      ensuite: microcement,
     } as Record<ZoneId, THREE.Material>,
   };
 }
 
 const paletteCache = new Map<boolean, Palette>();
+paletteCache.clear();
 function getPalette(designMode: boolean) {
   const cached = paletteCache.get(designMode);
   if (cached) return cached;
@@ -211,9 +234,11 @@ function WallRun({
   const pieces = useMemo(() => {
     const out: Array<{ from: number; to: number; bottom: number; top: number }> = [];
     let cursor = -ext;
+    // Slight reveal so frame isn't coplanar with wall jambs.
+    const reveal = 0.012;
     for (const opening of [...openings].sort((left, right) => left.at - right.at)) {
-      const from = opening.at - opening.width / 2;
-      const to = opening.at + opening.width / 2;
+      const from = opening.at - opening.width / 2 - reveal;
+      const to = opening.at + opening.width / 2 + reveal;
       if (from > cursor) out.push({ from: cursor, to: from, bottom: 0, top: height });
       if (opening.sill > 0) out.push({ from, to, bottom: 0, top: Math.min(opening.sill, height) });
       if (opening.head < height) out.push({ from, to, bottom: opening.head, top: height });
@@ -240,21 +265,6 @@ function WallRun({
           <boxGeometry args={[piece.to - piece.from, piece.top - piece.bottom, thickness]} />
         </mesh>
       ))}
-    </group>
-  );
-}
-
-/** Glazed sliding leaves for the owner-approved west opening. */
-function WestGlazing({ palette }: { palette: Palette }) {
-  const z0 = 8.2 - 2.2 - WEST_OPENING_WIDTH / 2;
-  const leaf = WEST_OPENING_WIDTH / 2;
-  return (
-    <group>
-      <Blk x={3.4} z={z0 + WEST_OPENING_WIDTH / 2} y={0} w={0.06} d={WEST_OPENING_WIDTH} h={WEST_OPENING_HEAD} material={palette.glass} />
-      {[z0, z0 + leaf, z0 + WEST_OPENING_WIDTH].map((z) => (
-        <Blk key={z} x={3.4} z={z} y={0} w={0.1} d={0.07} h={WEST_OPENING_HEAD} material={palette.frame} />
-      ))}
-      <Blk x={3.4} z={z0 + WEST_OPENING_WIDTH / 2} y={WEST_OPENING_HEAD - 0.08} w={0.12} d={WEST_OPENING_WIDTH} h={0.08} material={palette.frame} />
     </group>
   );
 }
@@ -419,6 +429,7 @@ export function MeasuredHouseScene({
       // view from the blank south-east corner.
       camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
       gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
+      style={{ width: "100%", height: "100%", display: "block" }}
     >
       <color attach="background" args={[designMode ? "#e9dcc6" : "#e9e5dc"]} />
       <fog attach="fog" args={[designMode ? "#e6d8c2" : "#e9e5dc", 24, 46]} />
@@ -513,11 +524,40 @@ export function MeasuredHouseScene({
           material={palette.interior}
         />
       ))}
-      <WestGlazing palette={palette} />
+
+      {/* Klil Belgian-style glazed units in every punched opening. */}
+      {exteriorWalls.map((wall, wi) =>
+        wall.openings.map((opening, oi) => (
+          <OpeningOnWall
+            key={`ext-open-${wi}-${oi}`}
+            a={wall.a}
+            b={wall.b}
+            opening={opening}
+            kind={openingKind(opening)}
+            palette={palette}
+            exterior
+            wallThickness={EXT_THICKNESS}
+          />
+        )),
+      )}
+      {partitions.map((wall, wi) =>
+        wall.openings.map((opening, oi) => (
+          <OpeningOnWall
+            key={`int-open-${wi}-${oi}`}
+            a={wall.a}
+            b={wall.b}
+            opening={opening}
+            kind="door"
+            palette={palette}
+            wallThickness={INT_THICKNESS}
+          />
+        )),
+      )}
 
       {designMode && (
         <>
           <Terrace palette={palette} quality={quality} />
+          <MasterPatio palette={palette} quality={quality} />
           <Kitchen base={zoneById["north-extension"].level} palette={palette} />
           <Living base={zoneById["central-core"].level} palette={palette} />
           <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} />

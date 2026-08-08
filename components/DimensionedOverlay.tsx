@@ -143,7 +143,7 @@ export function DimensionedOverlay() {
                 </pattern>
               </defs>
               <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
-              <path className="plan-shell" d="M340 0H760V500H1140V1210H0V820H340Z" />
+              <path className="plan-shell" d="M340 0H760V500H1140V1210H0V830H340Z" />
               <g className="dimension-line top-dimension">
                 <line x1="0" y1="-45" x2="1140" y2="-45" />
                 <line x1="0" y1="-65" x2="0" y2="-25" />
@@ -181,36 +181,54 @@ export function DimensionedOverlay() {
 
       <div className="approval-checklist">
         <div className="checklist-header">
-          <h3>Open geometry questions</h3>
-          <span className="unresolved-count">{unresolved.length} open</span>
+          <h3>{unresolved.length === 0 ? "Geometry questions" : "Open geometry questions"}</h3>
+          <span className={unresolved.length === 0 ? "resolved-count" : "unresolved-count"}>
+            {unresolved.length === 0 ? "All closed" : `${unresolved.length} open`}
+          </span>
         </div>
 
-        <div className="checklist-categories">
-          {Object.entries(unresolvedByCategory).map(([category, items]) => (
-            <div key={category} className="category-group">
-              <div className="category-header">
-                <span className="category-name">
-                  {category.replace(/-/g, " ").charAt(0).toUpperCase() + category.replace(/-/g, " ").slice(1)}
-                </span>
-                <span className="unresolved-badge">{items.length}</span>
-              </div>
+        {unresolved.length === 0 ? (
+          <div className="checklist-closed">
+            <p>
+              All ledger items closed 2026-08-08. Working model uses plan chains where readable
+              (including west jog <strong>830 + 380 = 1210</strong>) and standard Israeli
+              single-storey assumptions elsewhere — 20 cm exterior, 10 cm partitions, 2.5 m
+              ceilings, single floor level, plan-north.
+            </p>
+            <p>
+              Still not a construction survey: elevations and site checks before build docs.
+              Full rationale lives in <code>docs/GEOMETRY_AUDIT.md</code> and{" "}
+              <code>geometryApprovalItems</code>.
+            </p>
+          </div>
+        ) : (
+          <div className="checklist-categories">
+            {Object.entries(unresolvedByCategory).map(([category, items]) => (
+              <div key={category} className="category-group">
+                <div className="category-header">
+                  <span className="category-name">
+                    {category.replace(/-/g, " ").charAt(0).toUpperCase() + category.replace(/-/g, " ").slice(1)}
+                  </span>
+                  <span className="unresolved-badge">{items.length}</span>
+                </div>
 
-              <div className="category-items">
-                {items.map((item) => (
-                  <div key={item.id} className="approval-item">
-                    <strong>{item.description}</strong>
-                    {item.zone && <em> ({item.zone})</em>}
-                    {item.notes && <p className="item-notes">{item.notes}</p>}
-                  </div>
-                ))}
+                <div className="category-items">
+                  {items.map((item) => (
+                    <div key={item.id} className="approval-item">
+                      <strong>{item.description}</strong>
+                      {item.zone && <em> ({item.zone})</em>}
+                      {item.notes && <p className="item-notes">{item.notes}</p>}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <p className="checklist-footnote">
-          Read-only. Approvals are recorded by hand in <code>docs/GEOMETRY_AUDIT.md</code>; nothing on this page changes
-          them.
+          Read-only. Decisions are recorded in <code>docs/GEOMETRY_AUDIT.md</code> and{" "}
+          <code>data/house.ts</code>; nothing on this page edits them.
         </p>
       </div>
     </div>

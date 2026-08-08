@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
+import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 
 const MeasuredHouseScene = lazy(() =>
@@ -14,9 +15,8 @@ const MeasuredHouseScene = lazy(() =>
 
 type View = "model" | "plan" | "references";
 
-const Icon = ({ name }: { name: "home" | "cube" | "layers" | "grid" }) => {
+const Icon = ({ name }: { name: "cube" | "layers" | "grid" }) => {
   const paths = {
-    home: "M3 11.5 12 4l9 7.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-8Z M9 21v-6h6v6",
     cube: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z M4 7.5l8 4.5 8-4.5M12 12v9",
     layers: "m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
     grid: "M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z",
@@ -38,10 +38,7 @@ function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: Z
           </pattern>
         </defs>
         <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
-        <path
-          className="plan-shell"
-          d="M340 0H760V500H1140V1210H0V820H340Z"
-        />
+        <path className="plan-shell" d="M340 0H760V500H1140V1210H0V830H340Z" />
         {house.zones.map((zone) => (
           <g
             key={zone.id}
@@ -88,6 +85,9 @@ const isView = (value: string | null): value is View => VIEWS.includes(value as 
 const isZoneId = (value: string | null): value is ZoneId =>
   house.zones.some((zone) => zone.id === value);
 
+const zoneFromMood = (id: MoodBoardId): ZoneId =>
+  id === "terrace" || id === "openings" ? "central-core" : id;
+
 export function HouseExplorer() {
   const router = useRouter();
   const pathname = usePathname();
@@ -95,13 +95,28 @@ export function HouseExplorer() {
 
   const viewParam = searchParams.get("view");
   const zoneParam = searchParams.get("zone");
+  const moodParam = searchParams.get("mood");
   const view: View = isView(viewParam) ? viewParam : "model";
   const selectedZone: ZoneId = isZoneId(zoneParam) ? zoneParam : "north-extension";
+  const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
+    ? moodParam
+    : isMoodBoardId(zoneParam)
+      ? zoneParam
+      : "central-core";
 
-  const navigate = (next: { view?: View; zone?: ZoneId }, mode: "push" | "replace" = "push") => {
+  const navigate = (
+    next: { view?: View; zone?: ZoneId; mood?: MoodBoardId },
+    mode: "push" | "replace" = "push",
+  ) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("view", next.view ?? view);
-    params.set("zone", next.zone ?? selectedZone);
+    if (next.mood) {
+      params.set("mood", next.mood);
+      params.set("zone", zoneFromMood(next.mood));
+    } else {
+      params.set("zone", next.zone ?? selectedZone);
+      if (next.zone && isMoodBoardId(next.zone)) params.set("mood", next.zone);
+    }
     const url = `${pathname}?${params.toString()}`;
     if (mode === "replace") router.replace(url, { scroll: false });
     else router.push(url, { scroll: false });
@@ -130,54 +145,105 @@ export function HouseExplorer() {
     [selectedZone],
   );
 
+  const activeMood = useMemo(
+    () => roomMoodBoards.find((board) => board.id === selectedMood) ?? roomMoodBoards[1],
+    [selectedMood],
+  );
+
+  const zoneIndex = String(house.zones.findIndex((zone) => zone.id === active.id) + 1).padStart(2, "0");
+
   return (
     <main className="explorer-shell">
       <aside className="side-rail" aria-label="Primary navigation">
-        <a className="brand-mark" href="#top" aria-label="House remodel home">H<span>01</span></a>
+        <a className="brand-mark" href="#top" aria-label="House remodel home">
+          H<span>01</span>
+        </a>
         <nav>
-          <button className={view === "model" ? "rail-button is-active" : "rail-button"} aria-label="3D explorer" aria-current={view === "model"} onClick={() => navigate({ view: "model" })}><Icon name="cube" /></button>
-          <button className={view === "plan" ? "rail-button is-active" : "rail-button"} aria-label="Measured plan" aria-current={view === "plan"} onClick={() => navigate({ view: "plan" })}><Icon name="grid" /></button>
-          <button className={view === "references" ? "rail-button is-active" : "rail-button"} aria-label="Reference materials" aria-current={view === "references"} onClick={() => navigate({ view: "references" })}><Icon name="layers" /></button>
+          <button
+            className={view === "model" ? "rail-button is-active" : "rail-button"}
+            aria-label="3D explorer"
+            aria-current={view === "model" ? "page" : undefined}
+            onClick={() => navigate({ view: "model" })}
+          >
+            <Icon name="cube" />
+          </button>
+          <button
+            className={view === "plan" ? "rail-button is-active" : "rail-button"}
+            aria-label="Measured plan"
+            aria-current={view === "plan" ? "page" : undefined}
+            onClick={() => navigate({ view: "plan" })}
+          >
+            <Icon name="grid" />
+          </button>
+          <button
+            className={view === "references" ? "rail-button is-active" : "rail-button"}
+            aria-label="Room mood boards"
+            aria-current={view === "references" ? "page" : undefined}
+            onClick={() => navigate({ view: "references", mood: selectedMood })}
+          >
+            <Icon name="layers" />
+          </button>
         </nav>
       </aside>
 
       <section className="workspace" id="top">
         <header className="topbar">
-          <div>
-            <p className="eyebrow">Private architecture record</p>
-            <h1>House Remodel <span>/ Geometry 01</span></h1>
+          <div className="topbar-brand">
+            <p className="eyebrow">Work in progress</p>
+            <h1>House remodel</h1>
           </div>
           <div className="topbar-actions">
-            <button className="quality-button" onClick={() => setQuality((value) => value === "high" ? "light" : "high")}>
-              {quality === "high" ? "Switch to light mode" : "Switch to high detail"}
-            </button>
+            {view === "model" && (
+              <button
+                type="button"
+                className="quality-button"
+                onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
+              >
+                {quality === "high" ? "Light mode" : "High detail"}
+              </button>
+            )}
           </div>
         </header>
 
         <div className="content-grid">
-          <section className="stage-card">
+          <section className={`stage-card is-${view}`} aria-label={view === "model" ? "3D stage" : view === "plan" ? "Plan audit" : "Mood boards"}>
             {view === "model" && (
               <>
                 <div className="stage-copy">
-                  <span className="overline">Measured shell draft</span>
-                  <h2>Orbit the real footprint</h2>
-                  <p>Drag to orbit · scroll to zoom · select a zone</p>
+                  <span className="overline">Selected room</span>
+                  <h2>{active.label}</h2>
+                  <p>Orbit · zoom · tap a room</p>
                 </div>
-                <div className="mode-toggle" aria-label="Model appearance">
-                  <button className={!designMode ? "is-active" : ""} onClick={() => setDesignMode(false)}>Survey</button>
-                  <button className={designMode ? "is-active" : ""} onClick={() => setDesignMode(true)}>Material study</button>
-                </div>
-                {webglSupport === true && (
-                  <div className="measurements-toggle">
+                <div className="stage-controls">
+                  <div className="mode-toggle" role="group" aria-label="Model appearance">
                     <button
-                      className={showMeasurements ? "is-active" : ""}
+                      type="button"
+                      className={!designMode ? "is-active" : ""}
+                      aria-pressed={!designMode}
+                      onClick={() => setDesignMode(false)}
+                    >
+                      Survey
+                    </button>
+                    <button
+                      type="button"
+                      className={designMode ? "is-active" : ""}
+                      aria-pressed={designMode}
+                      onClick={() => setDesignMode(true)}
+                    >
+                      Materials
+                    </button>
+                  </div>
+                  {webglSupport === true && (
+                    <button
+                      type="button"
+                      className={showMeasurements ? "chip-toggle is-active" : "chip-toggle"}
                       aria-pressed={showMeasurements}
                       onClick={() => setShowMeasurements((value) => !value)}
                     >
-                      {showMeasurements ? "Hide measurements" : "Show measurements"}
+                      {showMeasurements ? "Hide dims" : "Dims"}
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
                 <div className="three-stage">
                   {webglSupport === true && (
                     <Suspense fallback={<div className="model-loading">Loading 3D shell…</div>}>
@@ -194,25 +260,24 @@ export function HouseExplorer() {
                   {webglSupport === false && (
                     <div className="webgl-fallback">
                       <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
-                      <p>Interactive plan fallback · 3D is unavailable on this device</p>
+                      <p>Plan fallback · 3D unavailable</p>
                     </div>
                   )}
-                  {webglSupport === null && <div className="model-loading">Preparing measured shell…</div>}
+                  {webglSupport === null && <div className="model-loading">Preparing shell…</div>}
                 </div>
-                <div className="orientation">
+                <div className="orientation" aria-hidden="true">
                   <b>N</b>
                   <span style={webglSupport === true ? { transform: `rotate(${cameraAzimuth}rad)` } : undefined} />
                 </div>
-                <div className="stage-note">Outer shell: dimensioned source · Walls sectioned at 1.5 m · Partitions, openings and furniture: first-pass design proposal</div>
               </>
             )}
 
             {view === "plan" && (
               <div className="plan-view">
                 <div className="stage-copy plan-copy">
-                  <span className="overline">Measured vs. vector trace</span>
-                  <h2>Dimension audit</h2>
-                  <p>Compare the authoritative photograph with the vector trace and the provisional 3D-render design assumptions.</p>
+                  <span className="overline">Measured source</span>
+                  <h2>Plan audit</h2>
+                  <p>Photo vs vector trace. Geometry only.</p>
                 </div>
                 <DimensionedOverlay />
               </div>
@@ -220,69 +285,178 @@ export function HouseExplorer() {
 
             {view === "references" && (
               <div className="references-view">
-                <div className="stage-copy reference-copy">
-                  <span className="overline">Mood, not geometry</span>
-                  <h2>Visual direction</h2>
-                  <p>These boards inform finishes and atmosphere only.</p>
+                <header className="mood-header">
+                  <div className="stage-copy reference-copy">
+                    <span className="overline">Room mood board</span>
+                    <h2>{activeMood.label}</h2>
+                    <p>{activeMood.atmosphere}</p>
+                  </div>
+                </header>
+
+                <div className="mood-room-rail" role="tablist" aria-label="Rooms">
+                  {roomMoodBoards.map((board) => (
+                    <button
+                      key={board.id}
+                      type="button"
+                      role="tab"
+                      id={`mood-tab-${board.id}`}
+                      aria-selected={selectedMood === board.id}
+                      aria-controls="mood-board-panel"
+                      className={selectedMood === board.id ? "mood-room-chip is-active" : "mood-room-chip"}
+                      onClick={() => navigate({ view: "references", mood: board.id }, "replace")}
+                    >
+                      <span>{board.shortLabel}</span>
+                      {board.label}
+                    </button>
+                  ))}
                 </div>
-                <div className="reference-grid">
-                  <figure className="reference-main">
-                    <Image src="/references/outdoor-moodboard.png" alt="Warm outdoor and indoor living moodboard" fill sizes="(max-width: 900px) 100vw, 64vw" priority unoptimized />
-                    <figcaption>Outdoor living · material direction</figcaption>
+
+                <div
+                  className="mood-board-stage"
+                  id="mood-board-panel"
+                  role="tabpanel"
+                  aria-labelledby={`mood-tab-${activeMood.id}`}
+                >
+                  <figure className="mood-hero">
+                    <Image
+                      src={activeMood.images[0].src}
+                      alt={activeMood.images[0].alt}
+                      fill
+                      sizes="(max-width: 900px) 100vw, 55vw"
+                      priority
+                      unoptimized
+                    />
+                    <figcaption>{activeMood.images[0].caption}</figcaption>
                   </figure>
-                  <figure>
-                    <Image src="/references/design-reference.png" alt="Scandinavian house design reference board" fill sizes="(max-width: 900px) 100vw, 30vw" unoptimized />
-                    <figcaption>Design language · proportions rejected</figcaption>
-                  </figure>
+                  <div className="mood-side">
+                    <div className="mood-gallery" aria-label={`${activeMood.label} references`}>
+                      {activeMood.images.slice(1).map((image) => (
+                        <figure key={`${image.src}-${image.caption}`} className="mood-secondary">
+                          <Image
+                            src={image.src}
+                            alt={image.alt}
+                            fill
+                            sizes="(max-width: 900px) 50vw, 18vw"
+                            unoptimized
+                          />
+                          <figcaption>{image.caption}</figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                    <div className="mood-finishes-block">
+                      <p className="mood-finishes-label">Finish direction</p>
+                      <ul className="mood-finishes" aria-label="Finish direction">
+                        {activeMood.finishes.map((finish) => (
+                          <li key={finish}>{finish}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
           </section>
 
           <aside className="inspector" aria-live="polite">
-            <div className="inspector-head">
-              <span className={`source-tag ${active.status}`}>{statusCopy[active.status]}</span>
-              <span className="zone-number">{String(house.zones.findIndex((zone) => zone.id === active.id) + 1).padStart(2, "0")}</span>
-            </div>
-            <p className="eyebrow">Selected zone</p>
-            <h2>{active.label}</h2>
-            <p className="zone-description">{active.description}</p>
+            {view === "references" ? (
+              <>
+                <div className="inspector-head">
+                  <span className="source-tag traced">Atmosphere</span>
+                  <span className="zone-number">{activeMood.shortLabel}</span>
+                </div>
+                <p className="eyebrow">Selected board</p>
+                <h2>{activeMood.label}</h2>
+                <p className="zone-description">{activeMood.atmosphere}</p>
 
-            <dl className="measure-list">
-              <div><dt>Outer width</dt><dd>{Math.round(active.width * 100)} cm</dd></div>
-              <div><dt>Outer depth</dt><dd>{Math.round(active.depth * 100)} cm</dd></div>
-              <div><dt>Area envelope</dt><dd>{(active.width * active.depth).toFixed(1)} m²</dd></div>
-              <div><dt>Source</dt><dd>{active.status === "measured" ? "Written dimension" : "Plan trace"}</dd></div>
-            </dl>
+                <ul className="inspector-finishes" aria-label="Finishes">
+                  {activeMood.finishes.map((finish) => (
+                    <li key={finish}>{finish}</li>
+                  ))}
+                </ul>
 
-            <div className="accuracy-card">
-              <div className="accuracy-title"><span>Geometry rule</span><b>Locked</b></div>
-              <p>The handwritten measured plan controls walls and footprint. Presentation boards cannot change geometry.</p>
-            </div>
+                <div className="accuracy-note">
+                  <div className="accuracy-title">
+                    <span>Rule</span>
+                    <b>Mood only</b>
+                  </div>
+                  <p>Boards set feeling and finishes. Measured plan still owns walls and footprint.</p>
+                </div>
 
-            <a className="source-link" href="/references/measured-plan.jpeg" target="_blank" rel="noreferrer">
-              <span className="source-thumbnail"><Image src="/references/measured-plan.jpeg" alt="Original handwritten measured floor plan" fill sizes="72px" unoptimized /></span>
-              <span><small>Authoritative source</small>Open measured drawing</span>
-              <b>↗</b>
-            </a>
+                <button
+                  type="button"
+                  className="source-link"
+                  onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
+                >
+                  <span className="source-thumbnail">
+                    <Image src={activeMood.images[0].src} alt="" fill sizes="72px" unoptimized />
+                  </span>
+                  <span>
+                    <small>Open in 3D</small>
+                    See this room in the model
+                  </span>
+                  <b aria-hidden="true">↗</b>
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="inspector-head">
+                  <span className={`source-tag ${active.status}`}>{statusCopy[active.status]}</span>
+                  <span className="zone-number">{zoneIndex}</span>
+                </div>
+                <p className="eyebrow">Selected room</p>
+                <h2>{active.label}</h2>
+                <p className="zone-description">{active.description}</p>
+
+                <dl className="measure-list">
+                  <div>
+                    <dt>Width</dt>
+                    <dd>{Math.round(active.width * 100)} cm</dd>
+                  </div>
+                  <div>
+                    <dt>Depth</dt>
+                    <dd>{Math.round(active.depth * 100)} cm</dd>
+                  </div>
+                  <div>
+                    <dt>Area</dt>
+                    <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
+                  </div>
+                </dl>
+
+                <div className="accuracy-note">
+                  <div className="accuracy-title">
+                    <span>Geometry</span>
+                    <b>Locked</b>
+                  </div>
+                  <p>Measured plan controls walls and footprint.</p>
+                </div>
+
+                <button
+                  type="button"
+                  className="source-link"
+                  onClick={() => navigate({ view: "references", mood: active.id })}
+                >
+                  <span className="source-thumbnail">
+                    <Image
+                      src={
+                        roomMoodBoards.find((b) => b.id === active.id)?.images[0].src ??
+                        "/references/moods/mood-living.jpeg"
+                      }
+                      alt=""
+                      fill
+                      sizes="72px"
+                      unoptimized
+                    />
+                  </span>
+                  <span>
+                    <small>Mood board</small>
+                    Open {active.label.toLowerCase()} board
+                  </span>
+                  <b aria-hidden="true">↗</b>
+                </button>
+              </>
+            )}
           </aside>
         </div>
-
-        <section className="zone-strip" aria-label="House zones">
-          <div className="strip-heading">
-            <div><p className="eyebrow">Geometry ledger</p><h2>Seven audited zones</h2></div>
-            <p>Room names below follow the owner&apos;s program. Wall thickness, most openings, and ceiling heights remain unconfirmed design assumptions for this first 3D pass.</p>
-          </div>
-          <div className="zone-cards">
-            {house.zones.map((zone, index) => (
-              <button key={zone.id} className={selectedZone === zone.id ? "zone-card is-active" : "zone-card"} onClick={() => navigate({ zone: zone.id, view: "model" })}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{zone.label}</strong>
-                <small>{statusCopy[zone.status]}</small>
-              </button>
-            ))}
-          </div>
-        </section>
       </section>
     </main>
   );

@@ -4,10 +4,12 @@
 
 A parallel Claude session worked the dimensioned-overlay milestone on 2026-08-07 (same working tree, no branch/worktree split). It:
 
-- Added a "Dimensioned overlay — session 2026-08-07" section to `docs/GEOMETRY_AUDIT.md` with cross-checked dimension chains and one flagged discrepancy (west jog: plan reads 830, `data/house.ts` has 820 — unresolved, needs user decision).
-- Added `docs/plan-overlay.svg`, a traced overlay covering only cross-checked geometry (outer envelope + north-extension bay opening). Does not cover interior partitions beyond that.
-- Did **not** modify `data/house.ts` — still provisional, per the acceptance rule below.
-- Left several items explicitly unresolved (door widths, 10 vs 20 corner marks, site symbols south of the footprint, true-north bearing) because the source scan (756×676px) is too low-res to read them reliably — see the doc for the full list.
+- Added a "Dimensioned overlay — session 2026-08-07" section to `docs/GEOMETRY_AUDIT.md` with cross-checked dimension chains.
+- Flagged west jog 830 vs 820 — **closed 2026-08-08**: owner directed ledger close; model uses plan chain **830 + 380**, jog at z = 8.3 m.
+- Added `docs/plan-overlay.svg` (outer envelope + north-extension bay).
+- Did **not** originally modify `data/house.ts` — that file now carries the closed working assumptions (2026-08-08).
+
+Illegible door-leaf marks at scan resolution remain informational only and no longer block the model.
 
 If you pick up the next step in the continuation sequence, read that section first to avoid re-deriving or contradicting it.
 

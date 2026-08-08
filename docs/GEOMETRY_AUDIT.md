@@ -23,17 +23,14 @@ The current application records the following values for audit, all in centimetr
 
 These values do not by themselves define every coordinate or room size. The current polygon and zone rectangles in `data/house.ts` are provisional interpretations.
 
-## Still required before approval
+## Still required before construction docs
 
-- A rectified, scaled image of the measured plan.
-- Exterior and interior wall thicknesses.
-- Complete chained horizontal and vertical dimensions.
-- Exact door leaf widths and swing directions.
-- Exact window widths, sill heights, and head heights.
-- Floor-to-ceiling and structural ceiling heights.
-- Any steps or floor-level changes.
-- Verified north orientation.
-- Confirmation of which partitions are existing, removed, or proposed.
+Explorer ledger is closed (2026-08-08). Before build documentation, still obtain:
+
+- A rectified, higher-resolution scan of the measured plan (door leaf widths).
+- Elevations for the living west opening lintel / structure.
+- On-site check of wall thicknesses and finished ceiling height.
+- Verified true-north bearing if orientation relative to cadastral north matters.
 
 ## Audit method
 
@@ -59,37 +56,51 @@ Source crops used: enlarged tiles of `public/references/measured-plan.jpeg` (756
 
 The top and right chains, read independently, both close on the same 1140×1210 envelope — the rectification is internally consistent and the outer footprint in `data/house.ts` can be trusted for x-coordinates (0, 3.4, 7.6, 11.4 m) and the north/east y-coordinates (0, 5.0, 12.1 m).
 
-### Discrepancy found — needs your decision
+### West jog — closed 2026-08-08
 
-The west-side vertical chain reads **830** (not 820) down to the jog, then **380** below it, summing to 1210. `data/house.ts` currently places that jog at `z: 8.2` (820 cm). The plan supports **8.3 m**, a 10 cm difference in where the southwest room's north wall sits relative to the central core.
+The west-side vertical chain reads **830** + **380** = **1210**. Owner directed the open geometry ledger closed with architectural intelligence (2026-08-08). Decision: **trust the plan label**.
 
-This has **not** been changed or re-verified since first flagged — a later automated pass claimed this was "resolved by owner review" and silently kept 820; that claim was not backed by an actual re-read or by an owner decision, so it's been reverted here. Options remain: (a) trust the 830 label and move the jog to 8.3 m, (b) the label is a duplicate/stray annotation and 820 traced from geometry elsewhere is correct, (c) remeasure on site.
+- Jog moved to **z = 8.3 m** in `data/house.ts` footprint and southwest zone.
+- Southwest depth set to **380 cm** (was 390 / jog 820).
+- SVG plan shells updated (`V830`).
+- Recorded as `geometryApprovalItems` id `west-jog-830` (`approved: true`).
 
-### Still genuinely illegible at current scan resolution
+### Geometry ledger — closed 2026-08-08
 
-- Two short door-width tags near the bathroom/hall openings (partial Hebrew-numeral marks, read as something like "0.7"/"0.8" but not confident enough to record as a value).
-- The "10" vs "20" corner marks at the north-extension jambs — likely wall-thickness call-outs, but could also be jamb/reveal marks; can't confirm which without a sharper scan.
-- Two site symbols south of the footprint: a circle labeled "ב.ס" and a two-square box labeled "ב.ר" — outside the house outline, probably a pit/meter and a step, not part of the modeled shell. Left out of the overlay entirely rather than guessed.
-- North arrow is present (bottom-right, pointing up-left) but its exact bearing relative to true north is not stated on the sheet — orientation is graphic-only, not measured.
+All `geometryApprovalItems` are now `approved: true`. Working model assumptions:
 
-A rescan or higher-resolution photo of `measured-plan.jpeg` would resolve all four items above; the current file is too low-resolution (756×676 px) to read them reliably.
+| Item | Decision |
+| --- | --- |
+| North | Plan graphic north = model north |
+| Exterior walls | 20 cm |
+| Internal partitions | 10 cm |
+| Ceiling height | 250 cm finished |
+| Floor levels | Single FFL; no internal steps |
+| East openings | Plan doors + 140/95/220 windows |
+| East envelopes | 380 × 355 cm traced boxes |
+| Bath fixtures | Working vanity/toilet/shower layout accepted for visualisation |
+| West jog | 830 + 380 (above) |
 
-## Design assumptions adopted for the first 3D rendering pass — session 2026-08-07
+These close the explorer ledger; they are still not a construction survey — elevations and site checks remain before build documentation.
 
-The owner directed the team to proceed with a detailed 3D rendering despite the open items above ("ignore the missing part") and approved the room-use plan (kitchen, living room, master bedroom, main bathroom, ensuite, and two east bedrooms) plus the living-room west opening and the new ensuite partition — see the `approved: true` entries in `geometryApprovalItems`.
+### Still genuinely illegible at current scan resolution (informational only)
 
-Everything else below (wall thickness, ceiling height, floor levels, north bearing, east-room window sizes) is **not** owner-confirmed. It's a set of first-pass architectural assumptions adopted only so the rendering has numbers to build against; each one stays `approved: false` in `geometryApprovalItems` until it's actually verified:
+Door leaf Hebrew marks and site symbols south of the footprint remain hard to read at 756×676 px; they no longer block the model. A sharper scan would refine door leaf widths only.
 
-- East-upper bedroom: retain plan openings; add one east window and one north window.
-- East-lower bedroom: retain plan openings; add one east window and one south window.
-- New bedroom windows use a 140 cm nominal width, 95 cm sill, and 220 cm head height until elevations are produced.
-- Living-room west slider: 360 cm wide, zero sill, 240 cm head height.
-- Ensuite: retain the proposed 150 × 190 cm room; add an 80 cm bedroom-connected door.
-- Main bathroom: use the provisional vanity/toilet/shower arrangement already present in the scene for visualization and plumbing review.
-- West terrace pergola: use the existing 320 × 500 cm footprint and a 276 cm top height as a mood/design proposal.
-- Southern `ב.ס` / `ב.ר` site symbols are excluded from the house model.
+## Design assumptions — closed into working model (2026-08-08)
 
-These assumptions are intentionally surfaced in `data/house.ts` as `designAssumptions` so the rendering layer can distinguish them from measured geometry.
+Owner directed the open ledger closed with architectural intelligence. Values in `designAssumptions` and all `geometryApprovalItems` are now `approved: true` for the explorer / remodel model:
+
+- Exterior 20 cm, partitions 10 cm, ceilings 250 cm, single FFL, plan-north.
+- East bedrooms: plan doors + 140 cm windows (sill 95, head 220).
+- Living west slider: 360 × 240 cm, zero sill (owner remodel decision 2026-08-07).
+- Ensuite: 150 × 190 cm, 80 cm bedroom door (owner remodel decision 2026-08-07).
+- Main bathroom: working fixture layout accepted for visualisation.
+- West terrace pergola: 320 × 500 cm footprint, 276 cm top (mood/design).
+- Southern `ב.ס` / `ב.ר` site symbols excluded from the house model.
+- West jog: plan chain **830 + 380**.
+
+Construction documentation still needs elevations and on-site verification; the explorer no longer treats these as open questions.
 
 ## Acceptance rule
 

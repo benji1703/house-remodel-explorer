@@ -65,7 +65,6 @@ button { color: inherit; }
 }
 .rail-button:hover, .rail-button.is-active { background: rgba(255,255,255,.1); color: white; }
 .rail-button svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.rail-bottom { margin-top: auto; }
 
 .workspace { width: calc(100% - 76px); margin-left: 76px; padding: 0 36px 42px; }
 
@@ -82,16 +81,14 @@ button { color: inherit; }
 .topbar h1 span { color: #999c94; font-style: italic; font-weight: 400; }
 .topbar-actions { display: flex; align-items: center; gap: 11px; }
 
-.status-pill, .quality-button {
+.quality-button {
   border: 1px solid var(--line);
   background: rgba(255,255,255,.5);
   border-radius: 999px;
   padding: 8px 12px;
   font-size: 11px;
+  cursor: pointer;
 }
-.status-pill { display: flex; align-items: center; gap: 7px; }
-.status-pill i { width: 6px; height: 6px; border-radius: 50%; background: #6c936a; box-shadow: 0 0 0 3px rgba(108,147,106,.13); }
-.quality-button { cursor: pointer; }
 
 .content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; padding-top: 18px; }
 .stage-card { position: relative; min-height: 610px; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: #e9e5dc; }
@@ -244,11 +241,10 @@ button { color: inherit; }
 @media (max-width: 800px) {
   .side-rail { width: 100%; height: 58px; min-height: 0; inset: auto 0 0; flex-direction: row; justify-content: space-around; padding: 7px 16px; }
   .side-rail nav { margin: 0; flex-direction: row; gap: 18px; }
-  .brand-mark, .rail-bottom { display: none; }
+  .brand-mark { display: none; }
   .rail-button { width: 42px; height: 42px; }
   .workspace { width: 100%; margin-left: 0; padding: 0 16px 82px; }
   .topbar { height: 78px; }
-  .topbar-actions .status-pill { display: none; }
   .content-grid { grid-template-columns: 1fr; }
   .stage-card, .plan-view, .references-view { min-height: 530px; }
   .three-stage { height: 530px; }

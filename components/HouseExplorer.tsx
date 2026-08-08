@@ -14,13 +14,12 @@ const MeasuredHouseScene = lazy(() =>
 
 type View = "model" | "plan" | "references";
 
-const Icon = ({ name }: { name: "home" | "cube" | "layers" | "grid" | "sun" }) => {
+const Icon = ({ name }: { name: "home" | "cube" | "layers" | "grid" }) => {
   const paths = {
     home: "M3 11.5 12 4l9 7.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-8Z M9 21v-6h6v6",
     cube: "m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z M4 7.5l8 4.5 8-4.5M12 12v9",
     layers: "m4 8 8-4 8 4-8 4-8-4Zm0 4 8 4 8-4M4 16l8 4 8-4",
     grid: "M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z",
-    sun: "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-5v2m0 14v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42M7.06 16.94l-1.42 1.42",
   };
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -136,12 +135,10 @@ export function HouseExplorer() {
       <aside className="side-rail" aria-label="Primary navigation">
         <a className="brand-mark" href="#top" aria-label="House remodel home">H<span>01</span></a>
         <nav>
-          <button className="rail-button" aria-label="Reset to overview" onClick={() => navigate({ view: "model", zone: "north-extension" })}><Icon name="home" /></button>
           <button className={view === "model" ? "rail-button is-active" : "rail-button"} aria-label="3D explorer" aria-current={view === "model"} onClick={() => navigate({ view: "model" })}><Icon name="cube" /></button>
           <button className={view === "plan" ? "rail-button is-active" : "rail-button"} aria-label="Measured plan" aria-current={view === "plan"} onClick={() => navigate({ view: "plan" })}><Icon name="grid" /></button>
           <button className={view === "references" ? "rail-button is-active" : "rail-button"} aria-label="Reference materials" aria-current={view === "references"} onClick={() => navigate({ view: "references" })}><Icon name="layers" /></button>
         </nav>
-        <button className="rail-button rail-bottom" aria-label="Design mode" onClick={() => setDesignMode((value) => !value)}><Icon name="sun" /></button>
       </aside>
 
       <section className="workspace" id="top">
@@ -151,9 +148,8 @@ export function HouseExplorer() {
             <h1>House Remodel <span>/ Geometry 01</span></h1>
           </div>
           <div className="topbar-actions">
-            <span className="status-pill"><i /> Source controlled</span>
             <button className="quality-button" onClick={() => setQuality((value) => value === "high" ? "light" : "high")}>
-              {quality === "high" ? "High detail" : "Light mode"}
+              {quality === "high" ? "Switch to light mode" : "Switch to high detail"}
             </button>
           </div>
         </header>

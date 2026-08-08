@@ -172,8 +172,11 @@ button { color: inherit; }
 .opacity-control span { min-width: 28px; text-align: right; }
 .overlay-reset { font-size: 9px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 3px; background: white; cursor: pointer; }
 .overlay-reset:hover { background: rgba(43,48,40,.06); }
+.overlay-hint { color: #9a9a92; font-style: italic; }
 
 .comparison-stage { position: relative; height: 430px; border: 1px solid var(--line); border-radius: 3px; overflow: hidden; background: #ebe8df; }
+.comparison-stage.is-pannable { cursor: grab; touch-action: none; }
+.comparison-stage.is-pannable:active { cursor: grabbing; }
 .measured-view { position: absolute; inset: 0; }
 .measured-view img { object-fit: contain; }
 .overlay-image { position: absolute; inset: 0; background: transparent; transform-origin: center; }

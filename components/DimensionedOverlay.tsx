@@ -11,6 +11,8 @@ export function DimensionedOverlay() {
   const [opacity, setOpacity] = useState(50);
   const [rotation, setRotation] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; pan: { x: number; y: number } } | null>(null);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   const approvalByCategory = geometryApprovalItems.reduce(
@@ -87,13 +89,15 @@ export function DimensionedOverlay() {
                 aria-label="Zoom the photo to check alignment against the vector trace"
               />
               <span>{Math.round(zoom * 100)}%</span>
-              {(rotation !== 0 || zoom !== 1) && (
+              <span className="overlay-hint">Drag photo to pan</span>
+              {(rotation !== 0 || zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
                 <button
                   type="button"
                   className="overlay-reset"
                   onClick={() => {
                     setRotation(0);
                     setZoom(1);
+                    setPan({ x: 0, y: 0 });
                   }}
                 >
                   Reset
@@ -103,7 +107,23 @@ export function DimensionedOverlay() {
           )}
         </div>
 
-        <div className="comparison-stage">
+        <div
+          className={mode === "compare" ? "comparison-stage is-pannable" : "comparison-stage"}
+          onPointerDown={(e) => {
+            if (mode !== "compare") return;
+            e.currentTarget.setPointerCapture(e.pointerId);
+            setDragStart({ x: e.clientX, y: e.clientY, pan });
+          }}
+          onPointerMove={(e) => {
+            if (!dragStart) return;
+            setPan({
+              x: dragStart.pan.x + (e.clientX - dragStart.x),
+              y: dragStart.pan.y + (e.clientY - dragStart.y),
+            });
+          }}
+          onPointerUp={() => setDragStart(null)}
+          onPointerLeave={() => setDragStart(null)}
+        >
           {mode === "measured" && (
             <div className="measured-view">
               <Image
@@ -144,7 +164,10 @@ export function DimensionedOverlay() {
           {mode === "compare" && (
             <div
               className="overlay-image"
-              style={{ opacity: opacity / 100, transform: `rotate(${rotation}deg) scale(${zoom})` }}
+              style={{
+                opacity: opacity / 100,
+                transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${zoom})`,
+              }}
             >
               <Image
                 src="/references/measured-plan.jpeg"

@@ -32,6 +32,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Oak run and honed travertine; east light, north bay. Threshold to living stays open.",
     finishes: ["European oak", "Honed travertine", "Belgian frames", "Lime-wash plaster"],
     images: [
+      img(
+        "/references/moods/mood-kitchen-improved.png",
+        "Preparation",
+        "Kitchen prep island with oak cabinetry and limestone surfaces",
+      ),
       img("/references/moods/mood-kitchen.jpeg", "Dusk", "Kitchen oak cabinetry in low light"),
       img("/references/moods/mood-kitchen-detail.jpeg", "Grain", "Oak and travertine join"),
       img("/references/moods/mood-kitchen-03.jpeg", "Island", "Kitchen island under east window light"),
@@ -61,6 +66,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Low furniture, west glass to the terrace. Lime-wash and microcement carry the volume.",
     finishes: ["Microcement", "Wool upholstery", "West glazing", "Lime-wash plaster"],
     images: [
+      img(
+        "/references/moods/mood-living-improved.png",
+        "Reading",
+        "Linen reading chair beside an oak bookcase and plaster hearth",
+      ),
       img("/references/moods/mood-living.jpeg", "Terrace light", "Living room opening to terrace at dusk"),
       img("/references/moods/mood-living-detail.jpeg", "Junction", "Microcement and plaster join"),
       img("/references/moods/mood-living-03.jpeg", "Doors", "Seating toward the terrace doors"),
@@ -90,6 +100,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Pergola, vine, shade for table. House returns through painted doors.",
     finishes: ["Timber pergola", "Climbing vine", "Painted doors", "Clay planters"],
     images: [
+      img(
+        "/references/moods/mood-terrace-improved.png",
+        "Lunch",
+        "Weathered oak dining table beneath a vine pergola",
+      ),
       img("/references/moods/mood-terrace.jpeg", "Pergola", "Pergola dining at golden hour"),
       img("/references/moods/mood-terrace-detail.jpeg", "Beam", "Pergola timber and vine"),
       img("/references/moods/mood-terrace-03.jpeg", "Table", "Dining under the pergola"),
@@ -119,6 +134,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Linen and pale oak; west exit to the private court.",
     finishes: ["Washed linen", "Oak bedside", "West exit", "Lime-wash plaster"],
     images: [
+      img(
+        "/references/moods/mood-master-improved.png",
+        "Dressing",
+        "Oak wardrobe and dressing niche beside a linen bed",
+      ),
       img("/references/moods/mood-master.jpeg", "Bed", "Master bedroom with queen bed"),
       img("/references/moods/mood-bedroom-detail.jpeg", "Cloth", "Bedding and oak detail"),
       img("/references/moods/mood-master-03.jpeg", "Frame light", "Bedroom in painted-frame light"),
@@ -177,6 +197,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Cross light south and east; oak dresser; bed or daybed.",
     finishes: ["Linen", "Oak dresser", "Dual windows", "Microcement"],
     images: [
+      img(
+        "/references/moods/mood-east-flex-improved.png",
+        "Study",
+        "Oak desk and linen daybed in the east room",
+      ),
       img("/references/moods/mood-east-lower.jpeg", "East room", "East bedroom"),
       img("/references/moods/mood-living-detail.jpeg", "Surface", "Floor and wall finish"),
       img("/references/moods/mood-east-lower-03.jpeg", "Cross light", "Bed with south and east windows"),
@@ -235,6 +260,11 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     atmosphere: "Master only: vanity, toilet, mirror — same materials, shorter run.",
     finishes: ["Oak", "Microcement", "Lime-wash plaster", "Mirror"],
     images: [
+      img(
+        "/references/moods/mood-ensuite-improved.png",
+        "Wet room",
+        "Stone shower bench and trough vanity behind fluted glass",
+      ),
       img("/references/moods/mood-ensuite.jpeg", "Private bath", "Ensuite with oak vanity"),
       img("/references/moods/mood-bath-detail.jpeg", "Top", "Vanity surface"),
       img("/references/moods/mood-ensuite-03.jpeg", "Run", "Vanity and toilet"),

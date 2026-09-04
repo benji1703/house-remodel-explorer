@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
-import { BarStool, Cooktop, FURN, Pendant, PotPlant } from "./furniture";
+import { BarStool, Cooktop, FURN, Pendant } from "./furniture";
 
 const WINE_GREEN = new THREE.MeshPhysicalMaterial({
   color: "#263d32",
@@ -177,10 +177,8 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
   return (
     <group>
       <SoftBox x={x} z={z} y={base + 0.02} w={w + 0.08} d={d} h={h - 0.02} radius={0.025} material={palette.oak} />
-      <SoftBox x={x} z={z} y={base + h + 0.015} w={w + 0.08} d={d} h={0.3} radius={0.022} material={palette.oak} />
-      <Blk x={x} z={z + d / 2 + 0.006} y={base + h + 0.105} w={w - 0.035} d={0.014} h={0.012} material={palette.charcoal} />
       <Blk x={x} z={z + 0.015} y={base + 0.09} w={w - 0.08} d={d - 0.1} h={h - 0.19} material={palette.charcoal} />
-      {[0.54, 0.96, 1.38].map((shelf) => (
+      {[0.54, 1.02, 1.5, 1.92].map((shelf) => (
         <Blk key={shelf} x={x} z={z + 0.05} y={base + shelf} w={w - 0.12} d={d - 0.14} h={0.025} material={palette.glass} />
       ))}
       <group
@@ -192,10 +190,10 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
         <mesh position={[w / 2, h / 2, 0]} material={palette.oak} castShadow receiveShadow>
           <boxGeometry args={[w, h, 0.055]} />
         </mesh>
-        <mesh position={[w - 0.055, h * 0.53, 0.035]} material={palette.frame}>
-          <boxGeometry args={[0.018, h * 0.72, 0.018]} />
+        <mesh position={[w - 0.055, h * 0.5, 0.035]} material={palette.charcoal}>
+          <boxGeometry args={[0.014, h * 0.72, 0.014]} />
         </mesh>
-        <mesh position={[w / 2, 0.63, 0.034]} material={palette.charcoal}>
+        <mesh position={[w / 2, h * 0.31, 0.034]} material={palette.charcoal}>
           <boxGeometry args={[w - 0.06, 0.012, 0.012]} />
         </mesh>
       </group>
@@ -261,7 +259,6 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       </EditableFurniture>
 
       <Pendant base={base} palette={palette} x={5.35} z={2.2} />
-      <PotPlant base={base} palette={palette} x={6.85} z={1.55} scale={0.7} />
     </group>
   );
 }

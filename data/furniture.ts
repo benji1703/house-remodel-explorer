@@ -19,7 +19,7 @@ export const furnitureCatalog = [
   { id: "east-lower-dresser", uuid: "5219de6c-30c7-46ef-b53a-ec4a946bb1cb", label: "East lower dresser", room: "East lower", dimensions: { widthCm: 120, depthCm: 50, heightCm: 85 } },
   { id: "kitchen-stool-north", uuid: "826011e6-e25f-40a9-9c65-c8bc119131e8", label: "North island stool", room: "Kitchen", dimensions: { widthCm: 40, depthCm: 40, heightCm: 70 } },
   { id: "kitchen-stool-south", uuid: "edc28624-ce64-4119-9eb0-814559d70acf", label: "South island stool", room: "Kitchen", dimensions: { widthCm: 40, depthCm: 40, heightCm: 70 } },
-  { id: "kitchen-integrated-fridge", uuid: "194eaa55-8aab-476c-b4af-ce8eed213acd", label: "Integrated fridge", room: "Kitchen", dimensions: { widthCm: 70, depthCm: 70, heightCm: 190 } },
+  { id: "kitchen-integrated-fridge", uuid: "194eaa55-8aab-476c-b4af-ce8eed213acd", label: "Integrated fridge", room: "Kitchen", dimensions: { widthCm: 70, depthCm: 70, heightCm: 223 } },
   { id: "terrace-dining-set", uuid: "b860832a-1b38-4183-8e8f-7d65820fc647", label: "Terrace dining table", room: "Terrace", dimensions: { widthCm: 160, depthCm: 85, heightCm: 75 } },
   { id: "master-patio-chair", uuid: "19a4bafd-1a75-4608-ab4c-cc2a91d1e8e1", label: "Patio lounge chair", room: "Master patio", dimensions: { widthCm: 85, depthCm: 90, heightCm: 70 } },
 ] as const;

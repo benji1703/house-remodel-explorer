@@ -20,7 +20,7 @@ export const FURN = {
   lounge: { w: 0.85, d: 0.9, h: 0.7, back: 0.4 },
   coffee: { w: 1.2, d: 0.7, h: 0.4 },
   stool: { w: 0.4, d: 0.4, h: 0.7 },
-  fridge: { w: 0.7, d: 0.7, h: 1.9 },
+  fridge: { w: 0.7, d: 0.7, h: 2.23 },
   hob: { w: 0.6, d: 0.55, h: 0.04 },
   oven: { w: 0.6, d: 0.6, h: 0.7 },
   pendant: { r: 0.18, h: 0.28 },

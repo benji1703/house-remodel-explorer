@@ -31,6 +31,42 @@ export const FURN = {
   rug: { h: 0.015 },
 } as const;
 
+const BRONZE = new THREE.MeshPhysicalMaterial({
+  color: "#78624b",
+  metalness: 0.78,
+  roughness: 0.24,
+  clearcoat: 0.2,
+  envMapIntensity: 1.45,
+});
+
+const BOUCLE = new THREE.MeshPhysicalMaterial({
+  color: "#eee9df",
+  roughness: 0.98,
+  sheen: 0.7,
+  sheenColor: new THREE.Color("#fffaf1"),
+  sheenRoughness: 0.82,
+  envMapIntensity: 0.65,
+});
+
+const SADDLE_LEATHER = new THREE.MeshPhysicalMaterial({
+  color: "#8f674b",
+  roughness: 0.52,
+  clearcoat: 0.12,
+  clearcoatRoughness: 0.38,
+  sheen: 0.24,
+  sheenColor: new THREE.Color("#c99c78"),
+  envMapIntensity: 1.05,
+});
+
+const LINEN_SHADE = new THREE.MeshPhysicalMaterial({
+  color: "#f1e8d8",
+  roughness: 0.92,
+  transmission: 0.08,
+  transparent: true,
+  opacity: 0.96,
+  side: THREE.DoubleSide,
+});
+
 function Cabinet({
   base,
   palette,
@@ -65,7 +101,7 @@ function Cabinet({
         return (
           <group key={index}>
             <SoftBox x={frontX} z={frontZ} y={base + 0.11} w={frontW} d={frontD} h={h - 0.2} radius={0.007} material={palette.oak} />
-            <Cyl x={handleX} z={handleZ} y={base + h * 0.48} r={0.009} h={0.08} material={palette.frame} />
+            <Cyl x={handleX} z={handleZ} y={base + h * 0.48} r={0.009} h={0.08} material={BRONZE} />
           </group>
         );
       })}
@@ -104,17 +140,18 @@ export function QueenBed({
   return (
     <group>
       <SoftBox x={x} z={z} y={base + 0.07} w={planW} d={planD} h={h - mattress - 0.04} radius={0.055} material={palette.oak} />
-      <SoftBox x={x} z={z} y={base + h - mattress} w={planW - 0.05} d={planD - 0.05} h={mattress} radius={0.075} material={palette.upholstery} />
-      <SoftBox x={headX} z={headZ} y={base + 0.12} w={headW} d={headD} h={0.72} radius={0.035} material={palette.oak} />
+      <SoftBox x={x} z={z} y={base + 0.035} w={planW - 0.1} d={planD - 0.1} h={0.045} radius={0.02} material={BRONZE} />
+      <SoftBox x={x} z={z} y={base + h - mattress} w={planW - 0.05} d={planD - 0.05} h={mattress} radius={0.075} material={BOUCLE} />
+      <SoftBox x={headX} z={headZ} y={base + 0.12} w={headW} d={headD} h={0.72} radius={0.055} material={BOUCLE} />
       {headOnZ ? (
         <>
-          <SoftBox x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={palette.upholstery} />
-          <SoftBox x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={palette.upholstery} />
+          <SoftBox x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={BOUCLE} />
+          <SoftBox x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={BOUCLE} />
         </>
       ) : (
         <>
-          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={palette.upholstery} />
-          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={palette.upholstery} />
+          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={BOUCLE} />
+          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={BOUCLE} />
         </>
       )}
     </group>
@@ -136,23 +173,57 @@ export function Nightstand({
   return <Cabinet base={base} palette={palette} x={x} z={z} w={w} d={d} h={h} />;
 }
 
+export function BedsideLamp({
+  base,
+  x,
+  z,
+  nightFactor = 0,
+}: {
+  base: number;
+  x: number;
+  z: number;
+  nightFactor?: number;
+}) {
+  return (
+    <group>
+      <Cyl x={x} z={z} y={base} r={0.075} h={0.025} segments={28} material={BRONZE} />
+      <Cyl x={x} z={z} y={base + 0.02} r={0.011} h={0.24} segments={20} material={BRONZE} />
+      <mesh position={[x - CX, base + 0.27, z - CZ]}>
+        <sphereGeometry args={[0.045, 24, 16]} />
+        <meshStandardMaterial
+          color="#fff2d5"
+          emissive="#ff9f45"
+          emissiveIntensity={0.35 + nightFactor * 2.8}
+          toneMapped={false}
+        />
+      </mesh>
+      <mesh position={[x - CX, base + 0.32, z - CZ]} material={LINEN_SHADE} castShadow>
+        <cylinderGeometry args={[0.105, 0.17, 0.22, 32, 1, true]} />
+      </mesh>
+    </group>
+  );
+}
+
 export function Wardrobe({
   base,
   palette,
   x,
   z,
   along = "z",
+  width = FURN.wardrobe.w,
 }: {
   base: number;
   palette: Palette;
   x: number;
   z: number;
   along?: "x" | "z";
+  width?: number;
 }) {
-  const { w, d, h } = FURN.wardrobe;
-  const planW = along === "z" ? d : w;
-  const planD = along === "z" ? w : d;
-  return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={3} frontAxis={along === "z" ? "x" : "z"} />;
+  const { d, h } = FURN.wardrobe;
+  const planW = along === "z" ? d : width;
+  const planD = along === "z" ? width : d;
+  const fronts = Math.max(2, Math.round(width / 0.62));
+  return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={fronts} frontAxis={along === "z" ? "x" : "z"} />;
 }
 
 export function Dresser({
@@ -177,7 +248,6 @@ export function Dresser({
 /** Sofa: seat + back. `face` = direction the sitter looks (into the room). */
 export function Sofa({
   base,
-  palette,
   x,
   z,
   face = "w",
@@ -204,7 +274,7 @@ export function Sofa({
 
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + 0.14} w={planW} d={planD} h={0.3} radius={0.09} material={palette.upholstery} />
+      <SoftBox x={x} z={z} y={base + 0.14} w={planW} d={planD} h={0.3} radius={0.11} material={BOUCLE} />
       <SoftBox
         x={x + backOff.x}
         z={z + backOff.z}
@@ -213,7 +283,7 @@ export function Sofa({
         d={backD}
         h={h - 0.18}
         radius={0.07}
-        material={palette.upholstery}
+        material={BOUCLE}
       />
       {[-1, 1].map((side) => (
         <SoftBox
@@ -225,7 +295,7 @@ export function Sofa({
           d={cushionD}
           h={0.12}
           radius={0.055}
-          material={palette.upholstery}
+          material={BOUCLE}
         />
       ))}
       {[-1, 1].map((side) => (
@@ -238,7 +308,7 @@ export function Sofa({
           d={alongNS ? 0.17 : planD - 0.08}
           h={0.42}
           radius={0.07}
-          material={palette.upholstery}
+          material={BOUCLE}
         />
       ))}
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
@@ -249,7 +319,7 @@ export function Sofa({
           y={base}
           r={0.025}
           h={0.16}
-          material={palette.frame}
+          material={BRONZE}
           segments={16}
         />
       )))}
@@ -259,7 +329,6 @@ export function Sofa({
 
 export function LoungeChair({
   base,
-  palette,
   x,
   z,
   face = "n",
@@ -284,7 +353,7 @@ export function LoungeChair({
 
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + 0.17} w={planW - 0.08} d={planD - 0.08} h={0.24} radius={0.08} material={palette.upholstery} />
+      <SoftBox x={x} z={z} y={base + 0.17} w={planW - 0.08} d={planD - 0.08} h={0.24} radius={0.1} material={BOUCLE} />
       <SoftBox
         x={x + backOff.x}
         z={z + backOff.z}
@@ -293,7 +362,7 @@ export function LoungeChair({
         d={backD}
         h={h - 0.12}
         radius={0.07}
-        material={palette.upholstery}
+        material={SADDLE_LEATHER}
       />
       {[-1, 1].map((side) => (
         <SoftBox
@@ -305,7 +374,7 @@ export function LoungeChair({
           d={alongNS ? 0.13 : planD - 0.05}
           h={0.35}
           radius={0.055}
-          material={palette.upholstery}
+          material={SADDLE_LEATHER}
         />
       ))}
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
@@ -316,7 +385,7 @@ export function LoungeChair({
           y={base}
           r={0.022}
           h={0.19}
-          material={palette.frame}
+          material={BRONZE}
           segments={16}
         />
       )))}
@@ -338,26 +407,25 @@ export function CoffeeTable({
   const { w, d, h } = FURN.coffee;
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + h - 0.09} w={w} d={d} h={0.09} radius={0.045} material={palette.stone} />
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
+      <SoftBox x={x} z={z} y={base + h - 0.085} w={w} d={d} h={0.085} radius={0.1} material={palette.stone} />
+      {[-1, 1].map((side) => (
         <Cyl
-          key={`${sx}-${sz}`}
-          x={x + sx * (w / 2 - 0.15)}
-          z={z + sz * (d / 2 - 0.14)}
+          key={side}
+          x={x + side * w * 0.23}
+          z={z}
           y={base}
-          r={0.035}
-          h={h - 0.09}
-          segments={18}
-          material={palette.frame}
+          r={0.13}
+          h={h - 0.085}
+          segments={32}
+          material={BRONZE}
         />
-      )))}
+      ))}
     </group>
   );
 }
 
 export function BarStool({
   base,
-  palette,
   x,
   z,
 }: {
@@ -369,16 +437,15 @@ export function BarStool({
   const { w, d, h } = FURN.stool;
   return (
     <group>
-      <Cyl x={x} z={z} y={base} r={0.035} h={h - 0.08} material={palette.frame} segments={20} />
-      <Cyl x={x} z={z} y={base + 0.21} r={0.16} h={0.018} material={palette.frame} segments={24} />
-      <SoftBox x={x} z={z} y={base + h - 0.08} w={w} d={d} h={0.08} radius={0.04} material={palette.oak} />
+      <Cyl x={x} z={z} y={base} r={0.032} h={h - 0.08} material={BRONZE} segments={24} />
+      <Cyl x={x} z={z} y={base + 0.21} r={0.16} h={0.018} material={BRONZE} segments={28} />
+      <SoftBox x={x} z={z} y={base + h - 0.08} w={w} d={d} h={0.08} radius={0.07} material={SADDLE_LEATHER} />
     </group>
   );
 }
 
 export function Pendant({
   base,
-  palette,
   x,
   z,
   y = 2.3,
@@ -392,14 +459,15 @@ export function Pendant({
   const { r, h } = FURN.pendant;
   return (
     <group>
-      <mesh position={[x - CX, base + y + 0.2, z - CZ]} material={palette.frame}>
+      <mesh position={[x - CX, base + y + 0.2, z - CZ]} material={BRONZE}>
         <cylinderGeometry args={[0.008, 0.008, 0.4, 16]} />
       </mesh>
-      <mesh position={[x - CX, base + y - h / 2, z - CZ]} material={palette.frame} castShadow>
+      <mesh position={[x - CX, base + y - h / 2, z - CZ]} material={BRONZE} castShadow>
         <cylinderGeometry args={[r * 0.5, r, h, 32, 1, true]} />
       </mesh>
-      <mesh position={[x - CX, base + y - h + 0.025, z - CZ]} material={palette.upholstery}>
+      <mesh position={[x - CX, base + y - h + 0.025, z - CZ]}>
         <sphereGeometry args={[r * 0.22, 24, 16]} />
+        <meshStandardMaterial color="#fff0ce" emissive="#ffad55" emissiveIntensity={1.1} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -593,7 +661,7 @@ export function DiningSet({
   ];
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + t.h - 0.08} w={t.w} d={t.d} h={0.08} radius={0.04} material={palette.timber} />
+      <SoftBox x={x} z={z} y={base + t.h - 0.08} w={t.w} d={t.d} h={0.08} radius={0.075} material={palette.stone} />
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
         <Cyl
           key={`table-leg-${sx}-${sz}`}
@@ -603,14 +671,14 @@ export function DiningSet({
           r={0.035}
           h={t.h - 0.08}
           segments={16}
-          material={palette.frame}
+          material={BRONZE}
         />
       )))}
       {chairs.map((chair, index) => {
         const sideways = chair.backX !== 0;
         return (
           <group key={index}>
-            <SoftBox x={chair.x} z={chair.z} y={base + c.h - 0.08} w={c.w} d={c.d} h={0.08} radius={0.035} material={palette.upholstery} />
+            <SoftBox x={chair.x} z={chair.z} y={base + c.h - 0.08} w={c.w} d={c.d} h={0.08} radius={0.06} material={SADDLE_LEATHER} />
             <SoftBox
               x={chair.x + chair.backX * (c.w / 2 - 0.035)}
               z={chair.z + chair.backZ * (c.d / 2 - 0.035)}
@@ -619,7 +687,7 @@ export function DiningSet({
               d={sideways ? c.d : 0.07}
               h={c.back}
               radius={0.03}
-              material={palette.timber}
+              material={SADDLE_LEATHER}
             />
             {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
               <Cyl
@@ -630,7 +698,7 @@ export function DiningSet({
                 r={0.018}
                 h={c.h - 0.08}
                 segments={12}
-                material={palette.frame}
+                material={BRONZE}
               />
             )))}
           </group>

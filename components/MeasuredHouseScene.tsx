@@ -256,8 +256,8 @@ function finish(
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
 const FRAME_GREEN = "#b8c9a8";
-/** Light oak — hinged doors + warm joinery. */
-const LIGHT_OAK = "#e2c9a4";
+/** Pale natural oak — shared by doors and joinery to sit quietly with the floor. */
+const LIGHT_OAK = "#fff6e8";
 
 function buildPalette(
   designMode: boolean,
@@ -310,7 +310,7 @@ function buildPalette(
   const travertine = finish("#f5efe5", 0.72, 0, 0.08, textures.stone, 0.012);
   const microcement = finish("#e4ddd2", 0.88, 0, 0.04, textures.stone, 0.006);
   const oakFloor = new THREE.MeshPhysicalMaterial({
-    color: "#fffaf1",
+    color: "#fffdf7",
     map: textures.herringbone.albedo,
     normalMap: textures.herringbone.normal,
     normalScale: new THREE.Vector2(0.3, 0.3),
@@ -430,7 +430,7 @@ function prepareHerringboneTexture(
   const albedo = prepareGradedFloorMap(
     albedoSource,
     anisotropy,
-    "brightness(1.78) saturate(0.68) contrast(0.82)",
+    "brightness(2.42) saturate(0.48) contrast(0.72)",
     THREE.SRGBColorSpace,
   );
   const normal = prepareTexture(normalSource, [1, 1], anisotropy);
@@ -715,7 +715,12 @@ function SceneContent({
   const textureSet = useMemo(
     () => ({
       plaster: prepareTexture(plasterSource, [1.8, 1.8], textureAnisotropy),
-      oak: prepareTexture(oakSource, [1.15, 1.15], textureAnisotropy),
+      oak: prepareGradedFloorMap(
+        oakSource,
+        textureAnisotropy,
+        "brightness(1.65) saturate(0.48) contrast(0.8)",
+        THREE.SRGBColorSpace,
+      ),
       herringbone: prepareHerringboneTexture(
         herringboneSource,
         herringboneNormalSource,
@@ -823,6 +828,13 @@ function SceneContent({
         </>
       )}
       {designMode && (
+        <>
+          <pointLight position={[-4.0, 1.05, 5.05]} intensity={0.08 + sun.practical * 3.4} distance={3.7} decay={2} color="#ffc27f" />
+          <pointLight position={[4.55, 1.05, 0.4]} intensity={0.08 + sun.practical * 3.0} distance={3.5} decay={2} color="#ffc786" />
+          <pointLight position={[4.55, 1.05, 4.8]} intensity={0.08 + sun.practical * 3.0} distance={3.5} decay={2} color="#ffc786" />
+        </>
+      )}
+      {designMode && (
         <ContactShadows
           frames={1}
           position={[0, 0.105, 0]}
@@ -915,9 +927,9 @@ function SceneContent({
           <MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} />
           <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} />
           <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
           <MainBathroom base={zoneById["service-core"].level} palette={palette} />
           <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} />
         </>

@@ -1511,7 +1511,7 @@ button { color: inherit; }
   }
 
   .logo-mark { font-size: 20px; }
-  .app-bar-end { gap: 8px; }
+  .app-bar-end { display: none; }
   .ghost-button { padding: 8px 12px; min-height: 34px; }
 
   .app-body,
@@ -1547,7 +1547,8 @@ button { color: inherit; }
   .stage.is-references {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-bottom: 0;
     background: var(--panel);
   }
@@ -1559,10 +1560,10 @@ button { color: inherit; }
   }
 
   .stage.is-references .references-view {
-    flex: 1 1 auto;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-height: 100%;
     height: auto;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .stage-toolbar {
@@ -1570,16 +1571,44 @@ button { color: inherit; }
     left: 10px;
     right: 10px;
     gap: 6px;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    flex-wrap: nowrap;
   }
 
   .furniture-editor {
-    top: 102px;
-    left: 10px;
-    width: calc(100% - 20px);
-    max-height: calc(100% - 178px);
-    padding: 16px;
+    z-index: 13;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: min(76dvh, 620px);
+    padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 18px 18px 0 0;
+  }
+
+  .desktop-model-control { display: none; }
+
+  .controls-trigger {
+    display: block !important;
+    flex: 0 0 auto;
+    min-width: 76px;
+  }
+
+  .model-popover-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    border: 0;
+    background: rgba(26, 33, 29, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+
+  .model-popover-scrim.is-open {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .segmented button,
@@ -1594,14 +1623,11 @@ button { color: inherit; }
     right: 10px;
     bottom: 10px;
     align-items: stretch;
+    justify-content: flex-end;
   }
 
   .hud-card {
-    max-width: none;
-    flex: 1;
-    padding: 12px 12px 12px 14px;
-    pointer-events: auto;
-    cursor: pointer;
+    display: none;
   }
 
   .hud-card:active { transform: scale(0.985); }
@@ -1691,7 +1717,7 @@ button { color: inherit; }
     display: grid !important;
     position: relative;
     z-index: 80;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     flex: 0 0 auto;
     min-height: calc(var(--tab-h) + env(safe-area-inset-bottom));
     padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
@@ -1887,7 +1913,7 @@ button { color: inherit; }
 
   .mood-masthead {
     flex: 0 0 auto;
-    padding: 10px 16px 0;
+    padding: 18px 16px 0;
     border-bottom: 0;
   }
 
@@ -1948,10 +1974,7 @@ button { color: inherit; }
   }
 
   .mood-texture-strip {
-    grid-template-columns: 1fr;
-    gap: 8px;
-    margin: 0;
-    padding: 9px 16px 10px;
+    display: none;
   }
 
   .mood-texture-copy {
@@ -1965,23 +1988,23 @@ button { color: inherit; }
   .mood-texture-image { width: 84px; height: 42px; }
 
   .mood-board-stage {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     gap: 14px;
-    padding: 8px 16px 12px;
-    min-height: 0;
-    overflow: hidden;
+    padding: 14px 12px calc(30px + env(safe-area-inset-bottom));
+    min-height: auto;
+    overflow: visible;
   }
 
   .mood-hero {
     position: relative;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     width: 100%;
     min-height: 0;
-    aspect-ratio: auto;
+    aspect-ratio: 4 / 5;
     max-height: none;
-    border-radius: 0;
+    border-radius: 14px;
     touch-action: pan-y;
   }
 
@@ -2015,14 +2038,14 @@ button { color: inherit; }
   .mood-gallery::-webkit-scrollbar { display: none; }
 
   .mood-thumb {
-    flex: 0 0 64px;
-    width: 64px;
-    height: 64px;
-    min-width: 64px;
+    flex: 0 0 72px;
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
     max-width: none;
     min-height: 0;
     aspect-ratio: 1;
-    border-radius: 0;
+    border-radius: 10px;
     scroll-snap-align: start;
   }
 
@@ -2118,6 +2141,7 @@ button { color: inherit; }
 
 /* ——— 2026 architectural sheet + daylight experience ——— */
 .experience-dock {
+  display: none;
   position: absolute;
   z-index: 6;
   top: 72px;
@@ -2133,11 +2157,24 @@ button { color: inherit; }
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 
+.experience-dock.is-open { display: block; }
+
 .experience-dock-head {
   display: grid;
   grid-template-columns: 30px 1fr auto;
   align-items: center;
   gap: 10px;
+}
+
+.experience-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.experience-close svg {
+  width: 14px;
+  height: 14px;
 }
 
 .sun-orb {
@@ -2327,8 +2364,42 @@ button { color: inherit; }
 .checklist-footnote { margin-top: auto; }
 
 @media (max-width: 800px) {
-  .experience-dock { top: 56px; right: 10px; width: min(292px, calc(100% - 20px)); padding: 12px; }
+  .experience-dock {
+    display: none;
+    z-index: 12;
+    top: 56px;
+    right: 10px;
+    width: min(320px, calc(100% - 20px));
+    max-height: calc(100% - 68px);
+    overflow: auto;
+    padding: 14px;
+  }
+  .experience-dock.is-open { display: block; }
   .experience-dock-head strong { font-size: 17px; }
+  .experience-close {
+    display: grid !important;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0 !important;
+  }
+  .mobile-model-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .mobile-model-actions button {
+    min-height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #f4f2ea;
+    font-size: 11px;
+  }
+  .mobile-model-actions button.is-active { background: #f0eee7; color: #28302b; }
   .daylight-note { display: none; }
   .dimensioned-overlay-container { grid-template-columns: 1fr; padding: 10px 12px 24px; min-height: 0; }
   .plan-provenance { grid-template-columns: 36px minmax(0, 1fr); }
@@ -2346,7 +2417,7 @@ button { color: inherit; }
 }
 
 @media (max-width: 560px) {
-  .experience-dock { top: 96px; }
+  .experience-dock { top: 56px; }
   .experience-dock .door-control small { display: none; }
   .experience-dock .camera-control small { display: none; }
   .plan-provenance div > span { display: none; }

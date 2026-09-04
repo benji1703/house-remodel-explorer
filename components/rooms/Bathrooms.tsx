@@ -316,9 +316,16 @@ function Vanity({
 export function MainBathroom({ base, palette }: { base: number; palette: Palette }) {
   return (
     <group>
-      <Toilet base={base} x={4.9} z={11.05} against="w" wallHung />
-      <Shower base={base} palette={palette} x={7.15} z={10.65} screens={{ west: true, south: true }} />
-      <Vanity base={base} palette={palette} x={6.05} z={11.86} w={1.35} mirror={false} />
+      {/* Thin stone liners sit entirely inside the wet corner and give the
+          shower a quieter, tactile backdrop without altering wall geometry. */}
+      <Blk x={6.98} z={10.265} y={base} w={1.12} d={0.025} h={2.16} material={palette.stone} />
+      <Blk x={7.535} z={10.74} y={base} w={0.025} d={0.95} h={2.16} material={palette.stone} />
+
+      {/* Fixtures are offset from wall centre-lines to the finished faces so
+          flush plates, shower brassware, and joinery never bleed next door. */}
+      <Toilet base={base} x={5.02} z={11.05} against="w" wallHung />
+      <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
+      <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
     </group>
   );
 }
@@ -327,8 +334,8 @@ export function MainBathroom({ base, palette }: { base: number; palette: Palette
 export function EnsuiteBathroom({ base, palette }: { base: number; palette: Palette }) {
   return (
     <group>
-      <Toilet base={base} x={4.15} z={10.2} against="n" />
-      <Vanity base={base} palette={palette} x={4.15} z={11.86} w={0.95} mirror={false} />
+      <Toilet base={base} x={4.15} z={10.29} against="n" />
+      <Vanity base={base} palette={palette} x={4.15} z={11.72} w={0.95} mirror={false} />
     </group>
   );
 }

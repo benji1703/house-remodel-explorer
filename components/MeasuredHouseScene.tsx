@@ -30,6 +30,7 @@ type Props = {
   doorStates?: Record<string, boolean>;
   onToggleDoor?: (id: string) => void;
   cameraMode?: "overview" | "room" | "plan";
+  cameraRevision?: number;
   furnitureSizes?: FurnitureSizeOverrides;
   removedFurniture?: FurnitureId[];
   selectedFurnitureId?: FurnitureId;
@@ -74,13 +75,14 @@ function CameraDirector({
   zone,
   mode,
   controlsRef,
+  revision,
 }: {
   zone: HouseZone;
   mode: "overview" | "room" | "plan";
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
+  revision: number;
 }) {
   const { camera } = useThree();
-  const moving = useRef(true);
   const destination = useMemo(() => {
     if (mode === "overview") {
       return {
@@ -107,26 +109,15 @@ function CameraDirector({
   }, [mode, zone]);
 
   useEffect(() => {
-    moving.current = true;
-  }, [destination]);
-
-  useFrame((_state, delta) => {
-    if (!moving.current) return;
     const controls = controlsRef.current;
-    camera.position.lerp(destination.position, 1 - Math.exp(-delta * 2.25));
+    camera.position.copy(destination.position);
     if (controls) {
-      controls.target.lerp(destination.target, 1 - Math.exp(-delta * 2.7));
+      controls.target.copy(destination.target);
       controls.update();
     } else {
       camera.lookAt(destination.target);
     }
-    if (camera.position.distanceTo(destination.position) < 0.035 && (!controls || controls.target.distanceTo(destination.target) < 0.025)) {
-      camera.position.copy(destination.position);
-      controls?.target.copy(destination.target);
-      controls?.update();
-      moving.current = false;
-    }
-  });
+  }, [camera, controlsRef, destination, revision]);
 
   return null;
 }
@@ -390,6 +381,7 @@ function prepareGradedFloorMap(
   anisotropy: number,
   filter: string,
   colorSpace: THREE.ColorSpace,
+  wash?: string,
 ) {
   if (typeof document === "undefined" || !source.image) {
     const fallback = prepareTexture(source, [1, 1], anisotropy);
@@ -408,6 +400,11 @@ function prepareGradedFloorMap(
   context.imageSmoothingQuality = "high";
   context.filter = filter;
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  if (wash) {
+    context.filter = "none";
+    context.fillStyle = wash;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = colorSpace;
@@ -430,8 +427,9 @@ function prepareHerringboneTexture(
   const albedo = prepareGradedFloorMap(
     albedoSource,
     anisotropy,
-    "brightness(2.82) saturate(0.4) contrast(0.64)",
+    "brightness(3.2) saturate(0.3) contrast(0.54)",
     THREE.SRGBColorSpace,
+    "rgba(255, 246, 232, 0.3)",
   );
   const normal = prepareTexture(normalSource, [1, 1], anisotropy);
   const roughness = prepareGradedFloorMap(
@@ -583,7 +581,6 @@ function ZoneFloor({
       <Html
         center
         position={[cx, zone.level + 1.9, cz]}
-        distanceFactor={13}
         style={{ pointerEvents: "auto" }}
       >
         <button
@@ -602,7 +599,6 @@ function ZoneFloor({
         <Html
           center
           position={[cx, zone.level + 1.55, cz]}
-          distanceFactor={13}
           style={{ pointerEvents: "none" }}
         >
           <span className={`measurement-chip status-${zone.status}`}>
@@ -689,6 +685,7 @@ function SceneContent({
   doorStates = {},
   onToggleDoor,
   cameraMode = "overview",
+  cameraRevision = 0,
   furnitureSizes = {},
   removedFurniture = [],
   selectedFurnitureId = "living-sofa",
@@ -937,7 +934,12 @@ function SceneContent({
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
       <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} />
-      <CameraDirector zone={zoneById[selectedZone]} mode={cameraMode} controlsRef={controlsRef} />
+      <CameraDirector
+        zone={zoneById[selectedZone]}
+        mode={cameraMode}
+        controlsRef={controlsRef}
+        revision={cameraRevision}
+      />
       <OrbitControls
         ref={controlsRef}
         makeDefault

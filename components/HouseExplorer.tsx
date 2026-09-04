@@ -111,6 +111,7 @@ export function HouseExplorer() {
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
   const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">(() => zoneParam ? "room" : "overview");
+  const [cameraRevision, setCameraRevision] = useState(0);
   const [furnitureSizes, setFurnitureSizes] = useState<FurnitureSizeOverrides>({});
   const [removedFurniture, setRemovedFurniture] = useState<FurnitureId[]>([]);
   const [furnitureStorageReady, setFurnitureStorageReady] = useState(false);
@@ -119,6 +120,7 @@ export function HouseExplorer() {
   const [exportStatus, setExportStatus] = useState("");
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [experienceOpen, setExperienceOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [refsPending, startRefsTransition] = useTransition();
   const shellRef = useRef<HTMLElement>(null);
@@ -419,6 +421,8 @@ export function HouseExplorer() {
 
   const goToView = (next: View) => {
     setSheetOpen(false);
+    setExperienceOpen(false);
+    setFurnitureEditorOpen(false);
     sheetWasOpen.current = false;
     // Kill any leftover sheet transforms so the tab bar stays tappable.
     const detail = detailRef.current;
@@ -569,6 +573,8 @@ export function HouseExplorer() {
                       selectedZone={selectedZone}
                       onSelectZone={(id) => {
                         setCameraMode("room");
+                        setCameraRevision((revision) => revision + 1);
+                        setExperienceOpen(false);
                         navigate({ zone: id }, "replace");
                       }}
                       designMode={designMode}
@@ -580,12 +586,13 @@ export function HouseExplorer() {
                       doorStates={doorStates}
                       onToggleDoor={toggleDoor}
                       cameraMode={cameraMode}
+                      cameraRevision={cameraRevision}
                       furnitureSizes={furnitureSizes}
                       removedFurniture={removedFurniture}
                       selectedFurnitureId={selectedFurnitureId}
                       onSelectFurniture={(id) => {
                         setSelectedFurnitureId(id);
-                        setFurnitureEditorOpen(true);
+                        if (!compact) setFurnitureEditorOpen(true);
                         setExportStatus("");
                       }}
                     />
@@ -613,7 +620,7 @@ export function HouseExplorer() {
                     aria-pressed={!designMode}
                     onClick={() => setDesignMode(false)}
                   >
-                    Survey shell
+                    {compact ? "Shell" : "Survey shell"}
                   </button>
                   <button
                     type="button"
@@ -621,14 +628,14 @@ export function HouseExplorer() {
                     aria-pressed={designMode}
                     onClick={() => setDesignMode(true)}
                   >
-                    With finishes
+                    {compact ? "Finishes" : "With finishes"}
                   </button>
                 </div>
                 {webglSupport === true && (
                   <>
                     <button
                       type="button"
-                      className={furnitureEditorOpen ? "toolbar-chip is-active" : "toolbar-chip"}
+                      className={furnitureEditorOpen ? "toolbar-chip desktop-model-control is-active" : "toolbar-chip desktop-model-control"}
                       aria-expanded={furnitureEditorOpen}
                       aria-controls="furniture-editor"
                       onClick={() => setFurnitureEditorOpen((value) => !value)}
@@ -637,7 +644,7 @@ export function HouseExplorer() {
                     </button>
                     <button
                       type="button"
-                      className={showMeasurements ? "toolbar-chip is-active" : "toolbar-chip"}
+                      className={showMeasurements ? "toolbar-chip desktop-model-control is-active" : "toolbar-chip desktop-model-control"}
                       aria-pressed={showMeasurements}
                       onClick={() => setShowMeasurements((value) => !value)}
                     >
@@ -645,7 +652,30 @@ export function HouseExplorer() {
                     </button>
                   </>
                 )}
+                <button
+                  type="button"
+                  className={experienceOpen ? "toolbar-chip controls-trigger is-active" : "toolbar-chip controls-trigger"}
+                  aria-expanded={experienceOpen}
+                  aria-controls="experience-controls"
+                  onClick={() => {
+                    setFurnitureEditorOpen(false);
+                    setExperienceOpen((value) => !value);
+                  }}
+                >
+                  Controls
+                </button>
               </div>
+
+              <button
+                type="button"
+                className={experienceOpen || furnitureEditorOpen ? "model-popover-scrim mobile-only is-open" : "model-popover-scrim mobile-only"}
+                aria-label="Close model controls"
+                tabIndex={experienceOpen || furnitureEditorOpen ? 0 : -1}
+                onClick={() => {
+                  setExperienceOpen(false);
+                  setFurnitureEditorOpen(false);
+                }}
+              />
 
               {webglSupport === true && furnitureEditorOpen && (
                 <aside className="furniture-editor" id="furniture-editor" aria-label="Furniture sizing editor">
@@ -714,14 +744,30 @@ export function HouseExplorer() {
               )}
 
               {webglSupport === true && (
-                <section className="experience-dock" aria-label="Daylight and door controls">
+                <section
+                  className={experienceOpen ? "experience-dock is-open" : "experience-dock"}
+                  id="experience-controls"
+                  aria-label="Daylight, door, and camera controls"
+                  aria-hidden={!experienceOpen}
+                  inert={!experienceOpen ? true : undefined}
+                >
                   <div className="experience-dock-head">
                     <span className="sun-orb" aria-hidden="true" />
                     <div>
                       <p>{sunPhase}</p>
                       <strong>{sunTime}</strong>
                     </div>
-                    <button type="button" onClick={useLocalTime}>Local now</button>
+                    <div className="experience-head-actions">
+                      <button type="button" onClick={useLocalTime}>Local now</button>
+                      <button
+                        type="button"
+                        className="experience-close mobile-only"
+                        aria-label="Close controls"
+                        onClick={() => setExperienceOpen(false)}
+                      >
+                        <Icon name="close" />
+                      </button>
+                    </div>
                   </div>
                   <label className="sun-scrubber" htmlFor="sun-hour">
                     <span>Plan-north daylight</span>
@@ -765,12 +811,33 @@ export function HouseExplorer() {
                           type="button"
                           className={cameraMode === mode ? "is-active" : ""}
                           aria-pressed={cameraMode === mode}
-                          onClick={() => setCameraMode(mode)}
+                          onClick={() => {
+                            setCameraMode(mode);
+                            setCameraRevision((revision) => revision + 1);
+                          }}
                         >
                           {mode === "overview" ? "House" : mode === "room" ? "Room" : "Plan"}
                         </button>
                       ))}
                     </div>
+                  </div>
+                  <div className="mobile-model-actions mobile-only">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setExperienceOpen(false);
+                        setFurnitureEditorOpen(true);
+                      }}
+                    >
+                      Edit furniture
+                    </button>
+                    <button
+                      type="button"
+                      className={showMeasurements ? "is-active" : ""}
+                      onClick={() => setShowMeasurements((value) => !value)}
+                    >
+                      {showMeasurements ? "Hide dimensions" : "Show dimensions"}
+                    </button>
                   </div>
                   <p className="daylight-note">Illustrative solar study · plan north, not surveyed true north</p>
                 </section>
@@ -942,7 +1009,16 @@ export function HouseExplorer() {
                 key={zone.id}
                 type="button"
                 className={selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
-                onClick={() => navigate({ zone: zone.id }, "replace")}
+                onClick={() => {
+                  if (selectedZone === zone.id) {
+                    setSheetOpen(true);
+                    return;
+                  }
+                  setCameraMode("room");
+                  setCameraRevision((revision) => revision + 1);
+                  setExperienceOpen(false);
+                  navigate({ zone: zone.id }, "replace");
+                }}
               >
                 <em>{zone.shortLabel}</em>
                 {zone.label}

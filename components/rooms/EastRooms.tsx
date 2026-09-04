@@ -64,11 +64,12 @@ export function EastLowerRoom({
       </EditableFurniture>
       <BedsideLamp base={base + FURN.nightstand.h} x={10.7} z={11.72} nightFactor={nightFactor} />
 
-      <Wardrobe base={base} palette={palette} x={9.85} z={8.9} along="x" width={2.7} />
+      {/* West-wall built-in, kept south of the measured room doorway. */}
+      <Wardrobe base={base} palette={palette} x={7.92} z={11.14} along="z" width={1.72} />
 
-      {/* Dresser on south wall, west of bed foot clearance. */}
-      <EditableFurniture id="east-lower-dresser" editing={furnitureEditing} x={8.5} z={11.75} base={base}>
-        <Dresser base={base} palette={palette} x={8.5} z={11.75} along="x" />
+      {/* Low dresser moves to the newly open north wall, opposite the bed. */}
+      <EditableFurniture id="east-lower-dresser" editing={furnitureEditing} x={9.65} z={8.84} base={base}>
+        <Dresser base={base} palette={palette} x={9.65} z={8.84} along="x" />
       </EditableFurniture>
     </group>
   );

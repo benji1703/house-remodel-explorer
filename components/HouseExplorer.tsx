@@ -7,6 +7,7 @@ import { house, statusCopy, type ZoneId } from "@/data/house";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { site } from "@/data/site";
 import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
+import { ArchitecturalPlan } from "./ArchitecturalPlan";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
@@ -36,58 +37,6 @@ const FootprintMark = () => (
     <path d="M8 3h8v9h7v9H1v-7h7V3Z" fill="currentColor" className="logo-foot-sage" />
   </svg>
 );
-
-function VectorPlan({ selected, onSelect }: { selected: ZoneId; onSelect: (id: ZoneId) => void }) {
-  return (
-    <div className="vector-plan-wrap">
-      <svg className="vector-plan" viewBox="-90 -100 1320 1410" role="img" aria-label="Measured floor plan">
-        <defs>
-          <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(42,50,44,.08)" strokeWidth="2" />
-          </pattern>
-        </defs>
-        <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
-        <path className="plan-shell" d="M340 0H760V500H1140V1210H0V830H340Z" />
-        {house.zones.map((zone) => (
-          <g
-            key={zone.id}
-            className={selected === zone.id ? "plan-zone is-selected" : "plan-zone"}
-            onClick={() => onSelect(zone.id)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") onSelect(zone.id);
-            }}
-          >
-            <rect
-              x={zone.x * 100 + 8}
-              y={zone.z * 100 + 8}
-              width={zone.width * 100 - 16}
-              height={zone.depth * 100 - 16}
-              rx="8"
-            />
-            <text x={(zone.x + zone.width / 2) * 100} y={(zone.z + zone.depth / 2) * 100}>
-              {zone.shortLabel}
-            </text>
-          </g>
-        ))}
-        <g className="dimension-line top-dimension">
-          <line x1="0" y1="-45" x2="1140" y2="-45" />
-          <line x1="0" y1="-65" x2="0" y2="-25" />
-          <line x1="1140" y1="-65" x2="1140" y2="-25" />
-          <text x="570" y="-60">11.40 m</text>
-        </g>
-        <g className="dimension-line side-dimension">
-          <line x1="1185" y1="0" x2="1185" y2="1210" />
-          <line x1="1165" y1="0" x2="1205" y2="0" />
-          <line x1="1165" y1="1210" x2="1205" y2="1210" />
-          <text x="1205" y="605" transform="rotate(90 1205 605)">12.10 m</text>
-        </g>
-      </svg>
-      <p className="plan-scale">1 square = 1 m</p>
-    </div>
-  );
-}
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "model", label: "House" },
@@ -143,6 +92,13 @@ export function HouseExplorer() {
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [cameraAzimuth, setCameraAzimuth] = useState(0);
+  const [sunHour, setSunHour] = useState(() => {
+    const now = new Date();
+    return now.getHours() + now.getMinutes() / 60;
+  });
+  const [allDoorsOpen, setAllDoorsOpen] = useState(true);
+  const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
+  const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">(() => zoneParam ? "room" : "overview");
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
   const [compact, setCompact] = useState(false);
@@ -190,6 +146,22 @@ export function HouseExplorer() {
   const moodImageIndex = Math.min(moodImageByBoard[selectedMood] ?? 0, Math.max(moodImageCount - 1, 0));
   const heroMoodImage = activeMood.images[moodImageIndex] ?? activeMood.images[0];
   const moodIndexLabel = `${moodImageIndex + 1} / ${moodImageCount}`;
+  const sunTime = `${String(Math.floor(sunHour)).padStart(2, "0")}:${String(Math.round((sunHour % 1) * 60)).padStart(2, "0")}`;
+  const sunPhase = sunHour < 5.5 || sunHour >= 20.5 ? "Night" : sunHour < 8 ? "Early light" : sunHour < 12 ? "Morning" : sunHour < 16 ? "High sun" : sunHour < 18.5 ? "Golden hour" : "Blue hour";
+
+  const useLocalTime = () => {
+    const now = new Date();
+    setSunHour(now.getHours() + now.getMinutes() / 60);
+  };
+
+  const setEveryDoor = (open: boolean) => {
+    setAllDoorsOpen(open);
+    setDoorStates({});
+  };
+
+  const toggleDoor = (id: string) => {
+    setDoorStates((current) => ({ ...current, [id]: !(current[id] ?? allDoorsOpen) }));
+  };
 
   useEffect(() => {
     if (view !== "references") return;
@@ -480,17 +452,30 @@ export function HouseExplorer() {
                   <Suspense fallback={<div className="model-loading">Settling the house…</div>}>
                     <MeasuredHouseScene
                       selectedZone={selectedZone}
-                      onSelectZone={(id) => navigate({ zone: id }, "replace")}
+                      onSelectZone={(id) => {
+                        setCameraMode("room");
+                        navigate({ zone: id }, "replace");
+                      }}
                       designMode={designMode}
                       quality={quality}
                       showMeasurements={showMeasurements}
                       onCameraAzimuth={setCameraAzimuth}
+                      sunHour={sunHour}
+                      allDoorsOpen={allDoorsOpen}
+                      doorStates={doorStates}
+                      onToggleDoor={toggleDoor}
+                      cameraMode={cameraMode}
                     />
                   </Suspense>
                 )}
                 {webglSupport === false && (
                   <div className="webgl-fallback">
-                    <VectorPlan selected={selectedZone} onSelect={(id) => navigate({ zone: id }, "replace")} />
+                    <ArchitecturalPlan
+                      selected={selectedZone}
+                      onSelect={(id) => navigate({ zone: id }, "replace")}
+                      interactive
+                      idPrefix="fallback"
+                    />
                     <p>Plan only — WebGL unavailable</p>
                   </div>
                 )}
@@ -527,6 +512,69 @@ export function HouseExplorer() {
                   </button>
                 )}
               </div>
+
+              {webglSupport === true && (
+                <section className="experience-dock" aria-label="Daylight and door controls">
+                  <div className="experience-dock-head">
+                    <span className="sun-orb" aria-hidden="true" />
+                    <div>
+                      <p>{sunPhase}</p>
+                      <strong>{sunTime}</strong>
+                    </div>
+                    <button type="button" onClick={useLocalTime}>Local now</button>
+                  </div>
+                  <label className="sun-scrubber" htmlFor="sun-hour">
+                    <span>Plan-north daylight</span>
+                    <input
+                      id="sun-hour"
+                      type="range"
+                      min="0"
+                      max="24"
+                      step="0.25"
+                      value={sunHour}
+                      onChange={(event) => setSunHour(Number(event.target.value))}
+                      aria-valuetext={`${sunPhase}, ${sunTime}`}
+                    />
+                    <span className="sun-ticks"><i>00</i><i>06</i><i>12</i><i>18</i><i>24</i></span>
+                  </label>
+                  <div className="door-control">
+                    <span><b>Doors</b><small>Tap any leaf in the model</small></span>
+                    <div className="door-control-buttons" role="group" aria-label="Set all doors">
+                      <button
+                        type="button"
+                        className={allDoorsOpen && Object.keys(doorStates).length === 0 ? "is-active" : ""}
+                        onClick={() => setEveryDoor(true)}
+                      >
+                        Open
+                      </button>
+                      <button
+                        type="button"
+                        className={!allDoorsOpen && Object.keys(doorStates).length === 0 ? "is-active" : ""}
+                        onClick={() => setEveryDoor(false)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                  <div className="camera-control">
+                    <span><b>Camera</b><small>Smooth architectural views</small></span>
+                    <div className="camera-control-buttons" role="group" aria-label="Camera view">
+                      {(["overview", "room", "plan"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          className={cameraMode === mode ? "is-active" : ""}
+                          aria-pressed={cameraMode === mode}
+                          onClick={() => setCameraMode(mode)}
+                        >
+                          {mode === "overview" ? "House" : mode === "room" ? "Room" : "Plan"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="daylight-note">Illustrative solar study · plan north, not surveyed true north</p>
+                </section>
+              )}
 
               <div className="stage-hud">
                 {compact ? (
@@ -572,8 +620,8 @@ export function HouseExplorer() {
             <div className="plan-view">
               <header className="view-intro">
                 <p className="view-kicker">Measured drawing</p>
-                <h2>Plan under the photo</h2>
-                <p>Check wall runs against the survey before trusting the model.</p>
+                <h2>Survey to architectural SVG</h2>
+                <p>An AI-assisted, editable architectural reconstruction—auditable against the original drawing.</p>
               </header>
               <DimensionedOverlay />
             </div>

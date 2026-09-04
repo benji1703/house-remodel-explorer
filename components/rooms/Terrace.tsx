@@ -49,7 +49,7 @@ export function Terrace({ palette, quality }: { palette: Palette; quality: "high
             material={palette.vine}
             castShadow
           >
-            <icosahedronGeometry args={[radius, 0]} />
+            <sphereGeometry args={[radius, quality === "high" ? 16 : 9, quality === "high" ? 10 : 6]} />
           </mesh>
         );
       })}

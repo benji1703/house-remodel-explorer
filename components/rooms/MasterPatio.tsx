@@ -105,7 +105,7 @@ export function MasterPatio({
               material={palette.vine}
               castShadow
             >
-              <icosahedronGeometry args={[0.18 + (i % 3) * 0.04, 0]} />
+              <sphereGeometry args={[0.18 + (i % 3) * 0.04, 14, 9]} />
             </mesh>
           );
         })}

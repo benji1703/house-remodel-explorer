@@ -289,16 +289,37 @@ export function PotPlant({
   scale?: number;
 }) {
   const { r, h, plant } = FURN.pot;
+  const leafRadius = plant * scale * 0.28;
   return (
     <group>
       <Cyl x={x} z={z} y={base} r={r * scale} h={h * scale} material={palette.terracotta} />
-      <mesh
-        position={[x - CX, base + h * scale + (plant * scale) / 2, z - CZ]}
-        material={palette.greenery}
-        castShadow
-      >
-        <icosahedronGeometry args={[plant * scale * 0.55, 0]} />
+      <mesh position={[x - CX, base + h * scale + plant * scale * 0.36, z - CZ]} material={palette.vine} castShadow>
+        <cylinderGeometry args={[0.018 * scale, 0.028 * scale, plant * scale * 0.72, 8]} />
       </mesh>
+      {[
+        [-0.34, 0.28, 0.08, -0.5],
+        [0.34, 0.34, -0.08, 0.55],
+        [-0.18, 0.58, -0.22, -0.2],
+        [0.2, 0.66, 0.18, 0.25],
+        [0, 0.82, 0, 0],
+        [-0.3, 0.48, 0.2, -0.7],
+        [0.3, 0.5, -0.2, 0.7],
+      ].map(([ox, oy, oz, rotation], index) => (
+        <mesh
+          key={index}
+          position={[
+            x - CX + ox * plant * scale,
+            base + h * scale + oy * plant * scale,
+            z - CZ + oz * plant * scale,
+          ]}
+          rotation={[0.12 * (index % 3), rotation, index % 2 === 0 ? -0.38 : 0.38]}
+          scale={[1.45, 0.5, 0.78]}
+          material={index % 3 === 0 ? palette.vine : palette.greenery}
+          castShadow
+        >
+          <sphereGeometry args={[leafRadius, 16, 10]} />
+        </mesh>
+      ))}
     </group>
   );
 }

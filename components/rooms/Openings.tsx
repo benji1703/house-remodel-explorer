@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import type * as THREE from "three";
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
+import * as THREE from "three";
 import type { Palette } from "./shared";
 import { CX, CZ } from "./shared";
 
@@ -23,6 +24,8 @@ export type OpeningSpec = {
   swing?: 1 | -1;
   /** Sliding: +1 stacks toward local +X, −1 toward −X. */
   slide?: 1 | -1;
+  /** Sliding: which wall face the leaf rides (+1 local +Z, −1 local −Z). */
+  face?: 1 | -1;
 };
 
 const FRAME = 0.04; // ~40 mm outer frame — narrow Belgian profile
@@ -198,6 +201,8 @@ export function BelgianDoor({
   swing = 1,
   exterior = false,
   wallThickness = 0.2,
+  open = true,
+  onToggle,
 }: {
   width: number;
   head: number;
@@ -208,6 +213,8 @@ export function BelgianDoor({
   swing?: 1 | -1;
   exterior?: boolean;
   wallThickness?: number;
+  open?: boolean;
+  onToggle?: () => void;
 }) {
   const h = head;
   const midY = h / 2;
@@ -219,12 +226,38 @@ export function BelgianDoor({
   const wood = palette.oak;
   const hingeZ = 0;
   // Left hinge: −Y rot → +Z; flip with swing.
+  const leafRef = useRef<THREE.Group>(null);
   const rotY = -swing * ajar;
+
+  useFrame((_state, delta) => {
+    if (!leafRef.current) return;
+    leafRef.current.rotation.y = THREE.MathUtils.damp(
+      leafRef.current.rotation.y,
+      open ? rotY : 0,
+      7.5,
+      delta,
+    );
+  });
 
   return (
     <group position={[0, midY, 0]}>
       <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} />
-      <group position={[-(width / 2 - FRAME), 0, hingeZ]} rotation-y={rotY}>
+      <group
+        ref={leafRef}
+        position={[-(width / 2 - FRAME), 0, hingeZ]}
+        rotation-y={open ? rotY : 0}
+        onClick={(event) => {
+          if (!onToggle) return;
+          event.stopPropagation();
+          onToggle();
+        }}
+        onPointerEnter={() => {
+          if (onToggle) document.body.style.cursor = "pointer";
+        }}
+        onPointerLeave={() => {
+          if (onToggle) document.body.style.cursor = "default";
+        }}
+      >
         <group position={[leafW / 2, 0, 0]}>
           <mesh material={wood} castShadow receiveShadow>
             <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />
@@ -271,14 +304,17 @@ export function BelgianDoor({
   );
 }
 
-/** Pocket / sliding oak door — leaf slides along the wall (ensuite). */
+/** Surface-sliding oak door — leaf rides the room face, not the wall core. */
 export function SlidingDoor({
   width,
   head,
   palette,
   open = 0.72,
   slide = 1,
+  face = 1,
   wallThickness = 0.12,
+  isOpen = true,
+  onToggle,
 }: {
   width: number;
   head: number;
@@ -287,7 +323,11 @@ export function SlidingDoor({
   open?: number;
   /** +1 stacks toward local +X, −1 toward −X. */
   slide?: 1 | -1;
+  /** +1 rides local +Z face, −1 rides local −Z. */
+  face?: 1 | -1;
   wallThickness?: number;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }) {
   const h = head;
   const midY = h / 2;
@@ -296,8 +336,23 @@ export function SlidingDoor({
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
   const travel = Math.min(Math.max(open, 0), 0.92) * leafW * slide;
-  const trackZ = 0;
+  // Keep leaf + handle clear of the slab (surface mount on the chosen face).
+  const trackZ = face * (wallThickness / 2 + DOOR_LEAF_THICK / 2 + 0.014);
   const closedX = -width / 2 + FRAME * 0.6 + leafW / 2;
+  // Pull on the exposed room face, trailing edge when open.
+  const handleX = -slide * leafW * 0.32;
+  const handleZ = face * (DOOR_LEAF_THICK / 2 + 0.016);
+  const leafRef = useRef<THREE.Group>(null);
+
+  useFrame((_state, delta) => {
+    if (!leafRef.current) return;
+    leafRef.current.position.x = THREE.MathUtils.damp(
+      leafRef.current.position.x,
+      closedX + (isOpen ? travel : 0),
+      8,
+      delta,
+    );
+  });
 
   return (
     <group position={[0, midY, 0]}>
@@ -305,7 +360,21 @@ export function SlidingDoor({
       <mesh position={[0, h / 2 - FRAME * 0.6, trackZ]} material={palette.charcoal}>
         <boxGeometry args={[width - FRAME, 0.02, 0.028]} />
       </mesh>
-      <group position={[closedX + travel, 0, trackZ]}>
+      <group
+        ref={leafRef}
+        position={[closedX + (isOpen ? travel : 0), 0, trackZ]}
+        onClick={(event) => {
+          if (!onToggle) return;
+          event.stopPropagation();
+          onToggle();
+        }}
+        onPointerEnter={() => {
+          if (onToggle) document.body.style.cursor = "pointer";
+        }}
+        onPointerLeave={() => {
+          if (onToggle) document.body.style.cursor = "default";
+        }}
+      >
         <mesh material={wood} castShadow receiveShadow>
           <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />
         </mesh>
@@ -315,16 +384,7 @@ export function SlidingDoor({
         <mesh position={[0, 0, -(DOOR_LEAF_THICK / 2 + 0.002)]} material={wood}>
           <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
         </mesh>
-        <mesh
-          position={[leafW * 0.32 * slide, 0, DOOR_LEAF_THICK / 2 + 0.016]}
-          material={palette.charcoal}
-        >
-          <boxGeometry args={[0.018, 0.1, 0.028]} />
-        </mesh>
-        <mesh
-          position={[leafW * 0.32 * slide, 0, -(DOOR_LEAF_THICK / 2 + 0.016)]}
-          material={palette.charcoal}
-        >
+        <mesh position={[handleX, 0, handleZ]} material={palette.charcoal}>
           <boxGeometry args={[0.018, 0.1, 0.028]} />
         </mesh>
       </group>
@@ -341,24 +401,59 @@ export function BelgianTerraceDoors({
   palette,
   leafCount = 4,
   wallThickness = 0.2,
+  open = true,
+  onToggle,
 }: {
   width: number;
   head: number;
   palette: Palette;
   leafCount?: number;
   wallThickness?: number;
+  open?: boolean;
+  onToggle?: () => void;
 }) {
   const leafW = width / leafCount;
   const midY = head / 2;
   const frameDepth = Math.max(wallThickness - 0.02, 0.08);
   const extFace = -(wallThickness / 2) - 0.01;
+  const leavesRef = useRef<Array<THREE.Group | null>>([]);
+
+  useFrame((_state, delta) => {
+    leavesRef.current.forEach((leaf, index) => {
+      if (!leaf) return;
+      const closedX = -width / 2 + leafW * (index + 0.5);
+      const left = index < leafCount / 2;
+      const stackIndex = left ? index : leafCount - 1 - index;
+      const openX = left
+        ? -width / 2 + leafW * (0.35 + stackIndex * 0.18)
+        : width / 2 - leafW * (0.35 + stackIndex * 0.18);
+      leaf.position.x = THREE.MathUtils.damp(leaf.position.x, open ? openX : closedX, 7, delta);
+    });
+  });
   return (
     <group position={[0, midY, 0]}>
       <FrameRect w={width} h={head} depth={frameDepth} material={palette.frame} />
       {Array.from({ length: leafCount }, (_, i) => {
         const x = -width / 2 + leafW * (i + 0.5);
         return (
-          <group key={i} position={[x, 0, 0]}>
+          <group
+            key={i}
+            ref={(node) => {
+              leavesRef.current[i] = node;
+            }}
+            position={[open ? (i < leafCount / 2 ? -width / 2 + leafW * (0.35 + i * 0.18) : width / 2 - leafW * (0.35 + (leafCount - 1 - i) * 0.18)) : x, 0, 0]}
+            onClick={(event) => {
+              if (!onToggle) return;
+              event.stopPropagation();
+              onToggle();
+            }}
+            onPointerEnter={() => {
+              if (onToggle) document.body.style.cursor = "pointer";
+            }}
+            onPointerLeave={() => {
+              if (onToggle) document.body.style.cursor = "default";
+            }}
+          >
             <mesh material={palette.glass}>
               <boxGeometry args={[leafW - FRAME * 1.2, head - FRAME * 2, GLASS_T]} />
             </mesh>
@@ -390,6 +485,8 @@ export function OpeningOnWall({
   palette,
   exterior = false,
   wallThickness,
+  open = true,
+  onToggle,
 }: {
   a: [number, number];
   b: [number, number];
@@ -398,6 +495,8 @@ export function OpeningOnWall({
   palette: Palette;
   exterior?: boolean;
   wallThickness: number;
+  open?: boolean;
+  onToggle?: () => void;
 }) {
   const dx = b[0] - a[0];
   const dz = b[1] - a[1];
@@ -425,7 +524,10 @@ export function OpeningOnWall({
           head={opening.head}
           palette={palette}
           open={0.7}
+          isOpen={open}
+          onToggle={onToggle}
           slide={opening.slide ?? 1}
+          face={opening.face ?? 1}
           wallThickness={wallThickness}
         />
       )}
@@ -435,6 +537,8 @@ export function OpeningOnWall({
           head={opening.head}
           palette={palette}
           ajar={exterior ? 0.62 : 0.7}
+          open={open}
+          onToggle={onToggle}
           swing={opening.swing ?? 1}
           exterior={exterior}
           wallThickness={wallThickness}
@@ -446,6 +550,8 @@ export function OpeningOnWall({
           head={opening.head}
           palette={palette}
           wallThickness={wallThickness}
+          open={open}
+          onToggle={onToggle}
         />
       )}
     </group>

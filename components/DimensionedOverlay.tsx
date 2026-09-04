@@ -3,18 +3,13 @@
 import Image from "next/image";
 import { useState } from "react";
 import { geometryApprovalItems } from "@/data/house";
+import { ArchitecturalPlan } from "./ArchitecturalPlan";
 
-type OverlayMode = "measured" | "vector" | "compare";
+type OverlayMode = "vector" | "measured" | "proof";
 
 export function DimensionedOverlay() {
-  const [mode, setMode] = useState<OverlayMode>("compare");
-  const [opacity, setOpacity] = useState(50);
-  const [rotation, setRotation] = useState(0);
-  const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [dragStart, setDragStart] = useState<{ x: number; y: number; pan: { x: number; y: number } } | null>(null);
-
-  const unresolved = geometryApprovalItems.filter((i) => !i.approved);
+  const [mode, setMode] = useState<OverlayMode>("vector");
+  const unresolved = geometryApprovalItems.filter((item) => !item.approved);
   const unresolvedByCategory = unresolved.reduce(
     (acc, item) => {
       (acc[item.category] ||= []).push(item);
@@ -26,178 +21,84 @@ export function DimensionedOverlay() {
   return (
     <div className="dimensioned-overlay-container">
       <div className="overlay-comparison">
-        <div className="comparison-controls">
-          <div className="mode-selector">
-            <button
-              className={mode === "measured" ? "is-active" : ""}
-              onClick={() => setMode("measured")}
-              title="Show measured plan photograph only"
-            >
-              Measured
-            </button>
-            <button
-              className={mode === "vector" ? "is-active" : ""}
-              onClick={() => setMode("vector")}
-              title="Show vector trace only"
-            >
-              Vector
-            </button>
-            <button
-              className={mode === "compare" ? "is-active" : ""}
-              onClick={() => setMode("compare")}
-              title="Compare with opacity control"
-            >
-              Compare
-            </button>
+        <div className="plan-provenance">
+          <span className="plan-ai-mark" aria-hidden="true">AI</span>
+          <div>
+            <p>AI-assisted architectural reconstruction</p>
+            <span>
+              Native SVG paths derived from <strong>measured-plan.jpeg</strong>, then checked against the accepted
+              340 + 420 + 380 and 830 + 380 dimension chains.
+            </span>
           </div>
-          {mode === "compare" && (
-            <div className="opacity-control">
-              <label htmlFor="overlay-opacity">Transparency:</label>
-              <input
-                id="overlay-opacity"
-                type="range"
-                min="0"
-                max="100"
-                value={opacity}
-                onChange={(e) => setOpacity(Number(e.target.value))}
-                aria-label="Adjust overlay transparency"
-              />
-              <span>{opacity}%</span>
-              <label htmlFor="overlay-rotation">Rotate:</label>
-              <input
-                id="overlay-rotation"
-                type="range"
-                min="-3"
-                max="3"
-                step="0.1"
-                value={rotation}
-                onChange={(e) => setRotation(Number(e.target.value))}
-                aria-label="Rotate the photo to check alignment against the vector trace"
-              />
-              <span>{rotation.toFixed(1)}°</span>
-              <label htmlFor="overlay-zoom">Zoom:</label>
-              <input
-                id="overlay-zoom"
-                type="range"
-                min="0.85"
-                max="1.3"
-                step="0.01"
-                value={zoom}
-                onChange={(e) => setZoom(Number(e.target.value))}
-                aria-label="Zoom the photo to check alignment against the vector trace"
-              />
-              <span>{Math.round(zoom * 100)}%</span>
-          <span className="overlay-hint">Drag to pan</span>
-              {(rotation !== 0 || zoom !== 1 || pan.x !== 0 || pan.y !== 0) && (
-                <button
-                  type="button"
-                  className="overlay-reset"
-                  onClick={() => {
-                    setRotation(0);
-                    setZoom(1);
-                    setPan({ x: 0, y: 0 });
-                  }}
-                >
-                  Reset
-                </button>
-              )}
-            </div>
-          )}
+          <span className="plan-file-type">SVG · A-01</span>
         </div>
 
-        <div
-          className={mode === "compare" ? "comparison-stage is-pannable" : "comparison-stage"}
-          onPointerDown={(e) => {
-            if (mode !== "compare") return;
-            e.currentTarget.setPointerCapture(e.pointerId);
-            setDragStart({ x: e.clientX, y: e.clientY, pan });
-          }}
-          onPointerMove={(e) => {
-            if (!dragStart) return;
-            setPan({
-              x: dragStart.pan.x + (e.clientX - dragStart.x),
-              y: dragStart.pan.y + (e.clientY - dragStart.y),
-            });
-          }}
-          onPointerUp={() => setDragStart(null)}
-          onPointerLeave={() => setDragStart(null)}
-        >
+        <div className="comparison-controls">
+          <div className="mode-selector" role="tablist" aria-label="Plan source views">
+            <button type="button" role="tab" aria-selected={mode === "vector"} className={mode === "vector" ? "is-active" : ""} onClick={() => setMode("vector")}>
+              Architect SVG
+            </button>
+            <button type="button" role="tab" aria-selected={mode === "measured"} className={mode === "measured" ? "is-active" : ""} onClick={() => setMode("measured")}>
+              Original scan
+            </button>
+            <button type="button" role="tab" aria-selected={mode === "proof"} className={mode === "proof" ? "is-active" : ""} onClick={() => setMode("proof")}>
+              Source proof
+            </button>
+          </div>
+          <p className="plan-mode-note">
+            {mode === "vector" && "Editable vector reconstruction · dimensions in centimetres"}
+            {mode === "measured" && "Authoritative photographed field drawing"}
+            {mode === "proof" && "Side-by-side audit · no false survey registration"}
+          </p>
+        </div>
+
+        <div className={`comparison-stage is-${mode}`} role="tabpanel">
+          {mode === "vector" && <ArchitecturalPlan idPrefix="audit" />}
           {mode === "measured" && (
-            <div className="measured-view">
-              <Image
-                src="/references/measured-plan.jpeg"
-                alt="Original handwritten measured floor plan"
-                fill
-                sizes="100vw"
-                unoptimized
-                priority
-              />
-            </div>
+            <figure className="measured-view">
+              <Image src="/references/measured-plan.jpeg" alt="Original photographed handwritten measured floor plan" fill sizes="100vw" unoptimized priority />
+              <figcaption>Authoritative source · photographed measured drawing</figcaption>
+            </figure>
           )}
-
-          {(mode === "vector" || mode === "compare") && (
-            <svg className="vector-plan" viewBox="-90 -100 1320 1410" role="img" aria-label="Measured floor plan audit">
-              <defs>
-                <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                  <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(43,48,40,.08)" strokeWidth="2" />
-                </pattern>
-              </defs>
-              <rect x="-90" y="-100" width="1320" height="1410" fill="url(#grid)" />
-              <path className="plan-shell" d="M340 0H760V500H1140V1210H0V830H340Z" />
-              <g className="dimension-line top-dimension">
-                <line x1="0" y1="-45" x2="1140" y2="-45" />
-                <line x1="0" y1="-65" x2="0" y2="-25" />
-                <line x1="1140" y1="-65" x2="1140" y2="-25" />
-                <text x="570" y="-60">1140 cm maximum width</text>
-              </g>
-              <g className="dimension-line side-dimension">
-                <line x1="1185" y1="0" x2="1185" y2="1210" />
-                <line x1="1165" y1="0" x2="1205" y2="0" />
-                <line x1="1165" y1="1210" x2="1205" y2="1210" />
-                <text x="1205" y="605" transform="rotate(90 1205 605)">1210 cm maximum depth</text>
-              </g>
-            </svg>
-          )}
-
-          {mode === "compare" && (
-            <div
-              className="overlay-image"
-              style={{
-                opacity: opacity / 100,
-                transform: `translate(${pan.x}px, ${pan.y}px) rotate(${rotation}deg) scale(${zoom})`,
-              }}
-            >
-              <Image
-                src="/references/measured-plan.jpeg"
-                alt="Measured plan overlay"
-                fill
-                sizes="100vw"
-                unoptimized
-              />
+          {mode === "proof" && (
+            <div className="source-proof-grid">
+              <figure>
+                <div className="source-proof-media source-scan">
+                  <Image src="/references/measured-plan.jpeg" alt="Original photographed measured plan" fill sizes="(max-width: 800px) 100vw, 42vw" unoptimized />
+                </div>
+                <figcaption><b>01</b> Original field drawing</figcaption>
+              </figure>
+              <figure>
+                <div className="source-proof-media source-svg"><ArchitecturalPlan idPrefix="proof" /></div>
+                <figcaption><b>02</b> AI-assisted SVG reconstruction</figcaption>
+              </figure>
             </div>
           )}
         </div>
       </div>
 
-      <div className="approval-checklist">
+      <aside className="approval-checklist">
         <div className="checklist-header">
-          <h3>{unresolved.length === 0 ? "Survey ledger" : "Open survey questions"}</h3>
+          <h3>{unresolved.length === 0 ? "Geometry ledger" : "Open survey questions"}</h3>
           <span className={unresolved.length === 0 ? "resolved-count" : "unresolved-count"}>
-            {unresolved.length === 0 ? "Complete" : `${unresolved.length} open`}
+            {unresolved.length === 0 ? "Closed" : `${unresolved.length} open`}
           </span>
         </div>
+
+        <div className="plan-metric"><span>Footprint envelope</span><strong>11.40 × 12.10 m</strong></div>
+        <div className="plan-metric"><span>Working wall build-up</span><strong>20 / 10 cm</strong></div>
+        <div className="plan-metric"><span>Drawing basis</span><strong>Plan north · one FFL</strong></div>
 
         {unresolved.length === 0 ? (
           <div className="checklist-closed">
             <p>
-              Ledger closed. The working model follows the measured chains where they can be
-              read — including the west jog <strong>830 + 380 = 1210</strong> — with standard
-              single-storey assumptions elsewhere: 20 cm exterior walls, 10 cm partitions,
-              2.5 m ceilings, one floor level, plan north.
+              The working model follows every readable measured chain, including the west jog
+              <strong> 830 + 380 = 1210</strong>. Standard single-storey assumptions fill only the items explicitly
+              closed in the geometry ledger.
             </p>
             <p>
-              Not yet a construction set. Elevations and a site check remain before build
-              documents. Full notes in <code>docs/GEOMETRY_AUDIT.md</code>.
+              This is a design-audit SVG, not a construction set. Elevations, site verification and a true-north
+              bearing remain required before build documents.
             </p>
           </div>
         ) : (
@@ -210,7 +111,6 @@ export function DimensionedOverlay() {
                   </span>
                   <span className="unresolved-badge">{items.length}</span>
                 </div>
-
                 <div className="category-items">
                   {items.map((item) => (
                     <div key={item.id} className="approval-item">
@@ -225,10 +125,8 @@ export function DimensionedOverlay() {
           </div>
         )}
 
-        <p className="checklist-footnote">
-          Read-only. Decisions live in the audit notes; this page does not change them.
-        </p>
-      </div>
+        <p className="checklist-footnote">Provenance and decisions live in <code>docs/GEOMETRY_AUDIT.md</code>.</p>
+      </aside>
     </div>
   );
 }

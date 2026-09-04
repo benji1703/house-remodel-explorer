@@ -1,9 +1,10 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { ContactShadows, Environment, Html, Lightformer, OrbitControls } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { ContactShadows, Environment, Html, Lightformer, OrbitControls, useTexture } from "@react-three/drei";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
 import { CX, CZ, type Palette } from "./rooms/shared";
 import { Kitchen } from "./rooms/Kitchen";
@@ -22,6 +23,11 @@ type Props = {
   quality: "high" | "light";
   showMeasurements?: boolean;
   onCameraAzimuth?: (radians: number) => void;
+  sunHour?: number;
+  allDoorsOpen?: boolean;
+  doorStates?: Record<string, boolean>;
+  onToggleDoor?: (id: string) => void;
+  cameraMode?: "overview" | "room" | "plan";
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -31,7 +37,13 @@ const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
 const AZIMUTH_EPSILON = 0.0087;
 
 /** Reports the camera's azimuth around ORBIT_TARGET, throttled to avoid excessive re-renders. */
-function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians: number) => void }) {
+function CameraAzimuthTracker({
+  onCameraAzimuth,
+  controlsRef,
+}: {
+  onCameraAzimuth?: (radians: number) => void;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}) {
   const last = useRef(0);
   useFrame(({ camera }) => {
     if (!onCameraAzimuth) return;
@@ -39,7 +51,11 @@ function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians:
     // top-dimension line), so -Z is north in this scene. With OrbitControls'
     // up axis fixed to world Y, the needle's screen rotation equals this
     // azimuth directly (see MeasuredHouseScene report for the derivation).
-    const azimuth = Math.atan2(camera.position.x - ORBIT_TARGET[0], camera.position.z - ORBIT_TARGET[2]);
+    const target = controlsRef.current?.target;
+    const azimuth = Math.atan2(
+      camera.position.x - (target?.x ?? ORBIT_TARGET[0]),
+      camera.position.z - (target?.z ?? ORBIT_TARGET[2]),
+    );
     if (Math.abs(azimuth - last.current) > AZIMUTH_EPSILON) {
       last.current = azimuth;
       onCameraAzimuth(azimuth);
@@ -48,13 +64,70 @@ function CameraAzimuthTracker({ onCameraAzimuth }: { onCameraAzimuth?: (radians:
   return null;
 }
 
+function CameraDirector({
+  zone,
+  mode,
+  controlsRef,
+}: {
+  zone: HouseZone;
+  mode: "overview" | "room" | "plan";
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
+}) {
+  const { camera } = useThree();
+  const moving = useRef(true);
+  const destination = useMemo(() => {
+    if (mode === "overview") {
+      return {
+        position: new THREE.Vector3(-13.2, 10.2, -3.4),
+        target: new THREE.Vector3(...ORBIT_TARGET),
+      };
+    }
+    if (mode === "plan") {
+      return {
+        position: new THREE.Vector3(0, 20.5, 0.01),
+        target: new THREE.Vector3(0, 0, 0),
+      };
+    }
+    const target = new THREE.Vector3(
+      zone.x + zone.width / 2 - CX,
+      0.72,
+      zone.z + zone.depth / 2 - CZ,
+    );
+    const roomSpan = Math.max(zone.width, zone.depth);
+    return {
+      position: target.clone().add(new THREE.Vector3(-roomSpan * 0.9, 3.8, roomSpan * 1.05)),
+      target,
+    };
+  }, [mode, zone]);
+
+  useEffect(() => {
+    moving.current = true;
+  }, [destination]);
+
+  useFrame((_state, delta) => {
+    if (!moving.current) return;
+    const controls = controlsRef.current;
+    camera.position.lerp(destination.position, 1 - Math.exp(-delta * 3.8));
+    if (controls) {
+      controls.target.lerp(destination.target, 1 - Math.exp(-delta * 4.5));
+      controls.update();
+    } else {
+      camera.lookAt(destination.target);
+    }
+    if (camera.position.distanceTo(destination.position) < 0.035 && (!controls || controls.target.distanceTo(destination.target) < 0.025)) {
+      camera.position.copy(destination.position);
+      controls?.target.copy(destination.target);
+      controls?.update();
+      moving.current = false;
+    }
+  });
+
+  return null;
+}
+
 // Dollhouse cut: above window heads so punched openings read as true holes
 // (bedroom window head 2.20) while still allowing an overhead look into rooms.
 const SECTION = 2.35;
-// Low west sun: the terrace and the big living opening face west, so a late
-// afternoon key light rakes in through the pergola like the moodboard photos.
-const SUN_POSITION: [number, number, number] = [-14, 7.5, -3.5];
-const SUN_DIRECTION = new THREE.Vector3(...SUN_POSITION).normalize();
 const EXT_THICKNESS = designAssumptions.exteriorWallThicknessCm / 100;
 const INT_THICKNESS = designAssumptions.interiorWallThicknessCm / 100;
 const DOOR_HEAD = 2.1;
@@ -77,12 +150,14 @@ type Opening = {
   swing?: 1 | -1;
   /** Sliding: +1 stacks toward local +X, −1 toward local −X. */
   slide?: 1 | -1;
+  /** Sliding: +1 local +Z face, −1 local −Z face. */
+  face?: 1 | -1;
 };
 
 const door = (
   at: number,
   width = 0.9,
-  opts: { style?: "hinged" | "sliding"; swing?: 1 | -1; slide?: 1 | -1 } = {},
+  opts: { style?: "hinged" | "sliding"; swing?: 1 | -1; slide?: 1 | -1; face?: 1 | -1 } = {},
 ): Opening => ({
   at,
   width,
@@ -91,6 +166,7 @@ const door = (
   style: opts.style ?? "hinged",
   swing: opts.swing ?? 1,
   slide: opts.slide ?? 1,
+  face: opts.face ?? 1,
 });
 const window_ = (at: number, width = 1.4): Opening => ({
   at,
@@ -128,53 +204,80 @@ function openingKind(opening: Opening): "window" | "door" | "terrace" {
 // Owner request (2026-08-07): no wall between kitchen and living room — that
 // run (a=[3.4,3.8] b=[7.6,3.8]) is intentionally omitted, open-plan.
 //
-// Wall local frame: +X along a→b, exterior/right-hand side is local −Z for
-// northbound partitions — bedrooms & baths sit on −Z, so swing −1 into them.
+// Wall local frame (OpeningOnWall rot −atan2): for northbound runs, local +Z
+// is west (−X world), local −Z is east (+X world).
 const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Opening[] }> = [
-  // Living↔E1/E2: open into bedrooms (local −Z / east).
+  // Living↔E1/E2: bedrooms east → local −Z → swing −1.
   { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8, 0.9, { swing: -1 }), door(4.3, 0.9, { swing: -1 })] },
   { a: [7.6, 8.55], b: [11.4, 8.55], openings: [] },
-  // Master↔bath: hinged into bath (−Z); ensuite slides toward −X (south along wall).
-  { a: [3.4, 8.3], b: [3.4, 12.1], openings: [door(1.0, 0.9, { swing: -1 }), door(3.0, 0.8, { style: "sliding", slide: -1 })] },
-  // Living↔main bath: open into bath (local +Z / south).
+  // Master (west, +Z) ↔ baths (east): BR hinged into master; ensuite slides on master face.
+  {
+    a: [3.4, 8.3],
+    b: [3.4, 12.1],
+    openings: [
+      door(1.0, 0.9, { swing: 1 }),
+      door(3.0, 0.8, { style: "sliding", slide: -1, face: 1 }),
+    ],
+  },
+  // Living↔main bath: bath south → local +Z on eastbound run → swing +1.
   { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8, { swing: 1 })] },
   { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
 ];
 
-function standard(color: string, roughness: number, metalness = 0) {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness });
+function finish(
+  color: string,
+  roughness: number,
+  metalness = 0,
+  clearcoat = 0,
+  map?: THREE.Texture,
+  bumpScale = 0,
+) {
+  return new THREE.MeshPhysicalMaterial({
+    color,
+    map,
+    bumpMap: bumpScale > 0 ? map : undefined,
+    bumpScale,
+    roughness,
+    metalness,
+    clearcoat,
+    clearcoatRoughness: Math.min(1, roughness + 0.08),
+    envMapIntensity: 1.15,
+  });
 }
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
 const FRAME_GREEN = "#b8c9a8";
-/** Warm plaster beige for shell walls. */
-const WALL_BEIGE_EXT = "#e2d4bc";
-const WALL_BEIGE_INT = "#ebe0cc";
 /** Light oak — hinged doors + warm joinery. */
 const LIGHT_OAK = "#e2c9a4";
 
-function buildPalette(designMode: boolean) {
+function buildPalette(
+  designMode: boolean,
+  textures: { plaster: THREE.Texture; oak: THREE.Texture; stone: THREE.Texture },
+) {
   if (!designMode) {
-    const grey = standard("#b6b5b0", 0.9);
+    const grey = finish("#b6b5b0", 0.9);
     return {
-      exterior: standard("#d9cdb8", 0.92),
-      interior: standard("#e2d8c6", 0.92),
-      ground: standard("#bebdb7", 0.94),
-      glass: new THREE.MeshStandardMaterial({
+      exterior: finish("#d9cdb8", 0.92),
+      interior: finish("#e2d8c6", 0.92),
+      ground: finish("#bebdb7", 0.94),
+      glass: new THREE.MeshPhysicalMaterial({
         color: "#d6dcdd",
-        roughness: 0.15,
+        roughness: 0.08,
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.24,
+        transmission: 0.72,
+        thickness: 0.012,
+        envMapIntensity: 1.8,
       }),
-      frame: standard(FRAME_GREEN, 0.7, 0.08),
-      oak: standard("#cfc4b4", 0.75),
+      frame: finish(FRAME_GREEN, 0.7, 0.08),
+      oak: finish("#cfc4b4", 0.75),
       timber: grey,
-      upholstery: standard("#c4c3bd", 0.9),
-      stone: standard("#c9c8c2", 0.7),
-      charcoal: standard("#6f6f6b", 0.7),
-      greenery: standard("#a5a9a0", 0.9),
-      vine: standard("#9ca396", 0.9),
-      terracotta: standard("#b7b3aa", 0.85),
+      upholstery: finish("#c4c3bd", 0.9),
+      stone: finish("#c9c8c2", 0.7),
+      charcoal: finish("#6f6f6b", 0.7),
+      greenery: finish("#a5a9a0", 0.9),
+      vine: finish("#9ca396", 0.9),
+      terracotta: finish("#b7b3aa", 0.85),
       floors: {
         "north-extension": grey,
         "central-core": grey,
@@ -188,33 +291,37 @@ function buildPalette(designMode: boolean) {
   }
 
   // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
-  const travertine = standard("#d6cec0", 0.78);
-  const microcement = standard("#cdc5b7", 0.9);
+  const travertine = finish("#f5efe5", 0.72, 0, 0.08, textures.stone, 0.012);
+  const microcement = finish("#e4ddd2", 0.88, 0, 0.04, textures.stone, 0.006);
+  const oakFloor = finish("#f4dfc2", 0.5, 0, 0.05, textures.oak, 0.008);
   return {
-    exterior: standard(WALL_BEIGE_EXT, 0.98),
-    interior: standard(WALL_BEIGE_INT, 0.97),
-    ground: standard("#c8bfae", 0.95),
-    glass: new THREE.MeshStandardMaterial({
+    exterior: finish("#ead9bd", 0.94, 0, 0, textures.plaster, 0.018),
+    interior: finish("#f0e1ca", 0.92, 0, 0, textures.plaster, 0.012),
+    ground: finish("#d6cdc0", 0.91, 0, 0, textures.stone, 0.008),
+    glass: new THREE.MeshPhysicalMaterial({
       color: "#bcd2d6",
-      roughness: 0.05,
-      metalness: 0.25,
-      envMapIntensity: 1.5,
+      roughness: 0.025,
+      metalness: 0,
+      envMapIntensity: 2.2,
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.28,
+      transmission: 0.82,
+      thickness: 0.018,
+      ior: 1.46,
     }),
-    frame: standard(FRAME_GREEN, 0.62, 0.1),
-    oak: standard(LIGHT_OAK, 0.72),
-    timber: standard("#8f6238", 0.78),
-    upholstery: standard("#e3d9c7", 1),
+    frame: finish(FRAME_GREEN, 0.5, 0.12, 0.08),
+    oak: finish(LIGHT_OAK, 0.62, 0, 0.05, textures.oak, 0.006),
+    timber: finish("#8f6238", 0.66, 0, 0.04),
+    upholstery: finish("#e3d9c7", 0.98),
     stone: travertine,
-    charcoal: standard("#38352f", 0.62),
-    greenery: standard("#8b9a76", 0.95),
-    vine: standard("#63784f", 0.92),
-    terracotta: standard("#c0906a", 0.88),
+    charcoal: finish("#38352f", 0.48, 0.14, 0.08),
+    greenery: finish("#8b9a76", 0.9),
+    vine: finish("#63784f", 0.88),
+    terracotta: finish("#c0906a", 0.8, 0, 0.04),
     floors: {
-      "north-extension": standard("#c99a63", 0.6),
-      "central-core": standard("#cfa26b", 0.58),
-      "southwest-room": standard("#c4945f", 0.62),
+      "north-extension": oakFloor,
+      "central-core": oakFloor,
+      "southwest-room": oakFloor,
       "east-upper-room": microcement,
       "east-lower-room": microcement,
       "service-core": microcement,
@@ -223,14 +330,15 @@ function buildPalette(designMode: boolean) {
   };
 }
 
-const paletteCache = new Map<boolean, Palette>();
-paletteCache.clear();
-function getPalette(designMode: boolean) {
-  const cached = paletteCache.get(designMode);
-  if (cached) return cached;
-  const built = buildPalette(designMode);
-  paletteCache.set(designMode, built);
-  return built;
+function prepareTexture(source: THREE.Texture, repeat: [number, number], anisotropy: number) {
+  const texture = source.clone();
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(...repeat);
+  texture.anisotropy = anisotropy;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 /**
@@ -371,13 +479,14 @@ function ZoneFloor({
  * needed: lavender-blue zenith down to a warm peach horizon that brightens
  * towards the sun, matching the evening sky in the outdoor moodboard.
  */
-function SkyDome() {
+function SkyDome({ sunDirection, hour }: { sunDirection: THREE.Vector3; hour: number }) {
   const geometry = useMemo(() => {
-    const zenith = new THREE.Color("#8ea4c6");
-    const horizon = new THREE.Color("#f0dcc1");
-    const haze = new THREE.Color("#cfc3ac");
-    const glow = new THREE.Color("#ffcf9a");
-    const sun = SUN_DIRECTION;
+    const daylight = Math.sin(THREE.MathUtils.clamp((hour - 6) / 14, 0, 1) * Math.PI);
+    const zenith = new THREE.Color("#273549").lerp(new THREE.Color("#9db7d6"), daylight);
+    const horizon = new THREE.Color("#826b70").lerp(new THREE.Color("#edf1ef"), daylight * 0.86);
+    const haze = new THREE.Color("#424653").lerp(new THREE.Color("#c9d0ce"), daylight);
+    const glow = new THREE.Color("#ff9b52").lerp(new THREE.Color("#fff0cf"), daylight);
+    const sun = sunDirection;
 
     const sphere = new THREE.SphereGeometry(60, 32, 20);
     const position = sphere.getAttribute("position");
@@ -403,7 +512,7 @@ function SkyDome() {
 
     sphere.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     return sphere;
-  }, []);
+  }, [hour, sunDirection]);
 
   return (
     <mesh geometry={geometry} frustumCulled={false}>
@@ -435,8 +544,26 @@ export function MeasuredHouseScene({
   quality,
   showMeasurements = false,
   onCameraAzimuth,
+  sunHour = 16.5,
+  allDoorsOpen = true,
+  doorStates = {},
+  onToggleDoor,
+  cameraMode = "overview",
 }: Props) {
-  const palette = getPalette(designMode);
+  const [plasterSource, oakSource, stoneSource] = useTexture([
+    "/textures/lime-plaster-ai.jpg",
+    "/textures/light-oak-ai.jpg",
+    "/textures/jerusalem-stone-ai.jpg",
+  ]);
+  const textureSet = useMemo(
+    () => ({
+      plaster: prepareTexture(plasterSource, [1.8, 1.8], quality === "high" ? 12 : 4),
+      oak: prepareTexture(oakSource, [1.15, 1.15], quality === "high" ? 16 : 4),
+      stone: prepareTexture(stoneSource, [1.6, 1.6], quality === "high" ? 12 : 4),
+    }),
+    [oakSource, plasterSource, quality, stoneSource],
+  );
+  const palette = useMemo(() => buildPalette(designMode, textureSet), [designMode, textureSet]);
   const zoneById = useMemo(
     () => Object.fromEntries(house.zones.map((zone) => [zone.id, zone])) as Record<ZoneId, HouseZone>,
     [],
@@ -447,6 +574,28 @@ export function MeasuredHouseScene({
     b: house.footprint[(index + 1) % house.footprint.length],
     openings: exteriorOpenings[index] ?? [],
   }));
+  const sun = useMemo(() => {
+    const progress = THREE.MathUtils.clamp((sunHour - 6) / 14, 0, 1);
+    const angle = progress * Math.PI;
+    const altitude = Math.max(0, Math.sin(angle));
+    const position: [number, number, number] = [
+      Math.cos(angle) * 18,
+      (sunHour >= 6 && sunHour <= 20 ? 0.35 : -3) + altitude * 15,
+      Math.sin(angle) * 17,
+    ];
+    const dawnDusk = 1 - altitude;
+    return {
+      position,
+      direction: new THREE.Vector3(...position).normalize(),
+      color: new THREE.Color("#fff3d6").lerp(new THREE.Color("#ff9c55"), dawnDusk * 0.82),
+      intensity: sunHour >= 6 && sunHour <= 20 ? 0.08 + altitude * 3.55 : 0,
+      sky: new THREE.Color("#28384e").lerp(new THREE.Color("#b7cce1"), altitude),
+      practical: THREE.MathUtils.smoothstep(sunHour, 16, 19),
+      daylight: altitude,
+    };
+  }, [sunHour]);
+  const isDoorOpen = (id: string) => doorStates[id] ?? allDoorsOpen;
+  const controlsRef = useRef<OrbitControlsImpl>(null);
 
   return (
     <Canvas
@@ -456,33 +605,39 @@ export function MeasuredHouseScene({
       // opening — the moodboard's hero angle — rather than the old plan-like
       // view from the blank south-east corner.
       camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
-      gl={{ antialias: quality === "high", powerPreference: "high-performance" }}
+      gl={{ antialias: quality === "high", powerPreference: "high-performance", alpha: false }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = designMode ? 1.05 : 0.95;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
+        gl.shadowMap.type = THREE.PCFSoftShadowMap;
+      }}
       style={{ width: "100%", height: "100%", display: "block" }}
     >
-      <color attach="background" args={[designMode ? "#e8e8ed" : "#e5e5ea"]} />
-      <fog attach="fog" args={[designMode ? "#e8e8ed" : "#e5e5ea", 24, 46]} />
-      {designMode && <SkyDome />}
+      <color attach="background" args={[designMode ? sun.sky : "#e5e5ea"]} />
+      <fog attach="fog" args={[designMode ? sun.sky : "#e5e5ea", 25, 49]} />
+      {designMode && <SkyDome sunDirection={sun.direction} hour={sunHour} />}
 
       {/* A single-frame lightformer probe stands in for an HDRI: warm sun wall
           to the west, cool sky overhead, sand bounce below. No external asset. */}
       {designMode && (
         <Environment frames={1} resolution={quality === "high" ? 256 : 64}>
           <color attach="background" args={["#3a3730"]} />
-          <Lightformer form="rect" intensity={3.2} color="#ffd7a3" scale={[16, 6, 1]} position={[-14, 4, -3]} />
-          <Lightformer form="rect" intensity={1.1} color="#b7cde9" scale={[18, 18, 1]} position={[0, 14, 0]} />
-          <Lightformer form="rect" intensity={0.5} color="#c8b28e" scale={[20, 20, 1]} position={[0, -8, 0]} />
+          <Lightformer form="rect" intensity={0.18 + sun.daylight * 2.8} color={sun.color} scale={[16, 6, 1]} position={sun.position} />
+          <Lightformer form="rect" intensity={0.2 + sun.daylight * 1.15} color="#c9dcf1" scale={[18, 18, 1]} position={[0, 14, 0]} />
+          <Lightformer form="rect" intensity={0.1 + sun.daylight * 0.42} color="#c8b28e" scale={[20, 20, 1]} position={[0, -8, 0]} />
         </Environment>
       )}
 
-      <hemisphereLight args={["#c9d8ea", "#c2a681", designMode ? 0.5 : 1.1]} />
-      <ambientLight intensity={designMode ? 0.16 : 0.45} />
+      <hemisphereLight args={["#d4e2f2", "#b99470", designMode ? 0.16 + sun.daylight * 0.52 : 1.1]} />
+      <ambientLight intensity={designMode ? 0.07 + sun.daylight * 0.14 : 0.45} />
       <directionalLight
-        position={designMode ? SUN_POSITION : [9, 13, 6]}
-        intensity={designMode ? 3 : 2.3}
-        color={designMode ? "#ffd3a1" : "#fff1dc"}
+        position={designMode ? sun.position : [9, 13, 6]}
+        intensity={designMode ? sun.intensity : 2.3}
+        color={designMode ? sun.color : "#fff1dc"}
         castShadow={quality === "high"}
-        shadow-mapSize-width={quality === "high" ? 2048 : 512}
-        shadow-mapSize-height={quality === "high" ? 2048 : 512}
+        shadow-mapSize-width={quality === "high" ? 4096 : 512}
+        shadow-mapSize-height={quality === "high" ? 4096 : 512}
         shadow-camera-left={-13}
         shadow-camera-right={13}
         shadow-camera-top={13}
@@ -494,15 +649,15 @@ export function MeasuredHouseScene({
       />
       <directionalLight
         position={designMode ? [9, 6, 7] : [-8, 6, -6]}
-        intensity={designMode ? 0.45 : 0.55}
+        intensity={designMode ? 0.08 + sun.daylight * 0.38 : 0.55}
         color={designMode ? "#a9c2e0" : "#ccd8e8"}
       />
       {designMode && quality === "high" && (
         <>
-          <pointLight position={[0, 2.1, 0.2]} intensity={9} distance={7} color="#ffb877" />
-          <pointLight position={[-0.1, 2.1, -4.2]} intensity={7} distance={6} color="#ffbe86" />
+          <pointLight position={[0, 2.1, 0.2]} intensity={2 + sun.practical * 10} distance={7} color="#ffb877" />
+          <pointLight position={[-0.1, 2.1, -4.2]} intensity={1.5 + sun.practical * 8} distance={6} color="#ffbe86" />
           {/* Pergola downlight, matching the terrace spots on the moodboard. */}
-          <pointLight position={[-3.9, 2.4, -0.15]} intensity={6} distance={6.5} color="#ffc27f" />
+          <pointLight position={[-3.9, 2.4, -0.15]} intensity={1 + sun.practical * 7} distance={6.5} color="#ffc27f" />
         </>
       )}
       {designMode && quality === "light" && (
@@ -555,7 +710,9 @@ export function MeasuredHouseScene({
 
       {/* Klil Belgian-style glazed units in every punched opening. */}
       {exteriorWalls.map((wall, wi) =>
-        wall.openings.map((opening, oi) => (
+        wall.openings.map((opening, oi) => {
+          const id = `ext-${wi}-${oi}`;
+          return (
           <OpeningOnWall
             key={`ext-open-${wi}-${oi}`}
             a={wall.a}
@@ -565,11 +722,16 @@ export function MeasuredHouseScene({
             palette={palette}
             exterior
             wallThickness={EXT_THICKNESS}
+            open={isDoorOpen(id)}
+            onToggle={openingKind(opening) === "window" ? undefined : () => onToggleDoor?.(id)}
           />
-        )),
+          );
+        }),
       )}
       {partitions.map((wall, wi) =>
-        wall.openings.map((opening, oi) => (
+        wall.openings.map((opening, oi) => {
+          const id = `int-${wi}-${oi}`;
+          return (
           <OpeningOnWall
             key={`int-open-${wi}-${oi}`}
             a={wall.a}
@@ -578,8 +740,11 @@ export function MeasuredHouseScene({
             kind="door"
             palette={palette}
             wallThickness={INT_THICKNESS}
+            open={isDoorOpen(id)}
+            onToggle={() => onToggleDoor?.(id)}
           />
-        )),
+          );
+        }),
       )}
 
       {designMode && (
@@ -597,13 +762,15 @@ export function MeasuredHouseScene({
       )}
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
-      <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} />
+      <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} />
+      <CameraDirector zone={zoneById[selectedZone]} mode={cameraMode} controlsRef={controlsRef} />
       <OrbitControls
+        ref={controlsRef}
         makeDefault
         target={ORBIT_TARGET}
-        minDistance={quality === "light" ? 5.5 : 9}
+        minDistance={cameraMode === "room" ? 2.4 : quality === "light" ? 5.5 : 8}
         maxDistance={quality === "light" ? 20 : 28}
-        minPolarAngle={0.24}
+        minPolarAngle={cameraMode === "plan" ? 0.01 : 0.24}
         maxPolarAngle={Math.PI / 2.3}
         enableDamping
         dampingFactor={quality === "light" ? 0.08 : 0.06}

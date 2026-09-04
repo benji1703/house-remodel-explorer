@@ -430,7 +430,7 @@ function prepareHerringboneTexture(
   const albedo = prepareGradedFloorMap(
     albedoSource,
     anisotropy,
-    "brightness(1.62) saturate(0.72) contrast(0.84)",
+    "brightness(1.78) saturate(0.68) contrast(0.82)",
     THREE.SRGBColorSpace,
   );
   const normal = prepareTexture(normalSource, [1, 1], anisotropy);
@@ -541,6 +541,10 @@ function ZoneFloor({
       if (!source) return null;
       const map = source.clone();
       map.repeat.set(zone.width / moduleMeters, zone.depth / moduleMeters);
+      // BoxGeometry starts UVs again for every room. Offset each clone by its
+      // measured plan origin so the parquet is one continuous installation
+      // through the open kitchen/living threshold instead of visibly resetting.
+      map.offset.set(-zone.x / moduleMeters, -(zone.z + zone.depth) / moduleMeters);
       map.needsUpdate = true;
       return map;
     };
@@ -552,7 +556,7 @@ function ZoneFloor({
     material.roughnessMap = cloneMap(sourceFloorMaterial.roughnessMap);
     material.needsUpdate = true;
     return material;
-  }, [sourceFloorMaterial, zone.depth, zone.width]);
+  }, [sourceFloorMaterial, zone.depth, zone.width, zone.x, zone.z]);
 
   useEffect(() => {
     if (floorMaterial === sourceFloorMaterial) return;
@@ -576,12 +580,6 @@ function ZoneFloor({
       >
         <boxGeometry args={[zone.width, zone.level, zone.depth]} />
       </mesh>
-      {selected && (
-        <mesh position={[cx, zone.level + 0.006, cz]} rotation-x={-Math.PI / 2}>
-          <planeGeometry args={[zone.width - 0.14, zone.depth - 0.14]} />
-          <meshBasicMaterial color="#e59a50" transparent opacity={0.3} depthWrite={false} />
-        </mesh>
-      )}
       <Html
         center
         position={[cx, zone.level + 1.9, cz]}

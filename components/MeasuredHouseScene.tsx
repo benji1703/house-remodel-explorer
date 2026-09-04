@@ -5,6 +5,7 @@ import { ContactShadows, Environment, Html, Lightformer, OrbitControls, useTextu
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
 import { CX, CZ, type Palette } from "./rooms/shared";
 import { Kitchen } from "./rooms/Kitchen";
@@ -15,6 +16,7 @@ import { EastUpperRoom, EastLowerRoom } from "./rooms/EastRooms";
 import { MainBathroom, EnsuiteBathroom } from "./rooms/Bathrooms";
 import { Terrace } from "./rooms/Terrace";
 import { OpeningOnWall } from "./rooms/Openings";
+import type { FurnitureEditingState } from "./rooms/EditableFurniture";
 
 type Props = {
   selectedZone: ZoneId;
@@ -28,6 +30,10 @@ type Props = {
   doorStates?: Record<string, boolean>;
   onToggleDoor?: (id: string) => void;
   cameraMode?: "overview" | "room" | "plan";
+  furnitureSizes?: FurnitureSizeOverrides;
+  removedFurniture?: FurnitureId[];
+  selectedFurnitureId?: FurnitureId;
+  onSelectFurniture?: (id: FurnitureId) => void;
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -232,17 +238,20 @@ function finish(
   map?: THREE.Texture,
   bumpScale = 0,
 ) {
-  return new THREE.MeshPhysicalMaterial({
+  const parameters: THREE.MeshPhysicalMaterialParameters = {
     color,
-    map,
-    bumpMap: bumpScale > 0 ? map : undefined,
     bumpScale,
     roughness,
     metalness,
     clearcoat,
     clearcoatRoughness: Math.min(1, roughness + 0.08),
     envMapIntensity: 1.15,
-  });
+  };
+  if (map) {
+    parameters.map = map;
+    if (bumpScale > 0) parameters.bumpMap = map;
+  }
+  return new THREE.MeshPhysicalMaterial(parameters);
 }
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
@@ -252,7 +261,7 @@ const LIGHT_OAK = "#e2c9a4";
 
 function buildPalette(
   designMode: boolean,
-  textures: { plaster: THREE.Texture; oak: THREE.Texture; stone: THREE.Texture },
+  textures: { plaster: THREE.Texture; oak: THREE.Texture; herringbone: THREE.Texture; stone: THREE.Texture },
 ) {
   if (!designMode) {
     const grey = finish("#b6b5b0", 0.9);
@@ -293,7 +302,7 @@ function buildPalette(
   // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
   const travertine = finish("#f5efe5", 0.72, 0, 0.08, textures.stone, 0.012);
   const microcement = finish("#e4ddd2", 0.88, 0, 0.04, textures.stone, 0.006);
-  const oakFloor = finish("#f4dfc2", 0.5, 0, 0.05, textures.oak, 0.008);
+  const oakFloor = finish("#f4dfc2", 0.53, 0, 0.05, textures.herringbone, 0.006);
   return {
     exterior: finish("#ead9bd", 0.94, 0, 0, textures.plaster, 0.018),
     interior: finish("#f0e1ca", 0.92, 0, 0, textures.plaster, 0.012),
@@ -322,8 +331,8 @@ function buildPalette(
       "north-extension": oakFloor,
       "central-core": oakFloor,
       "southwest-room": oakFloor,
-      "east-upper-room": microcement,
-      "east-lower-room": microcement,
+      "east-upper-room": oakFloor,
+      "east-lower-room": oakFloor,
       "service-core": microcement,
       ensuite: microcement,
     } as Record<ZoneId, THREE.Material>,
@@ -337,6 +346,82 @@ function prepareTexture(source: THREE.Texture, repeat: [number, number], anisotr
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(...repeat);
   texture.anisotropy = anisotropy;
+  texture.magFilter = THREE.LinearFilter;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.generateMipmaps = true;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function prepareHerringboneTexture(source: THREE.Texture, anisotropy: number) {
+  if (typeof document === "undefined" || !source.image) {
+    return prepareTexture(source, [3, 3], anisotropy);
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 1024;
+  const context = canvas.getContext("2d");
+  if (!context) return prepareTexture(source, [3, 3], anisotropy);
+
+  const image = source.image as CanvasImageSource & { width: number; height: number };
+  const plankLength = 256;
+  const plankWidth = 50;
+  const spacing = plankLength / Math.sqrt(2);
+
+  context.fillStyle = "#d8b98f";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const drawPlank = (cx: number, cy: number, angle: number, index: number) => {
+    const cropWidth = Math.max(1, Math.min(110, image.width));
+    const cropHeight = Math.max(1, Math.min(720, image.height));
+    const maxCropX = Math.max(1, image.width - cropWidth);
+    const maxCropY = Math.max(1, image.height - cropHeight);
+    const sourceX = (index * 83) % maxCropX;
+    const sourceY = (index * 47) % maxCropY;
+    context.save();
+    context.translate(cx, cy);
+    context.rotate(angle);
+    context.beginPath();
+    context.rect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
+    context.clip();
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      cropWidth,
+      cropHeight,
+      -plankLength / 2,
+      -plankWidth / 2,
+      plankLength,
+      plankWidth,
+    );
+    context.fillStyle = index % 5 === 0 ? "rgba(116, 74, 35, 0.055)" : "rgba(255, 246, 226, 0.025)";
+    context.fillRect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
+    context.strokeStyle = "rgba(91, 62, 37, 0.34)";
+    context.lineWidth = 3;
+    context.strokeRect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
+    context.restore();
+  };
+
+  let index = 0;
+  for (let row = -7; row < 9; row += 1) {
+    for (let column = -5; column < 7; column += 1) {
+      const x = column * spacing * 2 + (Math.abs(row) % 2) * spacing;
+      const y = row * spacing;
+      drawPlank(x, y, Math.PI / 4, index++);
+      drawPlank(x + spacing, y, -Math.PI / 4, index++);
+    }
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = anisotropy;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = true;
   texture.needsUpdate = true;
   return texture;
 }
@@ -422,12 +507,35 @@ function ZoneFloor({
 }) {
   const cx = zone.x + zone.width / 2 - CX;
   const cz = zone.z + zone.depth / 2 - CZ;
+  const sourceFloorMaterial = palette.floors[zone.id];
+  const floorMaterial = useMemo(() => {
+    if (!(sourceFloorMaterial instanceof THREE.MeshStandardMaterial) || !sourceFloorMaterial.map) {
+      return sourceFloorMaterial;
+    }
+    const material = sourceFloorMaterial.clone();
+    const map = sourceFloorMaterial.map.clone();
+    // The generated tile contains 40 × 8 cm boards across a 1.6 m module.
+    map.repeat.set(zone.width / 1.6, zone.depth / 1.6);
+    map.needsUpdate = true;
+    material.map = map;
+    if (sourceFloorMaterial.bumpMap) material.bumpMap = map;
+    material.needsUpdate = true;
+    return material;
+  }, [sourceFloorMaterial, zone.depth, zone.width]);
+
+  useEffect(() => {
+    if (floorMaterial === sourceFloorMaterial) return;
+    return () => {
+      if (floorMaterial instanceof THREE.MeshStandardMaterial) floorMaterial.map?.dispose();
+      floorMaterial.dispose();
+    };
+  }, [floorMaterial, sourceFloorMaterial]);
 
   return (
     <group>
       <mesh
         position={[cx, zone.level / 2, cz]}
-        material={palette.floors[zone.id]}
+        material={floorMaterial}
         onClick={(event) => {
           event.stopPropagation();
           onSelect();
@@ -537,7 +645,7 @@ function GroundSlab({ palette }: { palette: Palette }) {
   );
 }
 
-export function MeasuredHouseScene({
+function SceneContent({
   selectedZone,
   onSelectZone,
   designMode,
@@ -549,19 +657,26 @@ export function MeasuredHouseScene({
   doorStates = {},
   onToggleDoor,
   cameraMode = "overview",
+  furnitureSizes = {},
+  removedFurniture = [],
+  selectedFurnitureId = "living-sofa",
+  onSelectFurniture = () => undefined,
 }: Props) {
+  const { gl } = useThree();
   const [plasterSource, oakSource, stoneSource] = useTexture([
     "/textures/lime-plaster-ai.jpg",
     "/textures/light-oak-ai.jpg",
     "/textures/jerusalem-stone-ai.jpg",
   ]);
+  const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? 16 : 4);
   const textureSet = useMemo(
     () => ({
-      plaster: prepareTexture(plasterSource, [1.8, 1.8], quality === "high" ? 12 : 4),
-      oak: prepareTexture(oakSource, [1.15, 1.15], quality === "high" ? 16 : 4),
-      stone: prepareTexture(stoneSource, [1.6, 1.6], quality === "high" ? 12 : 4),
+      plaster: prepareTexture(plasterSource, [1.8, 1.8], textureAnisotropy),
+      oak: prepareTexture(oakSource, [1.15, 1.15], textureAnisotropy),
+      herringbone: prepareHerringboneTexture(oakSource, textureAnisotropy),
+      stone: prepareTexture(stoneSource, [1.6, 1.6], textureAnisotropy),
     }),
-    [oakSource, plasterSource, quality, stoneSource],
+    [oakSource, plasterSource, stoneSource, textureAnisotropy],
   );
   const palette = useMemo(() => buildPalette(designMode, textureSet), [designMode, textureSet]);
   const zoneById = useMemo(
@@ -596,24 +711,15 @@ export function MeasuredHouseScene({
   }, [sunHour]);
   const isDoorOpen = (id: string) => doorStates[id] ?? allDoorsOpen;
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const furnitureEditing = useMemo<FurnitureEditingState>(() => ({
+    sizes: furnitureSizes,
+    removedIds: removedFurniture,
+    selectedId: selectedFurnitureId,
+    onSelect: onSelectFurniture,
+  }), [furnitureSizes, onSelectFurniture, removedFurniture, selectedFurnitureId]);
 
   return (
-    <Canvas
-      dpr={quality === "high" ? [1, 1.75] : [0.75, 1.15]}
-      shadows={quality === "high" ? "soft" : false}
-      // Framed from the west, across the pergola and through the big living
-      // opening — the moodboard's hero angle — rather than the old plan-like
-      // view from the blank south-east corner.
-      camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
-      gl={{ antialias: quality === "high", powerPreference: "high-performance", alpha: false }}
-      onCreated={({ gl }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = designMode ? 1.05 : 0.95;
-        gl.outputColorSpace = THREE.SRGBColorSpace;
-        gl.shadowMap.type = THREE.PCFSoftShadowMap;
-      }}
-      style={{ width: "100%", height: "100%", display: "block" }}
-    >
+    <>
       <color attach="background" args={[designMode ? sun.sky : "#e5e5ea"]} />
       <fog attach="fog" args={[designMode ? sun.sky : "#e5e5ea", 25, 49]} />
       {designMode && <SkyDome sunDirection={sun.direction} hour={sunHour} />}
@@ -621,7 +727,7 @@ export function MeasuredHouseScene({
       {/* A single-frame lightformer probe stands in for an HDRI: warm sun wall
           to the west, cool sky overhead, sand bounce below. No external asset. */}
       {designMode && (
-        <Environment frames={1} resolution={quality === "high" ? 256 : 64}>
+        <Environment frames={1} resolution={quality === "high" ? 512 : 64}>
           <color attach="background" args={["#3a3730"]} />
           <Lightformer form="rect" intensity={0.18 + sun.daylight * 2.8} color={sun.color} scale={[16, 6, 1]} position={sun.position} />
           <Lightformer form="rect" intensity={0.2 + sun.daylight * 1.15} color="#c9dcf1" scale={[18, 18, 1]} position={[0, 14, 0]} />
@@ -660,15 +766,15 @@ export function MeasuredHouseScene({
           <pointLight position={[-3.9, 2.4, -0.15]} intensity={1 + sun.practical * 7} distance={6.5} color="#ffc27f" />
         </>
       )}
-      {designMode && quality === "light" && (
+      {designMode && (
         <ContactShadows
           frames={1}
           position={[0, 0.105, 0]}
           scale={17}
-          resolution={512}
-          blur={2.6}
+          resolution={quality === "high" ? 1024 : 512}
+          blur={quality === "high" ? 2.1 : 2.6}
           far={2.4}
-          opacity={0.42}
+          opacity={quality === "high" ? 0.32 : 0.42}
           color="#6b5a44"
         />
       )}
@@ -749,13 +855,13 @@ export function MeasuredHouseScene({
 
       {designMode && (
         <>
-          <Terrace palette={palette} quality={quality} />
-          <MasterPatio palette={palette} quality={quality} />
-          <Kitchen base={zoneById["north-extension"].level} palette={palette} />
-          <Living base={zoneById["central-core"].level} palette={palette} />
-          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} />
-          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} />
-          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} />
+          <Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} />
+          <MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} />
+          <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} />
           <MainBathroom base={zoneById["service-core"].level} palette={palette} />
           <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} />
         </>
@@ -779,6 +885,32 @@ export function MeasuredHouseScene({
         panSpeed={quality === "light" ? 0.7 : 1}
         enablePan={quality === "high"}
       />
+    </>
+  );
+}
+
+export function MeasuredHouseScene(props: Props) {
+  const { designMode, quality } = props;
+
+  return (
+    <Canvas
+      dpr={quality === "high" ? [1, 2] : [0.75, 1.15]}
+      shadows={quality === "high" ? "soft" : false}
+      // Framed from the west, across the pergola and through the big living
+      // opening — the moodboard's hero angle — rather than the old plan-like
+      // view from the blank south-east corner.
+      camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
+      gl={{ antialias: quality === "high", powerPreference: "high-performance", alpha: false }}
+      performance={{ min: quality === "high" ? 0.7 : 0.5 }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = designMode ? 1.05 : 0.95;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
+        gl.shadowMap.type = THREE.PCFSoftShadowMap;
+      }}
+      style={{ width: "100%", height: "100%", display: "block" }}
+    >
+      <SceneContent {...props} />
     </Canvas>
   );
 }

@@ -4,6 +4,14 @@ import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
+import {
+  furnitureById,
+  furnitureCatalog,
+  furnitureDimensions,
+  type FurnitureDimensions,
+  type FurnitureId,
+  type FurnitureSizeOverrides,
+} from "@/data/furniture";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { site } from "@/data/site";
 import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
@@ -49,6 +57,8 @@ const isView = (value: string | null): value is View =>
 
 const isZoneId = (value: string | null): value is ZoneId =>
   house.zones.some((zone) => zone.id === value);
+
+const FURNITURE_STORAGE_KEY = "villa-nehama:furniture-layout:v1";
 
 const zoneFromMood = (id: MoodBoardId): ZoneId =>
   id === "terrace" || id === "openings" ? "central-core" : id;
@@ -99,6 +109,12 @@ export function HouseExplorer() {
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
   const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">(() => zoneParam ? "room" : "overview");
+  const [furnitureSizes, setFurnitureSizes] = useState<FurnitureSizeOverrides>({});
+  const [removedFurniture, setRemovedFurniture] = useState<FurnitureId[]>([]);
+  const [furnitureStorageReady, setFurnitureStorageReady] = useState(false);
+  const [furnitureEditorOpen, setFurnitureEditorOpen] = useState(false);
+  const [selectedFurnitureId, setSelectedFurnitureId] = useState<FurnitureId>("living-sofa");
+  const [exportStatus, setExportStatus] = useState("");
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
   const [sheetOpen, setSheetOpen] = useState(false);
   const [compact, setCompact] = useState(false);
@@ -108,6 +124,45 @@ export function HouseExplorer() {
   const detailRef = useRef<HTMLElement>(null);
   const scrimRef = useRef<HTMLButtonElement>(null);
   const sheetWasOpen = useRef(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = window.localStorage.getItem(FURNITURE_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved) as {
+            sizes?: FurnitureSizeOverrides;
+            removedIds?: string[];
+          };
+          if (parsed.sizes && typeof parsed.sizes === "object") setFurnitureSizes(parsed.sizes);
+          if (Array.isArray(parsed.removedIds)) {
+            setRemovedFurniture(
+              parsed.removedIds.filter((id): id is FurnitureId =>
+                furnitureCatalog.some((item) => item.id === id),
+              ),
+            );
+          }
+        }
+      } catch {
+        // Ignore malformed or unavailable browser storage and retain defaults.
+      } finally {
+        setFurnitureStorageReady(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!furnitureStorageReady) return;
+    try {
+      window.localStorage.setItem(
+        FURNITURE_STORAGE_KEY,
+        JSON.stringify({ sizes: furnitureSizes, removedIds: removedFurniture }),
+      );
+    } catch {
+      // The editor remains usable when storage is blocked by the browser.
+    }
+  }, [furnitureSizes, furnitureStorageReady, removedFurniture]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -161,6 +216,64 @@ export function HouseExplorer() {
 
   const toggleDoor = (id: string) => {
     setDoorStates((current) => ({ ...current, [id]: !(current[id] ?? allDoorsOpen) }));
+  };
+
+  const selectedFurniture = furnitureById[selectedFurnitureId];
+  const selectedFurnitureSize = furnitureDimensions(selectedFurnitureId, furnitureSizes);
+
+  const updateFurnitureDimension = (key: keyof FurnitureDimensions, value: number) => {
+    if (!Number.isFinite(value)) return;
+    setFurnitureSizes((current) => ({
+      ...current,
+      [selectedFurnitureId]: {
+        ...furnitureDimensions(selectedFurnitureId, current),
+        [key]: Math.max(10, Math.min(600, Math.round(value))),
+      },
+    }));
+    setExportStatus("");
+  };
+
+  const resetFurniture = () => {
+    setFurnitureSizes((current) => {
+      const next = { ...current };
+      delete next[selectedFurnitureId];
+      return next;
+    });
+    setExportStatus("");
+  };
+
+  const toggleFurnitureRemoved = () => {
+    setRemovedFurniture((current) =>
+      current.includes(selectedFurnitureId)
+        ? current.filter((id) => id !== selectedFurnitureId)
+        : [...current, selectedFurnitureId],
+    );
+    setExportStatus("");
+  };
+
+  const exportFurniture = () => {
+    const payload = {
+      schema: "villa-nehama/furniture-layout@2",
+      unit: "cm",
+      exportedAt: new Date().toISOString(),
+      furniture: furnitureCatalog.map((item) => ({
+        uuid: item.uuid,
+        id: item.id,
+        label: item.label,
+        room: item.room,
+        dimensions: furnitureDimensions(item.id, furnitureSizes),
+        removed: removedFurniture.includes(item.id),
+      })),
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blobUrl = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "villa-nehama-furniture.json";
+    link.click();
+    URL.revokeObjectURL(blobUrl);
+    void navigator.clipboard?.writeText(json).catch(() => undefined);
+    setExportStatus("JSON downloaded · copied when permitted");
   };
 
   useEffect(() => {
@@ -465,6 +578,14 @@ export function HouseExplorer() {
                       doorStates={doorStates}
                       onToggleDoor={toggleDoor}
                       cameraMode={cameraMode}
+                      furnitureSizes={furnitureSizes}
+                      removedFurniture={removedFurniture}
+                      selectedFurnitureId={selectedFurnitureId}
+                      onSelectFurniture={(id) => {
+                        setSelectedFurnitureId(id);
+                        setFurnitureEditorOpen(true);
+                        setExportStatus("");
+                      }}
                     />
                   </Suspense>
                 )}
@@ -502,16 +623,93 @@ export function HouseExplorer() {
                   </button>
                 </div>
                 {webglSupport === true && (
-                  <button
-                    type="button"
-                    className={showMeasurements ? "toolbar-chip is-active" : "toolbar-chip"}
-                    aria-pressed={showMeasurements}
-                    onClick={() => setShowMeasurements((value) => !value)}
-                  >
-                    Dimensions
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      className={furnitureEditorOpen ? "toolbar-chip is-active" : "toolbar-chip"}
+                      aria-expanded={furnitureEditorOpen}
+                      aria-controls="furniture-editor"
+                      onClick={() => setFurnitureEditorOpen((value) => !value)}
+                    >
+                      Furniture
+                    </button>
+                    <button
+                      type="button"
+                      className={showMeasurements ? "toolbar-chip is-active" : "toolbar-chip"}
+                      aria-pressed={showMeasurements}
+                      onClick={() => setShowMeasurements((value) => !value)}
+                    >
+                      Dimensions
+                    </button>
+                  </>
                 )}
               </div>
+
+              {webglSupport === true && furnitureEditorOpen && (
+                <aside className="furniture-editor" id="furniture-editor" aria-label="Furniture sizing editor">
+                  <div className="furniture-editor-head">
+                    <div>
+                      <p>Model schedule</p>
+                      <h2>Furniture sizing</h2>
+                    </div>
+                    <button type="button" aria-label="Close furniture editor" onClick={() => setFurnitureEditorOpen(false)}>
+                      <Icon name="close" />
+                    </button>
+                  </div>
+
+                  <label className="furniture-select">
+                    <span>Piece</span>
+                    <select value={selectedFurnitureId} onChange={(event) => setSelectedFurnitureId(event.target.value as FurnitureId)}>
+                      {furnitureCatalog.map((item) => (
+                        <option key={item.id} value={item.id}>{item.room} · {item.label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div className="furniture-uuid">
+                    <span>Stable UUID</span>
+                    <code>{selectedFurniture.uuid}</code>
+                  </div>
+
+                  <div className="furniture-dimensions">
+                    {([
+                      ["widthCm", "Width"],
+                      ["depthCm", "Depth"],
+                      ["heightCm", "Height"],
+                    ] as const).map(([key, label]) => (
+                      <label key={key}>
+                        <span>{label}</span>
+                        <span className="dimension-input">
+                          <input
+                            type="number"
+                            min="10"
+                            max="600"
+                            step="1"
+                            value={selectedFurnitureSize[key]}
+                            onChange={(event) => updateFurnitureDimension(key, Number(event.target.value))}
+                          />
+                          <i>cm</i>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <p className="furniture-editor-note">Click a piece in the model or choose it here. Changes save locally and scale live around its floor-centre.</p>
+                  <div className="furniture-editor-actions">
+                    <button type="button" onClick={resetFurniture}>Reset piece</button>
+                    <button
+                      type="button"
+                      className={removedFurniture.includes(selectedFurnitureId) ? "is-restore" : "is-remove"}
+                      onClick={toggleFurnitureRemoved}
+                    >
+                      {removedFurniture.includes(selectedFurnitureId) ? "Restore piece" : "Remove piece"}
+                    </button>
+                    <button type="button" className="is-primary" onClick={exportFurniture}>Export JSON</button>
+                  </div>
+                  <p className="furniture-save-status">Saved in this browser · export after final adjustments</p>
+                  {exportStatus && <p className="furniture-export-status" role="status">{exportStatus}</p>}
+                </aside>
+              )}
 
               {webglSupport === true && (
                 <section className="experience-dock" aria-label="Daylight and door controls">

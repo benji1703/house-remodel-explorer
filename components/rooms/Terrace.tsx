@@ -2,10 +2,11 @@
 import { Blk } from "./shared";
 import type { Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
-import { DiningSet, PlanterBox, PotPlant } from "./furniture";
+import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
+import { DiningSet, FoliageCluster, PlanterBox, PotPlant } from "./furniture";
 
 /** Terrace / pergola — timber structure + basic outdoor furniture (no weird GLBs). */
-export function Terrace({ palette, quality }: { palette: Palette; quality: "high" | "light" }) {
+export function Terrace({ palette, quality, furnitureEditing }: { palette: Palette; quality: "high" | "light"; furnitureEditing: FurnitureEditingState }) {
   const pergolaH = designAssumptions.pergola.heightCm / 100;
   const slats = quality === "high" ? 15 : 8;
   const vines = quality === "high" ? 11 : 5;
@@ -41,20 +42,21 @@ export function Terrace({ palette, quality }: { palette: Palette; quality: "high
         const t = index / Math.max(vines - 1, 1);
         const z = 4.05 + t * 3.7;
         const x = index % 2 === 0 ? 3.05 : 0.6;
-        const radius = 0.22 + ((index * 7) % 5) * 0.04;
         return (
-          <mesh
+          <FoliageCluster
             key={`vine-${index}`}
-            position={[x - 5.7, pergolaH + 0.02, z - 6.05]}
-            material={palette.vine}
-            castShadow
-          >
-            <sphereGeometry args={[radius, quality === "high" ? 16 : 9, quality === "high" ? 10 : 6]} />
-          </mesh>
+            x={x}
+            y={pergolaH + 0.02}
+            z={z}
+            scale={quality === "high" ? 1.15 : 0.92}
+            palette={palette}
+          />
         );
       })}
 
-      <DiningSet base={0} palette={palette} x={1.85} z={6.0} />
+      <EditableFurniture id="terrace-dining-set" editing={furnitureEditing} x={1.85} z={6.0} base={0}>
+        <DiningSet base={0} palette={palette} x={1.85} z={6.0} />
+      </EditableFurniture>
       <PlanterBox base={0} palette={palette} x={0.45} z={5.1} />
       <PlanterBox base={0} palette={palette} x={0.45} z={6.7} />
       <PotPlant base={0} palette={palette} x={0.45} z={3.7} scale={1.15} />

@@ -1,5 +1,6 @@
 "use client";
 import type { Palette } from "./shared";
+import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { Nightstand, Pendant, QueenBed } from "./furniture";
 
 /**
@@ -7,14 +8,20 @@ import { Nightstand, Pendant, QueenBed } from "./furniture";
  * West wall: remodel exit door to private boho pergola patio.
  * Zone x∈[0,3.4] z∈[8.3,12.1].
  */
-export function MasterBedroom({ base, palette }: { base: number; palette: Palette }) {
+export function MasterBedroom({ base, palette, furnitureEditing }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState }) {
   return (
     <group>
       {/* Queen centred on width; head against south wall. */}
-      <QueenBed base={base} palette={palette} x={1.7} z={10.95} along="z" headToward="+" />
+      <EditableFurniture id="master-bed" editing={furnitureEditing} x={1.7} z={10.95} base={base}>
+        <QueenBed base={base} palette={palette} x={1.7} z={10.95} along="z" headToward="+" />
+      </EditableFurniture>
 
-      <Nightstand base={base} palette={palette} x={0.55} z={11.55} />
-      <Nightstand base={base} palette={palette} x={2.85} z={11.55} />
+      <EditableFurniture id="master-nightstand-west" editing={furnitureEditing} x={0.55} z={11.55} base={base}>
+        <Nightstand base={base} palette={palette} x={0.55} z={11.55} />
+      </EditableFurniture>
+      <EditableFurniture id="master-nightstand-east" editing={furnitureEditing} x={2.85} z={11.55} base={base}>
+        <Nightstand base={base} palette={palette} x={2.85} z={11.55} />
+      </EditableFurniture>
 
       <Pendant base={base} palette={palette} x={1.7} z={10.95} />
     </group>

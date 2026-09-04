@@ -1,5 +1,6 @@
 "use client";
 
+import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 
 // Scene centring, so the measured footprint orbits around the origin.
@@ -28,6 +29,40 @@ export function Blk({
     <mesh position={[x - CX, y + h / 2, z - CZ]} material={material} castShadow receiveShadow>
       <boxGeometry args={[w, h, d]} />
     </mesh>
+  );
+}
+
+/** Soft-edged block for furniture and joinery; keeps plan dimensions exact. */
+export function SoftBox({
+  x,
+  z,
+  y,
+  w,
+  d,
+  h,
+  material,
+  radius = 0.035,
+}: {
+  x: number;
+  z: number;
+  y: number;
+  w: number;
+  d: number;
+  h: number;
+  material: THREE.Material;
+  radius?: number;
+}) {
+  const safeRadius = Math.min(radius, w / 4, d / 4, h / 4);
+  return (
+    <RoundedBox
+      args={[w, h, d]}
+      position={[x - CX, y + h / 2, z - CZ]}
+      radius={safeRadius}
+      smoothness={4}
+      material={material}
+      castShadow
+      receiveShadow
+    />
   );
 }
 

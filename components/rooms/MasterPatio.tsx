@@ -2,7 +2,8 @@
 import { Blk } from "./shared";
 import type { Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
-import { LoungeChair, PlanterBox, PotPlant } from "./furniture";
+import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
+import { FoliageCluster, LoungeChair, PlanterBox, PotPlant } from "./furniture";
 
 /**
  * Private master patio — easy boho timber pergola west of the bedroom.
@@ -12,9 +13,11 @@ import { LoungeChair, PlanterBox, PotPlant } from "./furniture";
 export function MasterPatio({
   palette,
   quality,
+  furnitureEditing,
 }: {
   palette: Palette;
   quality: "high" | "light";
+  furnitureEditing: FurnitureEditingState;
 }) {
   const w = designAssumptions.masterPergola.widthCm / 100;
   const d = designAssumptions.masterPergola.depthCm / 100;
@@ -88,7 +91,9 @@ export function MasterPatio({
       })}
 
       {/* Light greenery + lounge */}
-      <LoungeChair base={0} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
+      <EditableFurniture id="master-patio-chair" editing={furnitureEditing} x={cx - 0.35} z={cz + 0.4} base={0} swapPlanAxes>
+        <LoungeChair base={0} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
+      </EditableFurniture>
       <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
       <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
       <PotPlant base={0} palette={palette} x={x1 - 0.4} z={z0 + 0.5} scale={1.1} />
@@ -99,14 +104,14 @@ export function MasterPatio({
           const px = i % 2 === 0 ? x0 + 0.14 : x1 - 0.14;
           const pz = z0 + 0.5 + i * 0.7;
           return (
-            <mesh
+            <FoliageCluster
               key={`vine-${i}`}
-              position={[px - 5.7, h * 0.55, pz - 6.05]}
-              material={palette.vine}
-              castShadow
-            >
-              <sphereGeometry args={[0.18 + (i % 3) * 0.04, 14, 9]} />
-            </mesh>
+              x={px}
+              y={h * 0.55}
+              z={pz}
+              scale={0.9 + (i % 3) * 0.12}
+              palette={palette}
+            />
           );
         })}
     </group>

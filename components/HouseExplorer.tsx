@@ -17,6 +17,7 @@ import { site } from "@/data/site";
 import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 import { DimensionedOverlay } from "./DimensionedOverlay";
+import { MaterialsBoard, MoodTextureStrip } from "./MaterialsBoard";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
 const MeasuredHouseScene = lazy(() =>
@@ -25,7 +26,7 @@ const MeasuredHouseScene = lazy(() =>
   })),
 );
 
-type View = "model" | "plan" | "references";
+type View = "model" | "plan" | "references" | "materials";
 
 const Icon = ({ name }: { name: "close" | "chevron" }) => {
   const paths = {
@@ -50,6 +51,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "model", label: "House" },
   { id: "plan", label: "Plan" },
   { id: "references", label: "Mood" },
+  { id: "materials", label: "Materials" },
 ];
 
 const isView = (value: string | null): value is View =>
@@ -556,7 +558,7 @@ export function HouseExplorer() {
         <section
           ref={stageRef}
           className={`stage is-${view}`}
-          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : "Mood"}
+          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : "Materials"}
         >
           {view === "model" && (
             <>
@@ -856,6 +858,8 @@ export function HouseExplorer() {
                 </nav>
               </header>
 
+              <MoodTextureStrip moodId={activeMood.id} onOpen={() => goToView("materials")} />
+
               <div
                 className="mood-board-stage"
                 id="mood-board-panel"
@@ -927,6 +931,8 @@ export function HouseExplorer() {
               </div>
             </div>
           )}
+
+          {view === "materials" && <MaterialsBoard />}
         </section>
 
         {view === "model" && (
@@ -945,7 +951,7 @@ export function HouseExplorer() {
           </div>
         )}
 
-        {view !== "plan" && (
+        {(view === "model" || view === "references") && (
           <>
             <button
               ref={scrimRef}

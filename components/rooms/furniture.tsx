@@ -1,5 +1,7 @@
 "use client";
 
+import { useGLTF } from "@react-three/drei";
+import { useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
@@ -438,35 +440,60 @@ export function Cooktop({
   );
 }
 
-function StemBetween({
-  from,
-  to,
-  radius,
-  material,
+const POTTED_PLANT_MODEL = "/models/potted-plant-02/potted_plant_02_1k.gltf";
+const FLOWERING_PLANT_MODEL = "/models/periwinkle-plant/periwinkle_plant_1k.gltf";
+
+function ScannedPlant({
+  src,
+  x,
+  y,
+  z,
+  scale,
+  rotation = [0, 0, 0],
 }: {
-  from: [number, number, number];
-  to: [number, number, number];
-  radius: number;
-  material: THREE.Material;
+  src: string;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  rotation?: [number, number, number];
 }) {
-  const start = new THREE.Vector3(from[0] - CX, from[1], from[2] - CZ);
-  const end = new THREE.Vector3(to[0] - CX, to[1], to[2] - CZ);
-  const direction = end.clone().sub(start);
-  const midpoint = start.clone().add(end).multiplyScalar(0.5);
-  const quaternion = new THREE.Quaternion().setFromUnitVectors(
-    new THREE.Vector3(0, 1, 0),
-    direction.clone().normalize(),
-  );
+  const { scene } = useGLTF(src);
+  const instance = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      object.castShadow = true;
+      object.receiveShadow = true;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      const prepared = materials.map((sourceMaterial) => {
+        const material = sourceMaterial.clone();
+        if (material instanceof THREE.MeshStandardMaterial) {
+          material.side = THREE.DoubleSide;
+          material.alphaTest = Math.max(material.alphaTest, 0.18);
+          material.roughness = Math.max(material.roughness, 0.58);
+          material.envMapIntensity = 0.72;
+          material.needsUpdate = true;
+        }
+        return material;
+      });
+      object.material = Array.isArray(object.material) ? prepared : prepared[0];
+    });
+    return clone;
+  }, [scene]);
 
   return (
-    <mesh position={midpoint} quaternion={quaternion} material={material} castShadow>
-      <cylinderGeometry args={[radius * 0.72, radius, direction.length(), 10]} />
-    </mesh>
+    <primitive
+      object={instance}
+      position={[x - CX, y, z - CZ]}
+      rotation={rotation}
+      scale={scale}
+      dispose={null}
+    />
   );
 }
 
 export function FoliageCluster({
-  palette,
   x,
   y,
   z,
@@ -478,52 +505,20 @@ export function FoliageCluster({
   z: number;
   scale?: number;
 }) {
-  const leaves = Array.from({ length: 9 }, (_, index) => {
-    const angle = index * 2.39996;
-    const distance = (0.055 + (index % 3) * 0.026) * scale;
-    return {
-      angle,
-      x: x + Math.cos(angle) * distance,
-      y: y - (index % 4) * 0.035 * scale,
-      z: z + Math.sin(angle) * distance,
-      length: (0.16 + (index % 3) * 0.035) * scale,
-    };
-  });
-
   return (
-    <group>
-      {leaves.map((leaf, index) => (
-        <group key={index}>
-          <StemBetween
-            from={[x, y + 0.03 * scale, z]}
-            to={[leaf.x, leaf.y, leaf.z]}
-            radius={0.0045 * scale}
-            material={palette.vine}
-          />
-          <mesh
-            position={[leaf.x - CX, leaf.y, leaf.z - CZ]}
-            rotation={[0.18 + (index % 3) * 0.12, Math.PI / 2 - leaf.angle, index % 2 === 0 ? 0.38 : -0.38]}
-            scale={[leaf.length * 0.36, leaf.length * 0.055, leaf.length]}
-            material={index % 3 === 0 ? palette.greenery : palette.vine}
-            castShadow
-          >
-            <sphereGeometry args={[1, 16, 10]} />
-          </mesh>
-        </group>
-      ))}
-      <StemBetween
-        from={[x, y, z]}
-        to={[x + 0.025 * scale, y - 0.34 * scale, z - 0.02 * scale]}
-        radius={0.004 * scale}
-        material={palette.vine}
-      />
-    </group>
+    <ScannedPlant
+      src={FLOWERING_PLANT_MODEL}
+      x={x}
+      y={y - 0.08 * scale}
+      z={z}
+      scale={0.34 * scale}
+      rotation={[0.08, (x * 5.7 + z * 2.9) % (Math.PI * 2), 0.16]}
+    />
   );
 }
 
 export function PotPlant({
   base,
-  palette,
   x,
   z,
   scale = 1,
@@ -534,65 +529,15 @@ export function PotPlant({
   z: number;
   scale?: number;
 }) {
-  const { r, h, plant } = FURN.pot;
-  const potR = r * scale;
-  const potH = h * scale;
-  const plantH = plant * scale;
-  const crownY = base + potH * 0.82;
-  const fronds = Array.from({ length: 13 }, (_, index) => {
-    const angle = index * 2.39996 + 0.35;
-    const tier = index % 4;
-    const reach = plantH * (0.42 + tier * 0.075);
-    const tipY = base + potH + plantH * (0.42 + ((index * 7) % 6) * 0.075);
-    return {
-      angle,
-      tip: [x + Math.cos(angle) * reach, tipY, z + Math.sin(angle) * reach] as [number, number, number],
-      leafLength: plantH * (0.43 + (index % 3) * 0.055),
-      roll: (index % 2 === 0 ? 1 : -1) * (0.18 + tier * 0.035),
-    };
-  });
-
   return (
-    <group>
-      <mesh position={[x - CX, base + potH / 2, z - CZ]} material={palette.terracotta} castShadow receiveShadow>
-        <cylinderGeometry args={[potR, potR * 0.76, potH, 32]} />
-      </mesh>
-      <mesh position={[x - CX, base + potH - 0.012, z - CZ]} rotation-x={Math.PI / 2} material={palette.charcoal}>
-        <circleGeometry args={[potR * 0.86, 32]} />
-      </mesh>
-      <mesh position={[x - CX, base + potH - 0.01, z - CZ]} rotation-x={Math.PI / 2} material={palette.terracotta}>
-        <torusGeometry args={[potR * 0.94, potR * 0.075, 10, 32]} />
-      </mesh>
-      {fronds.map((frond, index) => (
-        <group key={index}>
-          <StemBetween
-            from={[x, crownY, z]}
-            to={frond.tip}
-            radius={0.012 * scale}
-            material={palette.vine}
-          />
-          <mesh
-            position={[frond.tip[0] - CX, frond.tip[1], frond.tip[2] - CZ]}
-            rotation={[0.12 + (index % 3) * 0.08, Math.PI / 2 - frond.angle, frond.roll]}
-            scale={[frond.leafLength * 0.34, frond.leafLength * 0.055, frond.leafLength]}
-            material={index % 4 === 0 ? palette.vine : palette.greenery}
-            castShadow
-          >
-            <sphereGeometry args={[1, 20, 12]} />
-          </mesh>
-          <StemBetween
-            from={frond.tip}
-            to={[
-              frond.tip[0] + Math.cos(frond.angle) * frond.leafLength * 0.72,
-              frond.tip[1] - plantH * 0.06,
-              frond.tip[2] + Math.sin(frond.angle) * frond.leafLength * 0.72,
-            ]}
-            radius={0.006 * scale}
-            material={palette.vine}
-          />
-        </group>
-      ))}
-    </group>
+    <ScannedPlant
+      src={POTTED_PLANT_MODEL}
+      x={x}
+      y={base}
+      z={z}
+      scale={scale}
+      rotation={[0, (x * 3.1 + z * 7.3) % (Math.PI * 2), 0]}
+    />
   );
 }
 
@@ -608,37 +553,24 @@ export function PlanterBox({
   z: number;
 }) {
   const { w, d, h } = FURN.planter;
-  const shoots = Array.from({ length: 9 }, (_, index) => {
-    const offsetX = (index - 4) * (w * 0.075);
-    const angle = index * 1.73;
-    const tip: [number, number, number] = [
-      x + offsetX + Math.cos(angle) * 0.09,
-      base + h + 0.22 + (index % 3) * 0.045,
-      z + Math.sin(angle) * 0.12,
-    ];
-    return { angle, tip };
-  });
   return (
     <group>
       <SoftBox x={x} z={z} y={base} w={w} d={d} h={h} radius={0.035} material={palette.terracotta} />
       <Blk x={x} z={z} y={base + h - 0.02} w={w - 0.07} d={d - 0.07} h={0.025} material={palette.charcoal} />
-      {shoots.map((shoot, index) => (
-        <group key={index}>
-          <StemBetween from={[x + (index - 4) * (w * 0.075), base + h, z]} to={shoot.tip} radius={0.006} material={palette.vine} />
-          <mesh
-            position={[shoot.tip[0] - CX, shoot.tip[1], shoot.tip[2] - CZ]}
-            rotation={[0.2, Math.PI / 2 - shoot.angle, index % 2 === 0 ? 0.28 : -0.28]}
-            scale={[0.09, 0.018, 0.26]}
-            material={index % 3 === 0 ? palette.vine : palette.greenery}
-            castShadow
-          >
-            <sphereGeometry args={[1, 16, 10]} />
-          </mesh>
-        </group>
-      ))}
+      <ScannedPlant
+        src={FLOWERING_PLANT_MODEL}
+        x={x}
+        y={base + h - 0.015}
+        z={z}
+        scale={0.5}
+        rotation={[0, (x * 4.3 + z * 8.1) % (Math.PI * 2), 0]}
+      />
     </group>
   );
 }
+
+useGLTF.preload(POTTED_PLANT_MODEL);
+useGLTF.preload(FLOWERING_PLANT_MODEL);
 
 export function DiningSet({
   base,

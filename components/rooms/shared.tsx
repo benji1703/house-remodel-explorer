@@ -103,6 +103,7 @@ export type Palette = {
   charcoal: THREE.Material;
   greenery: THREE.Material;
   vine: THREE.Material;
+  flower: THREE.Material;
   terracotta: THREE.Material;
   floors: Record<string, THREE.Material>;
 };

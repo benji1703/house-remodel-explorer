@@ -96,12 +96,12 @@ function CameraDirector({
     }
     const target = new THREE.Vector3(
       zone.x + zone.width / 2 - CX,
-      0.72,
+      0.6,
       zone.z + zone.depth / 2 - CZ,
     );
     const roomSpan = Math.max(zone.width, zone.depth);
     return {
-      position: target.clone().add(new THREE.Vector3(-roomSpan * 0.9, 3.8, roomSpan * 1.05)),
+      position: target.clone().add(new THREE.Vector3(-roomSpan * 0.74, 5.4, roomSpan * 0.86)),
       target,
     };
   }, [mode, zone]);
@@ -113,9 +113,9 @@ function CameraDirector({
   useFrame((_state, delta) => {
     if (!moving.current) return;
     const controls = controlsRef.current;
-    camera.position.lerp(destination.position, 1 - Math.exp(-delta * 3.8));
+    camera.position.lerp(destination.position, 1 - Math.exp(-delta * 2.25));
     if (controls) {
-      controls.target.lerp(destination.target, 1 - Math.exp(-delta * 4.5));
+      controls.target.lerp(destination.target, 1 - Math.exp(-delta * 2.7));
       controls.update();
     } else {
       camera.lookAt(destination.target);
@@ -261,10 +261,16 @@ const LIGHT_OAK = "#e2c9a4";
 
 function buildPalette(
   designMode: boolean,
-  textures: { plaster: THREE.Texture; oak: THREE.Texture; herringbone: THREE.Texture; stone: THREE.Texture },
+  textures: {
+    plaster: THREE.Texture;
+    oak: THREE.Texture;
+    herringbone: HerringboneTextureSet;
+    stone: THREE.Texture;
+  },
 ) {
   if (!designMode) {
     const grey = finish("#b6b5b0", 0.9);
+    grey.side = THREE.DoubleSide;
     return {
       exterior: finish("#d9cdb8", 0.92),
       interior: finish("#e2d8c6", 0.92),
@@ -286,6 +292,7 @@ function buildPalette(
       charcoal: finish("#6f6f6b", 0.7),
       greenery: finish("#a5a9a0", 0.9),
       vine: finish("#9ca396", 0.9),
+      flower: grey,
       terracotta: finish("#b7b3aa", 0.85),
       floors: {
         "north-extension": grey,
@@ -302,7 +309,23 @@ function buildPalette(
   // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
   const travertine = finish("#f5efe5", 0.72, 0, 0.08, textures.stone, 0.012);
   const microcement = finish("#e4ddd2", 0.88, 0, 0.04, textures.stone, 0.006);
-  const oakFloor = finish("#f4dfc2", 0.53, 0, 0.05, textures.herringbone, 0.006);
+  const oakFloor = new THREE.MeshPhysicalMaterial({
+    color: "#fffaf1",
+    map: textures.herringbone.albedo,
+    normalMap: textures.herringbone.normal,
+    normalScale: new THREE.Vector2(0.3, 0.3),
+    roughness: 0.94,
+    roughnessMap: textures.herringbone.roughness,
+    clearcoat: 0.06,
+    clearcoatRoughness: 0.72,
+    envMapIntensity: 0.96,
+  });
+  const greenery = finish("#789064", 0.82, 0, 0.025);
+  const vine = finish("#4f6941", 0.86);
+  const flower = finish("#f7f1e7", 0.72, 0, 0.04);
+  greenery.side = THREE.DoubleSide;
+  vine.side = THREE.DoubleSide;
+  flower.side = THREE.DoubleSide;
   return {
     exterior: finish("#ead9bd", 0.94, 0, 0, textures.plaster, 0.018),
     interior: finish("#f0e1ca", 0.92, 0, 0, textures.plaster, 0.012),
@@ -324,8 +347,9 @@ function buildPalette(
     upholstery: finish("#e3d9c7", 0.98),
     stone: travertine,
     charcoal: finish("#38352f", 0.48, 0.14, 0.08),
-    greenery: finish("#8b9a76", 0.9),
-    vine: finish("#63784f", 0.88),
+    greenery,
+    vine,
+    flower,
     terracotta: finish("#c0906a", 0.8, 0, 0.04),
     floors: {
       "north-extension": oakFloor,
@@ -353,69 +377,40 @@ function prepareTexture(source: THREE.Texture, repeat: [number, number], anisotr
   return texture;
 }
 
-function prepareHerringboneTexture(source: THREE.Texture, anisotropy: number) {
-  if (typeof document === "undefined" || !source.image) {
-    return prepareTexture(source, [3, 3], anisotropy);
-  }
+type HerringboneTextureSet = {
+  albedo: THREE.Texture;
+  normal: THREE.Texture;
+  roughness: THREE.Texture;
+};
 
-  const canvas = document.createElement("canvas");
-  canvas.width = 1024;
-  canvas.height = 1024;
-  const context = canvas.getContext("2d");
-  if (!context) return prepareTexture(source, [3, 3], anisotropy);
+const HERRINGBONE_MODULE_METERS = 3.4;
+
+function prepareGradedFloorMap(
+  source: THREE.Texture,
+  anisotropy: number,
+  filter: string,
+  colorSpace: THREE.ColorSpace,
+) {
+  if (typeof document === "undefined" || !source.image) {
+    const fallback = prepareTexture(source, [1, 1], anisotropy);
+    fallback.colorSpace = colorSpace;
+    fallback.needsUpdate = true;
+    return fallback;
+  }
 
   const image = source.image as CanvasImageSource & { width: number; height: number };
-  const plankLength = 256;
-  const plankWidth = 50;
-  const spacing = plankLength / Math.sqrt(2);
-
-  context.fillStyle = "#d8b98f";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  const drawPlank = (cx: number, cy: number, angle: number, index: number) => {
-    const cropWidth = Math.max(1, Math.min(110, image.width));
-    const cropHeight = Math.max(1, Math.min(720, image.height));
-    const maxCropX = Math.max(1, image.width - cropWidth);
-    const maxCropY = Math.max(1, image.height - cropHeight);
-    const sourceX = (index * 83) % maxCropX;
-    const sourceY = (index * 47) % maxCropY;
-    context.save();
-    context.translate(cx, cy);
-    context.rotate(angle);
-    context.beginPath();
-    context.rect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
-    context.clip();
-    context.drawImage(
-      image,
-      sourceX,
-      sourceY,
-      cropWidth,
-      cropHeight,
-      -plankLength / 2,
-      -plankWidth / 2,
-      plankLength,
-      plankWidth,
-    );
-    context.fillStyle = index % 5 === 0 ? "rgba(116, 74, 35, 0.055)" : "rgba(255, 246, 226, 0.025)";
-    context.fillRect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
-    context.strokeStyle = "rgba(91, 62, 37, 0.34)";
-    context.lineWidth = 3;
-    context.strokeRect(-plankLength / 2, -plankWidth / 2, plankLength, plankWidth);
-    context.restore();
-  };
-
-  let index = 0;
-  for (let row = -7; row < 9; row += 1) {
-    for (let column = -5; column < 7; column += 1) {
-      const x = column * spacing * 2 + (Math.abs(row) % 2) * spacing;
-      const y = row * spacing;
-      drawPlank(x, y, Math.PI / 4, index++);
-      drawPlank(x + spacing, y, -Math.PI / 4, index++);
-    }
-  }
+  const canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const context = canvas.getContext("2d");
+  if (!context) return prepareTexture(source, [1, 1], anisotropy);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.filter = filter;
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
   const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.colorSpace = colorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.anisotropy = anisotropy;
@@ -424,6 +419,32 @@ function prepareHerringboneTexture(source: THREE.Texture, anisotropy: number) {
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
   return texture;
+}
+
+function prepareHerringboneTexture(
+  albedoSource: THREE.Texture,
+  normalSource: THREE.Texture,
+  roughnessSource: THREE.Texture,
+  anisotropy: number,
+): HerringboneTextureSet {
+  const albedo = prepareGradedFloorMap(
+    albedoSource,
+    anisotropy,
+    "brightness(1.62) saturate(0.72) contrast(0.84)",
+    THREE.SRGBColorSpace,
+  );
+  const normal = prepareTexture(normalSource, [1, 1], anisotropy);
+  const roughness = prepareGradedFloorMap(
+    roughnessSource,
+    anisotropy,
+    "brightness(1.48) contrast(0.72)",
+    THREE.NoColorSpace,
+  );
+  normal.colorSpace = THREE.NoColorSpace;
+  roughness.colorSpace = THREE.NoColorSpace;
+  normal.needsUpdate = true;
+  roughness.needsUpdate = true;
+  return { albedo, normal, roughness };
 }
 
 /**
@@ -513,12 +534,22 @@ function ZoneFloor({
       return sourceFloorMaterial;
     }
     const material = sourceFloorMaterial.clone();
-    const map = sourceFloorMaterial.map.clone();
-    // The generated tile contains 40 × 8 cm boards across a 1.6 m module.
-    map.repeat.set(zone.width / 1.6, zone.depth / 1.6);
-    map.needsUpdate = true;
-    material.map = map;
-    if (sourceFloorMaterial.bumpMap) material.bumpMap = map;
+    const moduleMeters = sourceFloorMaterial.normalMap
+      ? HERRINGBONE_MODULE_METERS
+      : 1.6;
+    const cloneMap = (source: THREE.Texture | null) => {
+      if (!source) return null;
+      const map = source.clone();
+      map.repeat.set(zone.width / moduleMeters, zone.depth / moduleMeters);
+      map.needsUpdate = true;
+      return map;
+    };
+    // Separate maps keep the compact 40 × 8 cm boards crisp without turning
+    // the darker grain itself into exaggerated surface relief.
+    material.map = cloneMap(sourceFloorMaterial.map);
+    material.bumpMap = cloneMap(sourceFloorMaterial.bumpMap);
+    material.normalMap = cloneMap(sourceFloorMaterial.normalMap);
+    material.roughnessMap = cloneMap(sourceFloorMaterial.roughnessMap);
     material.needsUpdate = true;
     return material;
   }, [sourceFloorMaterial, zone.depth, zone.width]);
@@ -526,7 +557,12 @@ function ZoneFloor({
   useEffect(() => {
     if (floorMaterial === sourceFloorMaterial) return;
     return () => {
-      if (floorMaterial instanceof THREE.MeshStandardMaterial) floorMaterial.map?.dispose();
+      if (floorMaterial instanceof THREE.MeshStandardMaterial) {
+        floorMaterial.map?.dispose();
+        floorMaterial.bumpMap?.dispose();
+        floorMaterial.normalMap?.dispose();
+        floorMaterial.roughnessMap?.dispose();
+      }
       floorMaterial.dispose();
     };
   }, [floorMaterial, sourceFloorMaterial]);
@@ -536,16 +572,6 @@ function ZoneFloor({
       <mesh
         position={[cx, zone.level / 2, cz]}
         material={floorMaterial}
-        onClick={(event) => {
-          event.stopPropagation();
-          onSelect();
-        }}
-        onPointerEnter={() => {
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerLeave={() => {
-          document.body.style.cursor = "default";
-        }}
         receiveShadow
       >
         <boxGeometry args={[zone.width, zone.level, zone.depth]} />
@@ -560,11 +586,19 @@ function ZoneFloor({
         center
         position={[cx, zone.level + 1.9, cz]}
         distanceFactor={13}
-        style={{ pointerEvents: "none" }}
+        style={{ pointerEvents: "auto" }}
       >
-        <span className={selected ? "scene-label is-selected" : "scene-label"}>
+        <button
+          type="button"
+          className={selected ? "scene-label is-selected" : "scene-label"}
+          aria-label={`View ${zone.label}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onSelect();
+          }}
+        >
           {zone.shortLabel}
-        </span>
+        </button>
       </Html>
       {showMeasurements && (
         <Html
@@ -663,9 +697,20 @@ function SceneContent({
   onSelectFurniture = () => undefined,
 }: Props) {
   const { gl } = useThree();
-  const [plasterSource, oakSource, stoneSource] = useTexture([
+  const floorResolution = quality === "high" ? "2k" : "1k";
+  const [
+    plasterSource,
+    oakSource,
+    herringboneSource,
+    herringboneNormalSource,
+    herringboneRoughnessSource,
+    stoneSource,
+  ] = useTexture([
     "/textures/lime-plaster-ai.jpg",
     "/textures/light-oak-ai.jpg",
+    `/textures/herringbone-parquet-diff-${floorResolution}.jpg`,
+    `/textures/herringbone-parquet-normal-${floorResolution}.jpg`,
+    `/textures/herringbone-parquet-rough-${floorResolution}.jpg`,
     "/textures/jerusalem-stone-ai.jpg",
   ]);
   const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? 16 : 4);
@@ -673,10 +718,23 @@ function SceneContent({
     () => ({
       plaster: prepareTexture(plasterSource, [1.8, 1.8], textureAnisotropy),
       oak: prepareTexture(oakSource, [1.15, 1.15], textureAnisotropy),
-      herringbone: prepareHerringboneTexture(oakSource, textureAnisotropy),
+      herringbone: prepareHerringboneTexture(
+        herringboneSource,
+        herringboneNormalSource,
+        herringboneRoughnessSource,
+        textureAnisotropy,
+      ),
       stone: prepareTexture(stoneSource, [1.6, 1.6], textureAnisotropy),
     }),
-    [oakSource, plasterSource, stoneSource, textureAnisotropy],
+    [
+      herringboneNormalSource,
+      herringboneRoughnessSource,
+      herringboneSource,
+      oakSource,
+      plasterSource,
+      stoneSource,
+      textureAnisotropy,
+    ],
   );
   const palette = useMemo(() => buildPalette(designMode, textureSet), [designMode, textureSet]);
   const zoneById = useMemo(

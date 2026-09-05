@@ -104,13 +104,12 @@ export function HouseExplorer() {
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const [cameraAzimuth, setCameraAzimuth] = useState(0);
-  const [sunHour, setSunHour] = useState(() => {
-    const now = new Date();
-    return now.getHours() + now.getMinutes() / 60;
-  });
+  // Open on a curated late-afternoon presentation light; the controls still
+  // offer local time for daylight studies.
+  const [sunHour, setSunHour] = useState(16.75);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
-  const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">(() => zoneParam ? "room" : "overview");
+  const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">("overview");
   const [cameraRevision, setCameraRevision] = useState(0);
   const [furnitureSizes, setFurnitureSizes] = useState<FurnitureSizeOverrides>({});
   const [removedFurniture, setRemovedFurniture] = useState<FurnitureId[]>([]);
@@ -199,6 +198,7 @@ export function HouseExplorer() {
   }, [sheetOpen]);
 
   const active = house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0];
+  const activeZoneIndex = Math.max(0, house.zones.findIndex((zone) => zone.id === active.id));
   const activeMood = roomMoodBoards.find((board) => board.id === selectedMood) ?? roomMoodBoards[1];
 
   const moodImageCount = activeMood.images.length;
@@ -419,6 +419,13 @@ export function HouseExplorer() {
     });
   };
 
+  const returnToHouse = () => {
+    setCameraMode("overview");
+    setCameraRevision((revision) => revision + 1);
+    setExperienceOpen(false);
+    setFurnitureEditorOpen(false);
+  };
+
   const goToView = (next: View) => {
     setSheetOpen(false);
     setExperienceOpen(false);
@@ -435,6 +442,9 @@ export function HouseExplorer() {
       gsap.killTweensOf(scrim);
       gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
     }
+    // The House tab doubles as a reliable reset from every room camera, even
+    // when the user is already in the 3D view.
+    if (next === "model") returnToHouse();
     if (next === view) return;
     navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next }, "replace");
   };
@@ -472,6 +482,9 @@ export function HouseExplorer() {
     <>
       <div className="detail-head">
         <span className={`status-tag ${active.status}`}>{statusCopy[active.status]}</span>
+        <span className="detail-index" aria-label={`Room ${activeZoneIndex + 1} of ${house.zones.length}`}>
+          {String(activeZoneIndex + 1).padStart(2, "0")} / {String(house.zones.length).padStart(2, "0")}
+        </span>
       </div>
       <h2>{active.label}</h2>
       <p className="detail-copy">{active.description}</p>
@@ -489,7 +502,11 @@ export function HouseExplorer() {
           <dd>{(active.width * active.depth).toFixed(1)} m²</dd>
         </div>
       </dl>
-      <p className="detail-note">Taken from the survey drawing.</p>
+      <p className="detail-note">
+        {active.status === "measured"
+          ? "Measured envelope from the survey; furnishings and finishes are remodel intent."
+          : "Envelope traced from the survey; openings, furnishings and finishes follow the approved working model."}
+      </p>
       <button
         type="button"
         className="detail-cta"
@@ -812,6 +829,10 @@ export function HouseExplorer() {
                           className={cameraMode === mode ? "is-active" : ""}
                           aria-pressed={cameraMode === mode}
                           onClick={() => {
+                            if (mode === "overview") {
+                              returnToHouse();
+                              return;
+                            }
                             setCameraMode(mode);
                             setCameraRevision((revision) => revision + 1);
                           }}
@@ -841,6 +862,18 @@ export function HouseExplorer() {
                   </div>
                   <p className="daylight-note">Illustrative solar study · plan north, not surveyed true north</p>
                 </section>
+              )}
+
+              {cameraMode === "room" && (
+                <button
+                  type="button"
+                  className="return-house-button"
+                  onClick={returnToHouse}
+                  aria-label="Return to the main house overview"
+                >
+                  <FootprintMark />
+                  <span>Back to house</span>
+                </button>
               )}
 
               <div className="stage-hud">

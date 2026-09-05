@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, Html, Lightformer, OrbitControls, useTexture } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
@@ -17,6 +17,7 @@ import { MainBathroom, EnsuiteBathroom } from "./rooms/Bathrooms";
 import { Terrace } from "./rooms/Terrace";
 import { OpeningOnWall } from "./rooms/Openings";
 import type { FurnitureEditingState } from "./rooms/EditableFurniture";
+import { MediterraneanLandscape } from "./rooms/LuxuryDetails";
 
 type Props = {
   selectedZone: ZoneId;
@@ -42,6 +43,32 @@ type Props = {
 const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
 // Minimum change (~0.5°) before we bother lifting a new azimuth value up.
 const AZIMUTH_EPSILON = 0.0087;
+
+const ROOM_CAMERA_PRESETS: Record<ZoneId, { position: [number, number, number]; target: [number, number, number] }> = {
+  "north-extension": { position: [-1.65, 1.7, -2.7], target: [-0.05, 0.92, -4.95] },
+  "central-core": { position: [1.45, 1.78, 2.75], target: [-0.5, 0.86, 0] },
+  "southwest-room": { position: [-5.15, 1.68, 2.75], target: [-4, 0.82, 4.7] },
+  "east-upper-room": { position: [2.25, 1.68, 1.95], target: [4.3, 0.82, 0.45] },
+  "east-lower-room": { position: [2.25, 1.68, 2.85], target: [4.3, 0.82, 4.6] },
+  "service-core": { position: [-0.65, 1.58, 4.3], target: [0.55, 0.8, 5.37] },
+  ensuite: { position: [-0.95, 1.56, 4.25], target: [-1.55, 0.8, 5.4] },
+};
+
+// Room views orbit only through the interior-facing quadrant. This keeps the
+// camera on the room side of the measured envelope instead of letting zoom or
+// pan carry it behind an opaque wall.
+const ROOM_CAMERA_LIMITS: Record<
+  ZoneId,
+  { minAzimuth: number; maxAzimuth: number; maxDistance: number }
+> = {
+  "north-extension": { minAzimuth: -1.18, maxAzimuth: -0.05, maxDistance: 10 },
+  "central-core": { minAzimuth: 0.05, maxAzimuth: 1.2, maxDistance: 12 },
+  "southwest-room": { minAzimuth: -3.05, maxAzimuth: -2.05, maxDistance: 9.5 },
+  "east-upper-room": { minAzimuth: -1.48, maxAzimuth: -0.42, maxDistance: 9.5 },
+  "east-lower-room": { minAzimuth: -2.82, maxAzimuth: -1.72, maxDistance: 9.5 },
+  "service-core": { minAzimuth: -2.85, maxAzimuth: -1.75, maxDistance: 6.5 },
+  ensuite: { minAzimuth: 2.05, maxAzimuth: 3.08, maxDistance: 5.5 },
+};
 
 /** Reports the camera's azimuth around ORBIT_TARGET, throttled to avoid excessive re-renders. */
 function CameraAzimuthTracker({
@@ -86,8 +113,11 @@ function CameraDirector({
   const destination = useMemo(() => {
     if (mode === "overview") {
       return {
-        position: new THREE.Vector3(-13.2, 10.2, -3.4),
-        target: new THREE.Vector3(...ORBIT_TARGET),
+        // A high three-quarter view keeps the measured shell legible as a
+        // dollhouse. Lower angles turn the 2.35 m section walls into an opaque
+        // foreground and hide the remodel entirely.
+        position: new THREE.Vector3(-13.8, 16.4, -10.4),
+        target: new THREE.Vector3(-0.55, 0.32, 0.55),
       };
     }
     if (mode === "plan") {
@@ -96,15 +126,10 @@ function CameraDirector({
         target: new THREE.Vector3(0, 0, 0),
       };
     }
-    const target = new THREE.Vector3(
-      zone.x + zone.width / 2 - CX,
-      0.6,
-      zone.z + zone.depth / 2 - CZ,
-    );
-    const roomSpan = Math.max(zone.width, zone.depth);
+    const preset = ROOM_CAMERA_PRESETS[zone.id];
     return {
-      position: target.clone().add(new THREE.Vector3(-roomSpan * 0.74, 5.4, roomSpan * 0.86)),
-      target,
+      position: new THREE.Vector3(...preset.position),
+      target: new THREE.Vector3(...preset.target),
     };
   }, [mode, zone]);
 
@@ -246,9 +271,9 @@ function finish(
 }
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
-const FRAME_GREEN = "#b8c9a8";
+const FRAME_GREEN = "#66735e";
 /** Pale natural oak — shared by doors and joinery to sit quietly with the floor. */
-const LIGHT_OAK = "#fff6e8";
+const LIGHT_OAK = "#d8c0a1";
 
 function buildPalette(
   designMode: boolean,
@@ -298,17 +323,17 @@ function buildPalette(
   }
 
   // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
-  const travertine = finish("#f5efe5", 0.72, 0, 0.08, textures.stone, 0.012);
-  const microcement = finish("#e4ddd2", 0.88, 0, 0.04, textures.stone, 0.006);
+  const travertine = finish("#d7c9b5", 0.58, 0, 0.035, textures.stone, 0.008);
+  const microcement = finish("#c8beb1", 0.89, 0, 0.02, textures.stone, 0.004);
   const oakFloor = new THREE.MeshPhysicalMaterial({
-    color: "#fffdf7",
+    color: "#d8c3a5",
     map: textures.herringbone.albedo,
     normalMap: textures.herringbone.normal,
     normalScale: new THREE.Vector2(0.3, 0.3),
-    roughness: 0.94,
+    roughness: 0.84,
     roughnessMap: textures.herringbone.roughness,
-    clearcoat: 0.06,
-    clearcoatRoughness: 0.72,
+    clearcoat: 0.035,
+    clearcoatRoughness: 0.78,
     envMapIntensity: 0.96,
   });
   const greenery = finish("#789064", 0.82, 0, 0.025);
@@ -318,9 +343,9 @@ function buildPalette(
   vine.side = THREE.DoubleSide;
   flower.side = THREE.DoubleSide;
   return {
-    exterior: finish("#ead9bd", 0.94, 0, 0, textures.plaster, 0.018),
-    interior: finish("#f0e1ca", 0.92, 0, 0, textures.plaster, 0.012),
-    ground: finish("#d6cdc0", 0.91, 0, 0, textures.stone, 0.008),
+    exterior: finish("#e4d7c5", 0.96, 0, 0, textures.plaster, 0.01),
+    interior: finish("#eee7dd", 0.95, 0, 0, textures.plaster, 0.007),
+    ground: finish("#bdb19e", 0.94, 0, 0, textures.stone, 0.005),
     glass: new THREE.MeshPhysicalMaterial({
       color: "#bcd2d6",
       roughness: 0.025,
@@ -332,10 +357,10 @@ function buildPalette(
       thickness: 0.018,
       ior: 1.46,
     }),
-    frame: finish(FRAME_GREEN, 0.5, 0.12, 0.08),
-    oak: finish(LIGHT_OAK, 0.62, 0, 0.05, textures.oak, 0.006),
-    timber: finish("#8f6238", 0.66, 0, 0.04),
-    upholstery: finish("#e3d9c7", 0.98),
+    frame: finish(FRAME_GREEN, 0.53, 0.36, 0.06),
+    oak: finish(LIGHT_OAK, 0.61, 0, 0.035, textures.oak, 0.004),
+    timber: finish("#765338", 0.72, 0, 0.025),
+    upholstery: finish("#ddd3c3", 0.98),
     stone: travertine,
     charcoal: finish("#38352f", 0.48, 0.14, 0.08),
     greenery,
@@ -445,6 +470,58 @@ function prepareHerringboneTexture(
   return { albedo, normal, roughness };
 }
 
+type PlanPoint = [number, number];
+
+function segmentsIntersect(a: PlanPoint, b: PlanPoint, c: PlanPoint, d: PlanPoint) {
+  const cross = (p: PlanPoint, q: PlanPoint, r: PlanPoint) =>
+    (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]);
+  const abC = cross(a, b, c);
+  const abD = cross(a, b, d);
+  const cdA = cross(c, d, a);
+  const cdB = cross(c, d, b);
+  return abC * abD < 0 && cdA * cdB < 0;
+}
+
+function wallObstructsZone(a: PlanPoint, b: PlanPoint, camera: PlanPoint, zone: HouseZone) {
+  const inset = Math.min(0.22, zone.width * 0.12, zone.depth * 0.12);
+  const left = zone.x + inset;
+  const right = zone.x + zone.width - inset;
+  const top = zone.z + inset;
+  const bottom = zone.z + zone.depth - inset;
+  const samples: PlanPoint[] = [
+    [zone.x + zone.width / 2, zone.z + zone.depth / 2],
+    [left, top],
+    [right, top],
+    [left, bottom],
+    [right, bottom],
+  ];
+  return samples.some((target) => segmentsIntersect(camera, target, a, b));
+}
+
+function CutawayOpening({
+  a,
+  b,
+  focusZone,
+  children,
+}: {
+  a: PlanPoint;
+  b: PlanPoint;
+  focusZone?: HouseZone;
+  children: ReactNode;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame(({ camera }) => {
+    if (!groupRef.current) return;
+    if (!focusZone) {
+      groupRef.current.visible = true;
+      return;
+    }
+    const cameraPlan: PlanPoint = [camera.position.x + CX, camera.position.z + CZ];
+    groupRef.current.visible = !wallObstructsZone(a, b, cameraPlan, focusZone);
+  });
+  return <group ref={groupRef}>{children}</group>;
+}
+
 /**
  * A straight wall run with door/window openings punched out. Solid spans are
  * emitted as separate boxes instead of using CSG, which keeps the mesh count
@@ -457,19 +534,55 @@ function WallRun({
   height,
   openings = [],
   material,
+  focusZone,
 }: {
-  a: [number, number];
-  b: [number, number];
+  a: PlanPoint;
+  b: PlanPoint;
   thickness: number;
   height: number;
   openings?: Opening[];
   material: THREE.Material;
+  focusZone?: HouseZone;
 }) {
   const dx = b[0] - a[0];
   const dz = b[1] - a[1];
   const length = Math.hypot(dx, dz);
   const angle = Math.atan2(dz, dx);
   const ext = thickness / 2;
+  const groupRef = useRef<THREE.Group>(null);
+  const obstructedRef = useRef(false);
+  const displayMaterial = useMemo(() => {
+    if (!focusZone) return material;
+    const clone = material.clone();
+    clone.transparent = true;
+    clone.opacity = 1;
+    clone.depthWrite = true;
+    clone.side = THREE.DoubleSide;
+    return clone;
+  }, [focusZone, material]);
+
+  useEffect(() => {
+    if (displayMaterial === material) return;
+    return () => displayMaterial.dispose();
+  }, [displayMaterial, material]);
+
+  useFrame(({ camera }, delta) => {
+    if (!focusZone || displayMaterial === material) return;
+    const firstMesh = groupRef.current?.children.find((object): object is THREE.Mesh => object instanceof THREE.Mesh);
+    const activeMaterial = firstMesh?.material;
+    if (!(activeMaterial instanceof THREE.Material)) return;
+    const cameraPlan: PlanPoint = [camera.position.x + CX, camera.position.z + CZ];
+    const obstructed = wallObstructsZone(a, b, cameraPlan, focusZone);
+    activeMaterial.opacity = THREE.MathUtils.damp(activeMaterial.opacity, obstructed ? 0.1 : 1, 12, delta);
+    activeMaterial.depthWrite = !obstructed;
+    if (obstructed === obstructedRef.current) return;
+    obstructedRef.current = obstructed;
+    groupRef.current?.traverse((object) => {
+      if (!(object instanceof THREE.Mesh)) return;
+      object.castShadow = !obstructed;
+      object.receiveShadow = !obstructed;
+    });
+  });
 
   const pieces = useMemo(() => {
     const out: Array<{ from: number; to: number; bottom: number; top: number }> = [];
@@ -489,7 +602,7 @@ function WallRun({
   }, [openings, length, height, ext]);
 
   return (
-    <group position={[(a[0] + b[0]) / 2 - CX, 0, (a[1] + b[1]) / 2 - CZ]} rotation-y={-angle}>
+    <group ref={groupRef} position={[(a[0] + b[0]) / 2 - CX, 0, (a[1] + b[1]) / 2 - CZ]} rotation-y={-angle}>
       {pieces.map((piece, index) => (
         <mesh
           key={index}
@@ -498,7 +611,7 @@ function WallRun({
             (piece.bottom + piece.top) / 2,
             0,
           ]}
-          material={material}
+          material={displayMaterial}
           castShadow
           receiveShadow
         >
@@ -517,12 +630,14 @@ function ZoneFloor({
   onSelect,
   palette,
   showMeasurements,
+  showLabel,
 }: {
   zone: HouseZone;
   selected: boolean;
   onSelect: () => void;
   palette: Palette;
   showMeasurements: boolean;
+  showLabel: boolean;
 }) {
   const cx = zone.x + zone.width / 2 - CX;
   const cz = zone.z + zone.depth / 2 - CZ;
@@ -578,23 +693,25 @@ function ZoneFloor({
       >
         <boxGeometry args={[zone.width, zone.level, zone.depth]} />
       </mesh>
-      <Html
-        center
-        position={[cx, zone.level + 1.9, cz]}
-        style={{ pointerEvents: "auto" }}
-      >
-        <button
-          type="button"
-          className={selected ? "scene-label is-selected" : "scene-label"}
-          aria-label={`View ${zone.label}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            onSelect();
-          }}
+      {showLabel && (
+        <Html
+          center
+          position={[cx, zone.level + 1.9, cz]}
+          style={{ pointerEvents: "auto" }}
         >
-          {zone.shortLabel}
-        </button>
-      </Html>
+          <button
+            type="button"
+            className={selected ? "scene-label is-selected" : "scene-label"}
+            aria-label={`View ${zone.label}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect();
+            }}
+          >
+            {zone.shortLabel}
+          </button>
+        </Html>
+      )}
       {showMeasurements && (
         <Html
           center
@@ -711,7 +828,13 @@ function SceneContent({
   const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? 16 : 4);
   const textureSet = useMemo(
     () => ({
-      plaster: prepareTexture(plasterSource, [1.8, 1.8], textureAnisotropy),
+      plaster: prepareGradedFloorMap(
+        plasterSource,
+        textureAnisotropy,
+        "brightness(1.52) saturate(0.42) contrast(0.72)",
+        THREE.SRGBColorSpace,
+        "rgba(244, 238, 228, 0.12)",
+      ),
       oak: prepareGradedFloorMap(
         oakSource,
         textureAnisotropy,
@@ -724,7 +847,12 @@ function SceneContent({
         herringboneRoughnessSource,
         textureAnisotropy,
       ),
-      stone: prepareTexture(stoneSource, [1.6, 1.6], textureAnisotropy),
+      stone: prepareGradedFloorMap(
+        stoneSource,
+        textureAnisotropy,
+        "brightness(1.22) saturate(0.55) contrast(0.82)",
+        THREE.SRGBColorSpace,
+      ),
     }),
     [
       herringboneNormalSource,
@@ -769,6 +897,7 @@ function SceneContent({
   }, [sunHour]);
   const isDoorOpen = (id: string) => doorStates[id] ?? allDoorsOpen;
   const controlsRef = useRef<OrbitControlsImpl>(null);
+  const roomCameraLimits = ROOM_CAMERA_LIMITS[selectedZone];
   const furnitureEditing = useMemo<FurnitureEditingState>(() => ({
     sizes: furnitureSizes,
     removedIds: removedFurniture,
@@ -818,10 +947,10 @@ function SceneContent({
       />
       {designMode && quality === "high" && (
         <>
-          <pointLight position={[0, 2.1, 0.2]} intensity={2 + sun.practical * 10} distance={7} color="#ffb877" />
-          <pointLight position={[-0.1, 2.1, -4.2]} intensity={1.5 + sun.practical * 8} distance={6} color="#ffbe86" />
+          <pointLight position={[0, 2.1, 0.2]} intensity={0.5 + sun.practical * 4.5} distance={6} decay={2} color="#ffd1a0" />
+          <pointLight position={[-0.1, 2.1, -4.2]} intensity={0.4 + sun.practical * 3.8} distance={5.5} decay={2} color="#ffd1a0" />
           {/* Pergola downlight, matching the terrace spots on the moodboard. */}
-          <pointLight position={[-3.9, 2.4, -0.15]} intensity={1 + sun.practical * 7} distance={6.5} color="#ffc27f" />
+          <pointLight position={[-3.9, 2.4, -0.15]} intensity={0.35 + sun.practical * 3.4} distance={5.5} decay={2} color="#ffc58a" />
         </>
       )}
       {designMode && (
@@ -839,11 +968,12 @@ function SceneContent({
           resolution={quality === "high" ? 1024 : 512}
           blur={quality === "high" ? 2.1 : 2.6}
           far={2.4}
-          opacity={quality === "high" ? 0.32 : 0.42}
-          color="#6b5a44"
+          opacity={quality === "high" ? 0.24 : 0.3}
+          color="#62594f"
         />
       )}
 
+      {designMode && cameraMode !== "room" && <MediterraneanLandscape palette={palette} quality={quality} />}
       <GroundSlab palette={palette} />
       {house.zones.map((zone) => (
         <ZoneFloor
@@ -853,6 +983,7 @@ function SceneContent({
           onSelect={() => onSelectZone(zone.id)}
           palette={palette}
           showMeasurements={showMeasurements}
+          showLabel={cameraMode !== "room"}
         />
       ))}
 
@@ -865,6 +996,7 @@ function SceneContent({
           height={SECTION}
           openings={wall.openings}
           material={palette.exterior}
+          focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}
         />
       ))}
       {partitions.map((wall, index) => (
@@ -876,6 +1008,7 @@ function SceneContent({
           height={SECTION}
           openings={wall.openings}
           material={palette.interior}
+          focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}
         />
       ))}
 
@@ -884,18 +1017,19 @@ function SceneContent({
         wall.openings.map((opening, oi) => {
           const id = `ext-${wi}-${oi}`;
           return (
-          <OpeningOnWall
-            key={`ext-open-${wi}-${oi}`}
-            a={wall.a}
-            b={wall.b}
-            opening={opening}
-            kind={openingKind(opening)}
-            palette={palette}
-            exterior
-            wallThickness={EXT_THICKNESS}
-            open={isDoorOpen(id)}
-            onToggle={openingKind(opening) === "window" ? undefined : () => onToggleDoor?.(id)}
-          />
+            <CutawayOpening key={`ext-open-${wi}-${oi}`} a={wall.a} b={wall.b} focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}>
+              <OpeningOnWall
+                a={wall.a}
+                b={wall.b}
+                opening={opening}
+                kind={openingKind(opening)}
+                palette={palette}
+                exterior
+                wallThickness={EXT_THICKNESS}
+                open={isDoorOpen(id)}
+                onToggle={openingKind(opening) === "window" ? undefined : () => onToggleDoor?.(id)}
+              />
+            </CutawayOpening>
           );
         }),
       )}
@@ -903,32 +1037,47 @@ function SceneContent({
         wall.openings.map((opening, oi) => {
           const id = `int-${wi}-${oi}`;
           return (
-          <OpeningOnWall
-            key={`int-open-${wi}-${oi}`}
-            a={wall.a}
-            b={wall.b}
-            opening={opening}
-            kind="door"
-            palette={palette}
-            wallThickness={INT_THICKNESS}
-            open={isDoorOpen(id)}
-            onToggle={() => onToggleDoor?.(id)}
-          />
+            <CutawayOpening key={`int-open-${wi}-${oi}`} a={wall.a} b={wall.b} focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}>
+              <OpeningOnWall
+                a={wall.a}
+                b={wall.b}
+                opening={opening}
+                kind="door"
+                palette={palette}
+                wallThickness={INT_THICKNESS}
+                open={isDoorOpen(id)}
+                onToggle={() => onToggleDoor?.(id)}
+              />
+            </CutawayOpening>
           );
         }),
       )}
 
       {designMode && (
         <>
-          <Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} />
-          <MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} />
-          <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          <MainBathroom base={zoneById["service-core"].level} palette={palette} />
-          <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} />
+          {cameraMode !== "room" && <Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} />}
+          {cameraMode !== "room" && <MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} />}
+          {(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core") && (
+            <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension") && (
+            <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "southwest-room") && (
+            <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "east-upper-room") && (
+            <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "east-lower-room") && (
+            <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "service-core") && (
+            <MainBathroom base={zoneById["service-core"].level} palette={palette} />
+          )}
+          {(cameraMode !== "room" || selectedZone === "ensuite") && (
+            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} />
+          )}
         </>
       )}
 
@@ -944,8 +1093,10 @@ function SceneContent({
         ref={controlsRef}
         makeDefault
         target={ORBIT_TARGET}
-        minDistance={cameraMode === "room" ? 2.4 : quality === "light" ? 5.5 : 8}
-        maxDistance={quality === "light" ? 20 : 28}
+        minDistance={cameraMode === "room" ? 0.65 : quality === "light" ? 5.5 : 8}
+        maxDistance={cameraMode === "room" ? roomCameraLimits.maxDistance : quality === "light" ? 20 : 28}
+        minAzimuthAngle={cameraMode === "room" ? roomCameraLimits.minAzimuth : -Infinity}
+        maxAzimuthAngle={cameraMode === "room" ? roomCameraLimits.maxAzimuth : Infinity}
         minPolarAngle={cameraMode === "plan" ? 0.01 : 0.24}
         maxPolarAngle={Math.PI / 2.3}
         enableDamping
@@ -953,7 +1104,7 @@ function SceneContent({
         rotateSpeed={quality === "light" ? 0.7 : 1}
         zoomSpeed={quality === "light" ? 0.85 : 1}
         panSpeed={quality === "light" ? 0.7 : 1}
-        enablePan={quality === "high"}
+        enablePan={quality === "high" && cameraMode !== "room"}
       />
     </>
   );
@@ -966,15 +1117,14 @@ export function MeasuredHouseScene(props: Props) {
     <Canvas
       dpr={quality === "high" ? [1, 2] : [0.75, 1.15]}
       shadows={quality === "high" ? "soft" : false}
-      // Framed from the west, across the pergola and through the big living
-      // opening — the moodboard's hero angle — rather than the old plan-like
-      // view from the blank south-east corner.
-      camera={{ position: [-13.2, 10.2, -3.4], fov: 36, near: 0.1, far: 200 }}
+      // The initial camera matches CameraDirector's composed dollhouse view so
+      // there is no low-angle flash while controls mount.
+      camera={{ position: [-13.8, 16.4, -10.4], fov: 36, near: 0.1, far: 200 }}
       gl={{ antialias: quality === "high", powerPreference: "high-performance", alpha: false }}
       performance={{ min: quality === "high" ? 0.7 : 0.5 }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = designMode ? 1.05 : 0.95;
+        gl.toneMappingExposure = designMode ? 0.98 : 0.95;
         gl.outputColorSpace = THREE.SRGBColorSpace;
         gl.shadowMap.type = THREE.PCFSoftShadowMap;
       }}

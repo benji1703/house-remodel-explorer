@@ -203,8 +203,8 @@ export const house = {
     {
       id: "ensuite",
       shortLabel: "EN",
-      label: "Ensuite",
-      description: "Private to the master; 80 cm door. Short oak vanity, same palette, less of it.",
+      label: "Ensuite WC",
+      description: "Compact private WC and vanity to the master; 80 cm door. Not modeled as a shower room.",
       status: "traced",
       x: 3.4,
       z: 10.2,

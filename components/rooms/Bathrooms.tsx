@@ -4,6 +4,7 @@ import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
+import { WallMirror } from "./LuxuryDetails";
 
 /**
  * Built-to-measure sanitaryware. Geometry stays inside the surveyed room
@@ -30,12 +31,12 @@ const CERAMIC_INNER = new THREE.MeshPhysicalMaterial({
 });
 
 const CHROME = new THREE.MeshPhysicalMaterial({
-  color: "#d9dedc",
-  roughness: 0.14,
-  metalness: 0.92,
-  clearcoat: 0.5,
-  clearcoatRoughness: 0.08,
-  envMapIntensity: 1.8,
+  color: "#5e4937",
+  roughness: 0.28,
+  metalness: 0.82,
+  clearcoat: 0.18,
+  clearcoatRoughness: 0.22,
+  envMapIntensity: 1.55,
 });
 
 const SHOWER_GLASS = new THREE.MeshPhysicalMaterial({
@@ -326,6 +327,8 @@ export function MainBathroom({ base, palette }: { base: number; palette: Palette
       <Toilet base={base} x={5.02} z={11.05} against="w" wallHung />
       <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
       <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
+      <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} />
+      <pointLight position={[5.25 - CX, base + 1.58, 11.42 - CZ]} intensity={0.8} distance={1.8} decay={2} color="#ffd3a0" />
     </group>
   );
 }
@@ -336,6 +339,8 @@ export function EnsuiteBathroom({ base, palette }: { base: number; palette: Pale
     <group>
       <Toilet base={base} x={4.15} z={10.29} against="n" />
       <Vanity base={base} palette={palette} x={4.15} z={11.72} w={0.95} mirror={false} />
+      <WallMirror base={base} x={4.845} z={11.34} wall="east" width={0.62} height={0.76} />
+      <pointLight position={[4.55 - CX, base + 1.58, 11.34 - CZ]} intensity={0.72} distance={1.55} decay={2} color="#ffd3a0" />
     </group>
   );
 }

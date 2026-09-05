@@ -4,12 +4,13 @@ import type { Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { DiningSet, FoliageCluster, PlanterBox, PotPlant } from "./furniture";
+import { DecorTray } from "./LuxuryDetails";
 
 /** Terrace / pergola — timber structure + basic outdoor furniture (no weird GLBs). */
 export function Terrace({ palette, quality, furnitureEditing }: { palette: Palette; quality: "high" | "light"; furnitureEditing: FurnitureEditingState }) {
   const pergolaH = designAssumptions.pergola.heightCm / 100;
-  const slats = quality === "high" ? 15 : 8;
-  const vines = quality === "high" ? 11 : 5;
+  const slats = quality === "high" ? 13 : 7;
+  const vines = quality === "high" ? 7 : 4;
   const posts: Array<[number, number]> = [
     [0.55, 4.0],
     [3.1, 4.0],
@@ -23,8 +24,8 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
       {posts.map(([x, z]) => (
         <Blk key={`${x}-${z}`} x={x} z={z} y={0.08} w={0.14} d={0.14} h={pergolaH - 0.08} material={palette.timber} />
       ))}
-      <Blk x={0.55} z={5.9} y={pergolaH - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
-      <Blk x={3.1} z={5.9} y={pergolaH - 0.18} w={0.14} d={4.2} h={0.18} material={palette.timber} />
+      <Blk x={0.55} z={5.9} y={pergolaH - 0.14} w={0.12} d={4.2} h={0.14} material={palette.timber} />
+      <Blk x={3.1} z={5.9} y={pergolaH - 0.14} w={0.12} d={4.2} h={0.14} material={palette.timber} />
       {Array.from({ length: slats }, (_, index) => (
         <Blk
           key={index}
@@ -32,8 +33,8 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
           z={3.9 + (index * 4.0) / (slats - 1)}
           y={pergolaH}
           w={2.9}
-          d={0.09}
-          h={0.14}
+          d={0.055}
+          h={0.095}
           material={palette.timber}
         />
       ))}
@@ -41,14 +42,14 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
       {Array.from({ length: vines }, (_, index) => {
         const t = index / Math.max(vines - 1, 1);
         const z = 4.05 + t * 3.7;
-        const x = index % 2 === 0 ? 3.05 : 0.6;
+        const x = index % 3 === 0 ? 0.6 : 3.05;
         return (
           <FoliageCluster
             key={`vine-${index}`}
             x={x}
-            y={pergolaH + 0.02}
+            y={pergolaH - 0.12}
             z={z}
-            scale={quality === "high" ? 1.15 : 0.92}
+            scale={quality === "high" ? 0.88 + (index % 3) * 0.1 : 0.72}
             palette={palette}
           />
         );
@@ -57,6 +58,7 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
       <EditableFurniture id="terrace-dining-set" editing={furnitureEditing} x={1.85} z={6.0} base={0}>
         <DiningSet base={0} palette={palette} x={1.85} z={6.0} />
       </EditableFurniture>
+      <DecorTray base={0.77} palette={palette} x={1.85} z={6.0} />
       <PlanterBox base={0} palette={palette} x={0.45} z={5.1} />
       <PlanterBox base={0} palette={palette} x={0.45} z={6.7} />
       <PotPlant base={0} palette={palette} x={0.45} z={3.7} scale={1.15} />

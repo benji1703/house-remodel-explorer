@@ -4,6 +4,7 @@ import type { Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { FoliageCluster, LoungeChair, PlanterBox, PotPlant } from "./furniture";
+import { SideTable } from "./LuxuryDetails";
 
 /**
  * Private master patio — easy boho timber pergola west of the bedroom.
@@ -30,8 +31,8 @@ export function MasterPatio({
   const z0 = cz - d / 2;
   const z1 = cz + d / 2;
 
-  const reedCount = quality === "high" ? 22 : 12;
-  const fabricCount = quality === "high" ? 5 : 3;
+  const reedCount = quality === "high" ? 16 : 9;
+  const fabricCount = quality === "high" ? 3 : 2;
   const posts: Array<[number, number]> = [
     [x0 + 0.12, z0 + 0.12],
     [x1 - 0.12, z0 + 0.12],
@@ -94,13 +95,14 @@ export function MasterPatio({
       <EditableFurniture id="master-patio-chair" editing={furnitureEditing} x={cx - 0.35} z={cz + 0.4} base={0} swapPlanAxes>
         <LoungeChair base={0} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
       </EditableFurniture>
+      <SideTable base={0} palette={palette} x={cx + 0.48} z={cz + 0.42} />
       <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
       <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
       <PotPlant base={0} palette={palette} x={x1 - 0.4} z={z0 + 0.5} scale={1.1} />
       <PotPlant base={0} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
 
       {quality === "high" &&
-        [0, 1, 2, 3].map((i) => {
+        [0, 1, 2].map((i) => {
           const px = i % 2 === 0 ? x0 + 0.14 : x1 - 0.14;
           const pz = z0 + 0.5 + i * 0.7;
           return (

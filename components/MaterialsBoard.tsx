@@ -40,12 +40,12 @@ export function MaterialsBoard() {
       </header>
 
       <div className="materials-palette" aria-label="Core palette">
-        <span style={{ background: "#d4ad78" }}>Oak</span>
-        <span style={{ background: "#ede1cb" }}>Plaster</span>
-        <span style={{ background: "#c7baa5" }}>Stone</span>
-        <span style={{ background: "#a9b99b" }}>Sage</span>
-        <span style={{ background: "#71825d" }}>Leaf</span>
-        <span style={{ background: "#b97652" }}>Clay</span>
+        <span style={{ background: "#c5a47e" }}>Oak</span>
+        <span style={{ background: "#e7ded1" }}>Plaster</span>
+        <span style={{ background: "#d7c9b5" }}>Stone</span>
+        <span style={{ background: "#66735e", color: "#fff" }}>Sage</span>
+        <span style={{ background: "#718064", color: "#fff" }}>Leaf</span>
+        <span style={{ background: "#a96b48", color: "#fff" }}>Clay</span>
       </div>
 
       <section className="materials-masonry" aria-label="Pinterest-style material moodboard">

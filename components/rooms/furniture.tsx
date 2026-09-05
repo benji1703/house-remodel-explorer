@@ -1,6 +1,6 @@
 "use client";
 
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useTexture } from "@react-three/drei";
 import { useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
@@ -65,6 +65,36 @@ const LINEN_SHADE = new THREE.MeshPhysicalMaterial({
   transparent: true,
   opacity: 0.96,
   side: THREE.DoubleSide,
+});
+
+const HOB_GLASS = new THREE.MeshPhysicalMaterial({
+  color: "#121715",
+  roughness: 0.09,
+  metalness: 0.3,
+  clearcoat: 0.88,
+  clearcoatRoughness: 0.11,
+  envMapIntensity: 1.7,
+});
+
+const HOB_STEEL = new THREE.MeshPhysicalMaterial({
+  color: "#aaa69d",
+  roughness: 0.28,
+  metalness: 0.9,
+  clearcoat: 0.18,
+  envMapIntensity: 1.55,
+});
+
+const HOB_CAST_IRON = new THREE.MeshStandardMaterial({
+  color: "#242724",
+  roughness: 0.64,
+  metalness: 0.38,
+});
+
+const HOB_INDICATOR = new THREE.MeshStandardMaterial({
+  color: "#ffa06c",
+  emissive: "#ff6338",
+  emissiveIntensity: 2.4,
+  toneMapped: false,
 });
 
 function Cabinet({
@@ -489,31 +519,50 @@ export function Cooktop({
   z: number;
 }) {
   const { w, d, h } = FURN.hob;
+  const burners = [
+    [-0.17, -0.14, 0.085],
+    [0.17, -0.14, 0.07],
+    [-0.17, 0.11, 0.07],
+    [0.17, 0.11, 0.085],
+    [0, -0.01, 0.055],
+  ] as const;
   return (
     <group>
-      <SoftBox x={x} z={z} y={base} w={w} d={d} h={h} radius={0.018} material={palette.charcoal} />
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
-        <group key={`${sx}-${sz}`} position={[x - CX + sx * 0.16, base + h + 0.008, z - CZ + sz * 0.14]}>
-          <mesh rotation-x={Math.PI / 2} material={palette.frame}>
-            <torusGeometry args={[sx === sz ? 0.085 : 0.07, 0.008, 8, 24]} />
+      <SoftBox x={x} z={z} y={base} w={w} d={d} h={h} radius={0.018} material={HOB_GLASS} />
+      {burners.map(([dx, dz, radius], index) => (
+        <group key={`${dx}-${dz}`} position={[x - CX + dx, base + h + 0.01, z - CZ + dz]}>
+          <mesh rotation-x={Math.PI / 2} material={HOB_STEEL}>
+            <torusGeometry args={[radius, 0.008, 10, 32]} />
           </mesh>
-          <mesh material={palette.frame}>
-            <boxGeometry args={[0.19, 0.012, 0.018]} />
+          <mesh material={HOB_CAST_IRON} castShadow>
+            <cylinderGeometry args={[radius * 0.68, radius * 0.72, 0.016, 28]} />
           </mesh>
-          <mesh rotation-y={Math.PI / 2} material={palette.frame}>
-            <boxGeometry args={[0.19, 0.012, 0.018]} />
-          </mesh>
+          {index < 4 && (
+            <>
+              <mesh material={HOB_CAST_IRON} castShadow>
+                <boxGeometry args={[radius * 2.55, 0.014, 0.016]} />
+              </mesh>
+              <mesh rotation-y={Math.PI / 2} material={HOB_CAST_IRON} castShadow>
+                <boxGeometry args={[radius * 2.55, 0.014, 0.016]} />
+              </mesh>
+            </>
+          )}
         </group>
-      )))}
-      {[-0.18, -0.06, 0.06, 0.18].map((offset) => (
-        <Cyl key={offset} x={x + offset} z={z + d * 0.38} y={base + h} r={0.018} h={0.018} segments={16} material={palette.frame} />
       ))}
+      {[-0.18, -0.06, 0.06, 0.18].map((offset) => (
+        <group key={offset}>
+          <Cyl x={x + offset} z={z + d * 0.39} y={base + h} r={0.022} h={0.022} segments={24} material={HOB_STEEL} />
+          <Blk x={x + offset} z={z + d * 0.39 - 0.016} y={base + h + 0.022} w={0.006} d={0.027} h={0.008} material={palette.charcoal} />
+        </group>
+      ))}
+      <Cyl x={x + 0.265} z={z + d * 0.4} y={base + h + 0.004} r={0.007} h={0.008} segments={16} material={HOB_INDICATOR} />
     </group>
   );
 }
 
 const POTTED_PLANT_MODEL = "/models/potted-plant-02/potted_plant_02_1k.gltf";
 const FLOWERING_PLANT_MODEL = "/models/periwinkle-plant/periwinkle_plant_1k.gltf";
+const JASMINE_FOLIAGE = "/textures/jasmine-foliage.png";
 
 function ScannedPlant({
   src,
@@ -577,15 +626,30 @@ export function FoliageCluster({
   z: number;
   scale?: number;
 }) {
+  const source = useTexture(JASMINE_FOLIAGE);
+  const material = useMemo(() => {
+    const map = source.clone();
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.anisotropy = 8;
+    map.needsUpdate = true;
+    return new THREE.MeshStandardMaterial({
+      map,
+      color: "#738367",
+      roughness: 0.9,
+      transparent: true,
+      alphaTest: 0.4,
+      side: THREE.DoubleSide,
+      depthWrite: true,
+    });
+  }, [source]);
   return (
-    <ScannedPlant
-      src={FLOWERING_PLANT_MODEL}
-      x={x}
-      y={y - 0.08 * scale}
-      z={z}
-      scale={0.34 * scale}
-      rotation={[0.08, (x * 5.7 + z * 2.9) % (Math.PI * 2), 0.16]}
-    />
+    <group position={[x - CX, y, z - CZ]} scale={scale} rotation-y={(x * 5.7 + z * 2.9) % (Math.PI * 2)}>
+      {[0, Math.PI / 2, Math.PI / 4].map((rotation, index) => (
+        <mesh key={rotation} rotation-y={rotation} position={[0, index * 0.035, 0]} material={material} castShadow>
+          <planeGeometry args={[0.78 - index * 0.08, 0.64 + index * 0.08]} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -643,6 +707,7 @@ export function PlanterBox({
 
 useGLTF.preload(POTTED_PLANT_MODEL);
 useGLTF.preload(FLOWERING_PLANT_MODEL);
+useTexture.preload(JASMINE_FOLIAGE);
 
 export function DiningSet({
   base,

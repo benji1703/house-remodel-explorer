@@ -65,7 +65,7 @@ export function EastLowerRoom({
       <BedsideLamp base={base + FURN.nightstand.h} x={10.7} z={11.72} nightFactor={nightFactor} />
 
       {/* West-wall built-in, kept south of the measured room doorway. */}
-      <Wardrobe base={base} palette={palette} x={7.92} z={11.14} along="z" width={1.72} />
+      <Wardrobe base={base} palette={palette} x={7.92} z={11.14} along="z" width={1.72} frontSide={1} />
 
       {/* Low dresser moves to the newly open north wall, opposite the bed. */}
       <EditableFurniture id="east-lower-dresser" editing={furnitureEditing} x={9.65} z={8.84} base={base}>

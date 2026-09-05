@@ -77,6 +77,7 @@ function Cabinet({
   h,
   fronts = 1,
   frontAxis = "z",
+  frontSide = -1,
 }: {
   base: number;
   palette: Palette;
@@ -87,6 +88,7 @@ function Cabinet({
   h: number;
   fronts?: number;
   frontAxis?: "x" | "z";
+  frontSide?: -1 | 1;
 }) {
   return (
     <group>
@@ -94,10 +96,10 @@ function Cabinet({
       {Array.from({ length: fronts }, (_, index) => {
         const frontW = frontAxis === "z" ? w / fronts - 0.018 : 0.018;
         const frontD = frontAxis === "x" ? d / fronts - 0.018 : 0.018;
-        const frontX = frontAxis === "z" ? x - w / 2 + w / fronts * (index + 0.5) : x - w / 2 - 0.006;
-        const frontZ = frontAxis === "x" ? z - d / 2 + d / fronts * (index + 0.5) : z - d / 2 - 0.006;
-        const handleX = frontAxis === "z" ? frontX + frontW * 0.32 : x - w / 2 - 0.025;
-        const handleZ = frontAxis === "x" ? frontZ + frontD * 0.32 : z - d / 2 - 0.025;
+        const frontX = frontAxis === "z" ? x - w / 2 + w / fronts * (index + 0.5) : x + frontSide * (w / 2 + 0.006);
+        const frontZ = frontAxis === "x" ? z - d / 2 + d / fronts * (index + 0.5) : z + frontSide * (d / 2 + 0.006);
+        const handleX = frontAxis === "z" ? frontX + frontW * 0.32 : x + frontSide * (w / 2 + 0.025);
+        const handleZ = frontAxis === "x" ? frontZ + frontD * 0.32 : z + frontSide * (d / 2 + 0.025);
         return (
           <group key={index}>
             <SoftBox x={frontX} z={frontZ} y={base + 0.11} w={frontW} d={frontD} h={h - 0.2} radius={0.007} material={palette.oak} />
@@ -211,6 +213,7 @@ export function Wardrobe({
   z,
   along = "z",
   width = FURN.wardrobe.w,
+  frontSide = -1,
 }: {
   base: number;
   palette: Palette;
@@ -218,12 +221,13 @@ export function Wardrobe({
   z: number;
   along?: "x" | "z";
   width?: number;
+  frontSide?: -1 | 1;
 }) {
   const { d, h } = FURN.wardrobe;
   const planW = along === "z" ? d : width;
   const planD = along === "z" ? width : d;
   const fronts = Math.max(2, Math.round(width / 0.62));
-  return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={fronts} frontAxis={along === "z" ? "x" : "z"} />;
+  return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={fronts} frontAxis={along === "z" ? "x" : "z"} frontSide={frontSide} />;
 }
 
 export function Dresser({

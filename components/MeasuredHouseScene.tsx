@@ -452,9 +452,9 @@ function prepareHerringboneTexture(
   const albedo = prepareGradedFloorMap(
     albedoSource,
     anisotropy,
-    "brightness(3.2) saturate(0.3) contrast(0.54)",
+    "brightness(1.18) saturate(0.86) contrast(1.02)",
     THREE.SRGBColorSpace,
-    "rgba(255, 246, 232, 0.3)",
+    "rgba(255, 246, 232, 0.08)",
   );
   const normal = prepareTexture(normalSource, [1, 1], anisotropy);
   const roughness = prepareGradedFloorMap(

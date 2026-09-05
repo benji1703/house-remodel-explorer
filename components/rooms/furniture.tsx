@@ -549,7 +549,7 @@ export function Cooktop({
           )}
         </group>
       ))}
-      {[-0.18, -0.06, 0.06, 0.18].map((offset) => (
+      {[-0.18, -0.09, 0, 0.09, 0.18].map((offset) => (
         <group key={offset}>
           <Cyl x={x + offset} z={z + d * 0.39} y={base + h} r={0.022} h={0.022} segments={24} material={HOB_STEEL} />
           <Blk x={x + offset} z={z + d * 0.39 - 0.016} y={base + h + 0.022} w={0.006} d={0.027} h={0.008} material={palette.charcoal} />

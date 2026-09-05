@@ -118,6 +118,7 @@ export function HouseExplorer() {
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<FurnitureId>("living-sofa");
   const [exportStatus, setExportStatus] = useState("");
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
+  const [moodLightboxOpen, setMoodLightboxOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [experienceOpen, setExperienceOpen] = useState(false);
   const [compact, setCompact] = useState(false);
@@ -125,6 +126,9 @@ export function HouseExplorer() {
   const shellRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLElement>(null);
+  const moodHeroButtonRef = useRef<HTMLButtonElement>(null);
+  const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
+  const moodLightboxCloseRef = useRef<HTMLButtonElement>(null);
   const scrimRef = useRef<HTMLButtonElement>(null);
   const sheetWasOpen = useRef(false);
 
@@ -281,7 +285,7 @@ export function HouseExplorer() {
   };
 
   useEffect(() => {
-    if (view !== "references") return;
+    if (view !== "references" || moodLightboxOpen) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
       const target = event.target as HTMLElement | null;
@@ -296,7 +300,61 @@ export function HouseExplorer() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [view, moodImageCount, selectedMood]);
+  }, [view, moodImageCount, selectedMood, moodLightboxOpen]);
+
+  const stepMoodImage = (step: number) => {
+    if (moodImageCount < 2) return;
+    setMoodImageByBoard((prev) => {
+      const current = prev[selectedMood] ?? 0;
+      const next = ((current + step) % moodImageCount + moodImageCount) % moodImageCount;
+      return { ...prev, [selectedMood]: next };
+    });
+  };
+
+  useEffect(() => {
+    if (!moodLightboxOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoodLightboxOpen(false);
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        const step = event.key === "ArrowRight" ? 1 : -1;
+        setMoodImageByBoard((prev) => {
+          const current = prev[selectedMood] ?? 0;
+          const next = ((current + step) % moodImageCount + moodImageCount) % moodImageCount;
+          return { ...prev, [selectedMood]: next };
+        });
+      }
+      if (event.key === "Tab") {
+        const panel = moodLightboxPanelRef.current;
+        if (!panel) return;
+        const focusable = Array.from(panel.querySelectorAll<HTMLElement>("button:not([disabled])"));
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.body.classList.add("has-lightbox");
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.classList.remove("has-lightbox");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [moodLightboxOpen, moodImageCount, selectedMood]);
+
+  useEffect(() => {
+    if (!moodLightboxOpen) {
+      moodHeroButtonRef.current?.focus();
+      return;
+    }
+    const frame = window.requestAnimationFrame(() => moodLightboxCloseRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [moodLightboxOpen]);
 
   useEffect(() => {
     if (view !== "references") return;
@@ -331,15 +389,6 @@ export function HouseExplorer() {
 
   const moodTouch = useRef<{ x: number; y: number } | null>(null);
 
-  const stepMoodImage = (step: number) => {
-    if (moodImageCount < 2) return;
-    setMoodImageByBoard((prev) => {
-      const current = prev[selectedMood] ?? 0;
-      const next = ((current + step) % moodImageCount + moodImageCount) % moodImageCount;
-      return { ...prev, [selectedMood]: next };
-    });
-  };
-
   const onMoodHeroTouchStart = (event: TouchEvent<HTMLElement>) => {
     const touch = event.changedTouches[0];
     if (!touch) return;
@@ -354,6 +403,17 @@ export function HouseExplorer() {
     const dx = touch.clientX - start.x;
     const dy = touch.clientY - start.y;
     if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    stepMoodImage(dx < 0 ? 1 : -1);
+  };
+
+  const onMoodLightboxTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    const start = moodTouch.current;
+    moodTouch.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) < 36 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
     stepMoodImage(dx < 0 ? 1 : -1);
   };
 
@@ -427,6 +487,7 @@ export function HouseExplorer() {
   };
 
   const goToView = (next: View) => {
+    setMoodLightboxOpen(false);
     setSheetOpen(false);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
@@ -434,7 +495,7 @@ export function HouseExplorer() {
     // Kill any leftover sheet transforms so the tab bar stays tappable.
     const detail = detailRef.current;
     const scrim = scrimRef.current;
-    if (detail) {
+    if (detail && compact) {
       gsap.killTweensOf(detail);
       gsap.set(detail, { yPercent: 108, pointerEvents: "none", clearProps: "transform,y" });
     }
@@ -466,6 +527,8 @@ export function HouseExplorer() {
         aria-label={`Open ${activeMood.label} in the house model`}
         onClick={() => {
           setSheetOpen(false);
+          setCameraMode("room");
+          setCameraRevision((revision) => revision + 1);
           navigate({ view: "model", zone: zoneFromMood(activeMood.id) });
         }}
       >
@@ -897,9 +960,9 @@ export function HouseExplorer() {
                 ) : (
                   <div className="hud-card">
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{active.shortLabel}</p>
-                      <h2>{active.label}</h2>
-                      <p className="hud-hint">Orbit · scroll · north on the right</p>
+                      <p className="hud-kicker">{cameraMode === "overview" ? "House overview" : active.shortLabel}</p>
+                      <h2>{cameraMode === "overview" ? "Choose a room to explore" : active.label}</h2>
+                      <p className="hud-hint">{cameraMode === "overview" ? "Select a room · orbit · scroll" : "Orbit · scroll · north on the right"}</p>
                     </div>
                   </div>
                 )}
@@ -971,13 +1034,22 @@ export function HouseExplorer() {
                   onTouchStart={onMoodHeroTouchStart}
                   onTouchEnd={onMoodHeroTouchEnd}
                 >
-                  <MoodMedia
-                    key={heroMoodImage.src}
-                    src={heroMoodImage.src}
-                    alt={heroMoodImage.alt}
-                    sizes="(max-width: 800px) 100vw, 62vw"
-                    priority
-                  />
+                  <button
+                    type="button"
+                    className="mood-hero-open"
+                    ref={moodHeroButtonRef}
+                    onClick={() => setMoodLightboxOpen(true)}
+                    aria-label={`View ${heroMoodImage.caption} full screen`}
+                  >
+                    <MoodMedia
+                      key={heroMoodImage.src}
+                      src={heroMoodImage.src}
+                      alt={heroMoodImage.alt}
+                      sizes="(max-width: 800px) 100vw, 62vw"
+                      priority
+                    />
+                    <span className="mood-hero-open-label">View full image <span aria-hidden="true">↗</span></span>
+                  </button>
                   <figcaption>
                     <span>{heroMoodImage.caption}</span>
                     <small className="desktop-only">Keys step</small>
@@ -1029,6 +1101,45 @@ export function HouseExplorer() {
                   </button>
                 </div>
               </div>
+
+              {moodLightboxOpen && (
+                <div className="mood-lightbox" role="dialog" aria-modal="true" aria-label={`${activeMood.label} image viewer`}>
+                  <button type="button" className="mood-lightbox-backdrop" aria-label="Close image viewer" onClick={() => setMoodLightboxOpen(false)} />
+                  <div className="mood-lightbox-panel" ref={moodLightboxPanelRef}>
+                    <header className="mood-lightbox-head">
+                      <div>
+                        <p>{activeMood.label}</p>
+                        <span>{moodIndexLabel} · swipe or use arrow keys</span>
+                      </div>
+                      <button ref={moodLightboxCloseRef} type="button" className="mood-lightbox-close" onClick={() => setMoodLightboxOpen(false)} aria-label="Close image viewer">×</button>
+                    </header>
+                    <div
+                      className="mood-lightbox-stage"
+                      onTouchStart={onMoodHeroTouchStart}
+                      onTouchEnd={onMoodLightboxTouchEnd}
+                    >
+                      <button type="button" className="mood-lightbox-arrow is-prev" onClick={() => stepMoodImage(-1)} aria-label="Previous image">‹</button>
+                      <MoodMedia
+                        key={`lightbox-${heroMoodImage.src}`}
+                        src={heroMoodImage.src}
+                        alt={heroMoodImage.alt}
+                        sizes="100vw"
+                        priority
+                        className="mood-lightbox-media"
+                      />
+                      <button type="button" className="mood-lightbox-arrow is-next" onClick={() => stepMoodImage(1)} aria-label="Next image">›</button>
+                    </div>
+                    <footer className="mood-lightbox-foot">
+                      <span>{heroMoodImage.caption}</span>
+                      <div className="mood-lightbox-dots" role="tablist" aria-label="Choose mood image">
+                        {activeMood.images.map((image, index) => (
+                          <button key={image.src} type="button" role="tab" aria-selected={index === moodImageIndex} aria-label={`Image ${index + 1}: ${image.caption}`} className={index === moodImageIndex ? "is-active" : ""} onClick={() => selectMoodImage(index)} />
+                        ))}
+                      </div>
+                    </footer>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1043,7 +1154,7 @@ export function HouseExplorer() {
                 type="button"
                 className={selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
                 onClick={() => {
-                  if (selectedZone === zone.id) {
+                  if (selectedZone === zone.id && cameraMode === "room") {
                     setSheetOpen(true);
                     return;
                   }

@@ -140,7 +140,10 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
     <group>
       {open && (
         <>
-          <SoftBox x={x} z={z - 0.02} y={base + 0.11} w={0.57} d={0.52} h={0.67} radius={0.018} material={APPLIANCE_INTERIOR} />
+          <Blk x={x} z={z + 0.22} y={base + 0.45} w={0.54} d={0.025} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x - 0.255} z={z + 0.02} y={base + 0.42} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x + 0.255} z={z + 0.02} y={base + 0.42} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x} z={z + 0.02} y={base + 0.14} w={0.54} d={0.45} h={0.025} material={APPLIANCE_INTERIOR} />
           {[0.29, 0.54].map((height) => (
             <group key={height}>
               <Blk x={x} z={z + 0.225} y={base + height} w={0.46} d={0.018} h={0.018} material={STAINLESS_STEEL} />
@@ -256,7 +259,13 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
 
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + 0.02} w={w + 0.08} d={d} h={h - 0.02} radius={0.025} material={palette.oak} />
+      {/* Build the integrated carcass as panels instead of a solid block so an
+          opened door reveals a believable, lit cavity rather than an oak face. */}
+      <SoftBox x={x - w / 2 + 0.035} z={z} y={base} w={0.07} d={d} h={h} radius={0.018} material={palette.oak} />
+      <SoftBox x={x + w / 2 - 0.035} z={z} y={base} w={0.07} d={d} h={h} radius={0.018} material={palette.oak} />
+      <SoftBox x={x} z={z} y={base + h - 0.035} w={w} d={d} h={0.07} radius={0.018} material={palette.oak} />
+      <SoftBox x={x} z={z} y={base + 0.035} w={w} d={d} h={0.07} radius={0.018} material={palette.oak} />
+      <Blk x={x} z={z + d / 2 - 0.035} y={base + h / 2} w={w} d={0.04} h={h - 0.12} material={palette.oak} />
       <Blk x={x} z={z + 0.015} y={base + 0.09} w={w - 0.08} d={d - 0.1} h={h - 0.19} material={APPLIANCE_INTERIOR} />
       <Blk x={x} z={z - d * 0.34} y={base + 0.18} w={w - 0.16} d={0.018} h={h - 0.38} material={FRIDGE_LIGHT} />
       {[0.54, 1.02, 1.5, 1.92].map((shelf) => (

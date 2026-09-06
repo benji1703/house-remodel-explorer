@@ -78,13 +78,16 @@ export function ArtPanel({
   const frameD = alongX ? 0.035 : width;
   const artW = alongX ? width - 0.065 : 0.018;
   const artD = alongX ? 0.018 : width - 0.065;
+  // Keep the artwork on the room-facing side of its backing so it reads as a
+  // framed piece instead of a dark, solid wall slab in cutaway views.
+  const inward = wall === "north" ? 1 : wall === "south" ? -1 : wall === "west" ? 1 : -1;
   return (
     <group>
       <SoftBox x={x} z={z} y={base + 1.05} w={frameW} d={frameD} h={height} radius={0.018} material={OXIDISED_BRONZE} />
-      <SoftBox x={x} z={z} y={base + 1.085} w={artW} d={artD} h={height - 0.07} radius={0.01} material={PAPER} />
+      <SoftBox x={x + (alongX ? 0 : inward * 0.022)} z={z + (alongX ? inward * 0.022 : 0)} y={base + 1.085} w={artW} d={artD} h={height - 0.07} radius={0.01} material={PAPER} />
       <SoftBox
-        x={x + (alongX ? width * 0.12 : 0)}
-        z={z + (alongX ? 0 : width * 0.12)}
+        x={x + (alongX ? width * 0.12 : inward * 0.032)}
+        z={z + (alongX ? inward * 0.032 : width * 0.12)}
         y={base + 1.22}
         w={alongX ? width * 0.42 : 0.011}
         d={alongX ? 0.011 : width * 0.42}
@@ -112,10 +115,11 @@ export function WallMirror({
   height?: number;
 }) {
   const alongX = wall === "north" || wall === "south";
+  const inward = wall === "north" ? 1 : wall === "south" ? -1 : wall === "west" ? 1 : -1;
   return (
     <group>
       <SoftBox x={x} z={z} y={base + 1.13} w={alongX ? width + 0.04 : 0.03} d={alongX ? 0.03 : width + 0.04} h={height + 0.04} radius={0.035} material={BRUSHED_BRASS} />
-      <SoftBox x={x} z={z} y={base + 1.16} w={alongX ? width : 0.018} d={alongX ? 0.018 : width} h={height} radius={0.03} material={MIRROR} />
+      <SoftBox x={x + (alongX ? 0 : inward * 0.022)} z={z + (alongX ? inward * 0.022 : 0)} y={base + 1.16} w={alongX ? width : 0.018} d={alongX ? 0.018 : width} h={height} radius={0.03} material={MIRROR} />
     </group>
   );
 }

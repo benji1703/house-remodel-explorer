@@ -1050,9 +1050,21 @@ export function HouseExplorer() {
                     />
                     <span className="mood-hero-open-label">View full image <span aria-hidden="true">↗</span></span>
                   </button>
+                  <button
+                    type="button"
+                    className="mood-hero-arrow is-prev"
+                    onClick={(event) => { event.stopPropagation(); stepMoodImage(-1); }}
+                    aria-label="Previous mood image"
+                  >‹</button>
+                  <button
+                    type="button"
+                    className="mood-hero-arrow is-next"
+                    onClick={(event) => { event.stopPropagation(); stepMoodImage(1); }}
+                    aria-label="Next mood image"
+                  >›</button>
                   <figcaption>
                     <span>{heroMoodImage.caption}</span>
-                    <small className="desktop-only">Keys step</small>
+                    <small>Open full image · ← →</small>
                   </figcaption>
                 </figure>
                 <div className="mood-side">

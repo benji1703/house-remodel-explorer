@@ -45,13 +45,15 @@ const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
 const AZIMUTH_EPSILON = 0.0087;
 
 const ROOM_CAMERA_PRESETS: Record<ZoneId, { position: [number, number, number]; target: [number, number, number] }> = {
-  "north-extension": { position: [-1.65, 1.7, -2.7], target: [-0.05, 0.92, -4.95] },
-  "central-core": { position: [1.45, 1.78, 2.75], target: [-0.5, 0.86, 0] },
-  "southwest-room": { position: [-5.15, 1.68, 2.75], target: [-4, 0.82, 4.7] },
-  "east-upper-room": { position: [2.25, 1.68, 1.95], target: [4.3, 0.82, 0.45] },
-  "east-lower-room": { position: [2.25, 1.68, 2.85], target: [4.3, 0.82, 4.6] },
-  "service-core": { position: [-0.65, 1.58, 4.3], target: [0.55, 0.8, 5.37] },
-  ensuite: { position: [-0.95, 1.56, 4.25], target: [-1.55, 0.8, 5.4] },
+  // Land room views from a generous architectural distance so the transition
+  // reveals the whole composition before the user chooses to zoom in.
+  "north-extension": { position: [-2.45, 2.09, -1.58], target: [-0.05, 0.92, -4.95] },
+  "central-core": { position: [2.43, 2.24, 4.13], target: [-0.5, 0.86, 0] },
+  "southwest-room": { position: [-5.73, 2.11, 1.78], target: [-4, 0.82, 4.7] },
+  "east-upper-room": { position: [1.23, 2.11, 2.7], target: [4.3, 0.82, 0.45] },
+  "east-lower-room": { position: [1.23, 2.11, 1.98], target: [4.3, 0.82, 4.6] },
+  "service-core": { position: [-1.25, 1.97, 3.77], target: [0.55, 0.8, 5.37] },
+  ensuite: { position: [-0.65, 1.94, 3.68], target: [-1.55, 0.8, 5.4] },
 };
 
 // Room views orbit only through the interior-facing quadrant. This keeps the

@@ -80,8 +80,13 @@ function KitchenSink({ base, palette, x, z }: { base: number; palette: Palette; 
   const counter = base + 0.947;
   return (
     <group>
-      <SoftBox x={x} z={z} y={counter} w={0.64} d={0.43} h={0.018} radius={0.045} material={STAINLESS_STEEL} />
-      <SoftBox x={x} z={z + 0.015} y={counter + 0.012} w={0.55} d={0.34} h={0.015} radius={0.055} material={palette.charcoal} />
+      {/* Four thin rails leave a real void around the recessed basin. */}
+      <Blk x={x} z={z - 0.19} y={counter} w={0.64} d={0.035} h={0.018} material={STAINLESS_STEEL} />
+      <Blk x={x} z={z + 0.19} y={counter} w={0.64} d={0.035} h={0.018} material={STAINLESS_STEEL} />
+      <Blk x={x - 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
+      <Blk x={x + 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
+      <SoftBox x={x} z={z} y={counter - 0.065} w={0.55} d={0.34} h={0.065} radius={0.055} material={palette.charcoal} />
+      <Cyl x={x} z={z} y={counter - 0.004} r={0.025} h={0.008} segments={24} material={STAINLESS_STEEL} />
       <Cyl x={x} z={z - 0.2} y={counter + 0.02} r={0.018} h={0.29} segments={20} material={AGED_BRASS} />
       <mesh
         position={[x - CX, counter + 0.3, z - CZ - 0.13]}
@@ -166,10 +171,13 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
         <mesh position={[0, 0.335, 0]} material={palette.oak} castShadow receiveShadow>
           <boxGeometry args={[0.58, 0.67, 0.045]} />
         </mesh>
-        <mesh position={[0.215, 0.615, 0.035]} material={AGED_BRASS} castShadow>
-          <boxGeometry args={[0.1, 0.012, 0.014]} />
+        <mesh position={[0, 0.615, 0.035]} material={APPLIANCE_BLACK}>
+          <boxGeometry args={[0.46, 0.055, 0.014]} />
         </mesh>
-        <mesh position={[0.252, 0.615, 0.045]} material={APPLIANCE_DISPLAY}>
+        <mesh position={[0, 0.56, 0.05]} material={AGED_BRASS} castShadow>
+          <boxGeometry args={[0.34, 0.012, 0.014]} />
+        </mesh>
+        <mesh position={[0.17, 0.615, 0.045]} material={APPLIANCE_DISPLAY}>
           <boxGeometry args={[0.012, 0.006, 0.005]} />
         </mesh>
         {open && (
@@ -362,7 +370,8 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />
-      <Cooktop base={base + 0.978} palette={palette} x={6.75} z={0.55} />
+      {/* Seat the 40 mm hob flush into the 945 mm worktop datum. */}
+      <Cooktop base={base + 0.905} palette={palette} x={6.75} z={0.55} />
       <BuiltInOven base={base} x={6.75} z={0.895} />
       <ExtractorHood base={base} palette={palette} x={6.75} z={0.28} />
 

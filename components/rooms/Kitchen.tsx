@@ -214,8 +214,10 @@ function TallPantry({
     <group>
       <Blk x={x} z={z} y={base + 0.02} w={w - 0.08} d={0.54} h={0.08} material={palette.charcoal} />
       <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.65} h={h - 0.08} radius={0.025} material={palette.oak} />
-      <SoftBox x={x} z={z + 0.36} y={base + 0.12} w={w - 0.035} d={0.018} h={h - 0.2} radius={0.008} material={palette.oak} />
-      <Blk x={x - w / 2 + 0.07} z={z + 0.382} y={base + 1.21} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
+      {/* Match the fridge leaf plane and front datum exactly; the old inset
+          panel created a dark vertical gap at the appliance seam. */}
+      <SoftBox x={x} z={z + 0.3885} y={base + 0.04} w={w - 0.01} d={0.018} h={h - 0.08} radius={0.008} material={palette.oak} />
+      <Blk x={x - w / 2 + 0.07} z={z + 0.404} y={base + 0.91} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
     </group>
   );
 }

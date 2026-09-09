@@ -40,11 +40,13 @@ function FrameRect({
   h,
   depth,
   material,
+  includeBottom = true,
 }: {
   w: number;
   h: number;
   depth: number;
   material: THREE.Material;
+  includeBottom?: boolean;
 }) {
   const t = FRAME;
   return (
@@ -58,9 +60,11 @@ function FrameRect({
       <mesh position={[0, (h - t) / 2, 0]} material={material} castShadow>
         <boxGeometry args={[w, t, depth]} />
       </mesh>
-      <mesh position={[0, -(h - t) / 2, 0]} material={material} castShadow>
-        <boxGeometry args={[w, t, depth]} />
-      </mesh>
+      {includeBottom && (
+        <mesh position={[0, -(h - t) / 2, 0]} material={material} castShadow>
+          <boxGeometry args={[w, t, depth]} />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -224,6 +228,7 @@ export function BelgianDoor({
   const leafW = width - FRAME * 2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
+  const glazed = exterior;
   const hingeZ = 0;
   // Left hinge: −Y rot → +Z; flip with swing.
   const leafRef = useRef<THREE.Group>(null);
@@ -241,7 +246,7 @@ export function BelgianDoor({
 
   return (
     <group position={[0, midY, 0]}>
-      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} />
+      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={exterior} />
       <group
         ref={leafRef}
         position={[-(width / 2 - FRAME), 0, hingeZ]}
@@ -268,15 +273,19 @@ export function BelgianDoor({
           <mesh position={[0, 0, -(DOOR_LEAF_THICK / 2 + 0.002)]} material={wood} castShadow>
             <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
           </mesh>
-          <mesh position={[0, glassY, 0]} material={palette.glass}>
-            <boxGeometry args={[leafW - FRAME * 2, glassH, GLASS_T]} />
-          </mesh>
-          <mesh position={[0, glassY, DOOR_LEAF_THICK / 2 + 0.006]} material={wood}>
-            <boxGeometry args={[MUNTIN, glassH, 0.012]} />
-          </mesh>
-          <mesh position={[0, glassY, -(DOOR_LEAF_THICK / 2 + 0.006)]} material={wood}>
-            <boxGeometry args={[MUNTIN, glassH, 0.012]} />
-          </mesh>
+          {glazed && (
+            <>
+              <mesh position={[0, glassY, 0]} material={palette.glass}>
+                <boxGeometry args={[leafW - FRAME * 2, glassH, GLASS_T]} />
+              </mesh>
+              <mesh position={[0, glassY, DOOR_LEAF_THICK / 2 + 0.006]} material={wood}>
+                <boxGeometry args={[MUNTIN, glassH, 0.012]} />
+              </mesh>
+              <mesh position={[0, glassY, -(DOOR_LEAF_THICK / 2 + 0.006)]} material={wood}>
+                <boxGeometry args={[MUNTIN, glassH, 0.012]} />
+              </mesh>
+            </>
+          )}
           <mesh
             position={[leafW * 0.35, -h * 0.05, DOOR_LEAF_THICK / 2 + 0.018]}
             material={palette.charcoal}
@@ -356,7 +365,7 @@ export function SlidingDoor({
 
   return (
     <group position={[0, midY, 0]}>
-      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} />
+      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={false} />
       <mesh position={[0, h / 2 - FRAME * 0.6, trackZ]} material={palette.charcoal}>
         <boxGeometry args={[width - FRAME, 0.02, 0.028]} />
       </mesh>

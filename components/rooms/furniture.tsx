@@ -497,7 +497,10 @@ export function Pendant({
         <cylinderGeometry args={[0.008, 0.008, 0.4, 16]} />
       </mesh>
       <mesh position={[x - CX, base + y - h / 2, z - CZ]} material={BRONZE} castShadow>
-        <cylinderGeometry args={[r * 0.5, r, h, 32, 1, true]} />
+        <cylinderGeometry args={[r * 0.5, r, h, 32, 1, false]} />
+      </mesh>
+      <mesh position={[x - CX, base + y - h + 0.028, z - CZ]} material={BRONZE}>
+        <cylinderGeometry args={[r * 0.16, r * 0.16, 0.055, 20]} />
       </mesh>
       <mesh position={[x - CX, base + y - h + 0.025, z - CZ]}>
         <sphereGeometry args={[r * 0.22, 24, 16]} />

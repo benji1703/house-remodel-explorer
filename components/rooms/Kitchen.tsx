@@ -111,9 +111,6 @@ function BuiltInOven({ base, x, z }: { base: number; x: number; z: number }) {
       {[0.33, 0.43, 0.53].map((height) => (
         <Blk key={height} x={x} z={z + 0.049} y={base + height} w={0.38} d={0.006} h={0.006} material={STAINLESS_STEEL} />
       ))}
-      <mesh position={[x - CX, base + 0.43, z - CZ + 0.053]} rotation-x={Math.PI / 2} material={APPLIANCE_BLACK}>
-        <torusGeometry args={[0.092, 0.01, 12, 36]} />
-      </mesh>
 
       <SoftBox x={x} z={z + 0.047} y={base + 0.69} w={0.54} d={0.018} h={0.13} radius={0.008} material={APPLIANCE_BLACK} />
       <SoftBox x={x} z={z + 0.058} y={base + 0.742} w={0.13} d={0.008} h={0.035} radius={0.005} material={APPLIANCE_DISPLAY} />
@@ -145,9 +142,9 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
     <group>
       {open && (
         <>
-          <Blk x={x} z={z + 0.22} y={base + 0.45} w={0.54} d={0.025} h={0.58} material={APPLIANCE_INTERIOR} />
-          <Blk x={x - 0.255} z={z + 0.02} y={base + 0.42} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
-          <Blk x={x + 0.255} z={z + 0.02} y={base + 0.42} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x} z={z + 0.22} y={base + 0.14} w={0.54} d={0.025} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x - 0.255} z={z + 0.02} y={base + 0.14} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
+          <Blk x={x + 0.255} z={z + 0.02} y={base + 0.14} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
           <Blk x={x} z={z + 0.02} y={base + 0.14} w={0.54} d={0.45} h={0.025} material={APPLIANCE_INTERIOR} />
           {[0.29, 0.54].map((height) => (
             <group key={height}>
@@ -349,8 +346,15 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
 
       {/* Side-to-side storage: fridge + pull-out west, low units beneath the measured window. */}
       <Blk x={6.03} z={0.55} y={base + 0.02} w={2.62} d={0.55} h={0.08} material={palette.charcoal} />
-      <SoftBox x={6.03} z={0.55} y={base + 0.09} w={2.72} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
-      <SoftBox x={6.03} z={0.55} y={base + 0.9} w={2.78} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
+      {/* Panel-built run leaves the dishwasher service bay and sink void legible. */}
+      <SoftBox x={4.84} z={0.55} y={base + 0.09} w={0.32} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={5.98} z={0.55} y={base + 0.09} w={0.48} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={6.9} z={0.55} y={base + 0.09} w={0.94} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      {/* Stone worktop is segmented around the sink and hob rather than a slab
+          passing through both cut-outs. */}
+      <SoftBox x={4.81} z={0.55} y={base + 0.9} w={0.34} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
+      <SoftBox x={6.005} z={0.55} y={base + 0.9} w={0.77} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
+      <SoftBox x={7.265} z={0.55} y={base + 0.9} w={0.31} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
       {[-0.9, -0.3, 0.3, 0.9].map((offset) => (
         <Blk key={offset} x={6.03 + offset} z={0.884} y={base + 0.16} w={0.007} d={0.018} h={0.66} material={palette.charcoal} />
       ))}

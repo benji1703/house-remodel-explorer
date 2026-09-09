@@ -206,7 +206,8 @@ const exteriorOpenings: Record<number, Opening[]> = {
   // Kitchen east: window north; main entry further south (near living open).
   1: [
     window_(0.85, 1.2),
-    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD, swing: 1 },
+    // Hinge outward so the entry leaf never swings across the kitchen joinery.
+    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD, swing: -1 },
   ],
   2: [window_(1.9)],
   3: [window_(1.8), window_(5.0)],

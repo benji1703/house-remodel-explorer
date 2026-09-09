@@ -373,7 +373,9 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       {/* The tall bank is capped as one continuous piece so the fridge and
           pantry read as a deliberate built-in wall, not two broken boxes. */}
       <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
-      <SoftBox x={4.26} z={0.55} y={base + 2.2} w={1.14} d={0.69} h={0.1} radius={0.02} material={palette.oak} />
+      {/* Full-height west filler closes the measured wall return at x=3.4 m. */}
+      <SoftBox x={3.525} z={0.55} y={base + 0.08} w={0.25} d={0.69} h={2.15} radius={0.018} material={palette.oak} />
+      <SoftBox x={4.11} z={0.55} y={base + 2.2} w={1.44} d={0.69} h={0.1} radius={0.02} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />

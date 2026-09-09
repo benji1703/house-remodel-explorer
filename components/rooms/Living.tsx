@@ -3,7 +3,7 @@ import { Blk } from "./shared";
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { CoffeeTable, FURN, LoungeChair, Pendant, PotPlant, Sofa } from "./furniture";
-import { ArtPanel, DecorTray, SideTable } from "./LuxuryDetails";
+import { ArtTV, DecorTray, SideTable } from "./LuxuryDetails";
 
 /** Living — conversation group faces west glazing. Basic shapes, real sizes. */
 export function Living({ base, palette, furnitureEditing }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState }) {
@@ -29,7 +29,7 @@ export function Living({ base, palette, furnitureEditing }: { base: number; pale
       <LoungeChair base={base} palette={palette} x={4.48} z={4.82} face="s" />
       <SideTable base={base} palette={palette} x={4.15} z={6.12} />
       <DecorTray base={base + FURN.coffee.h + 0.01} palette={palette} x={5.35} z={6.1} />
-      <ArtPanel base={base} x={7.485} z={4.45} wall="east" width={0.92} height={0.82} />
+      <ArtTV base={base} x={7.485} z={4.45} wall="east" width={1.22} height={0.72} />
       <Pendant base={base} palette={palette} x={5.4} z={6.1} />
       <PotPlant base={base} palette={palette} x={7.05} z={4.5} scale={0.9} />
     </group>

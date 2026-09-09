@@ -47,6 +47,11 @@ const MIRROR = new THREE.MeshPhysicalMaterial({
   clearcoat: 0.45,
   envMapIntensity: 2.25,
 });
+const TV_FRAME = new THREE.MeshPhysicalMaterial({ color: "#191a17", metalness: 0.45, roughness: 0.22, clearcoat: 0.6 });
+const TV_SCREEN = new THREE.MeshPhysicalMaterial({ color: "#574234", roughness: 0.32, metalness: 0.08, clearcoat: 0.38 });
+const TV_SAND = new THREE.MeshStandardMaterial({ color: "#c59a68", roughness: 0.7 });
+const TV_CLAY = new THREE.MeshStandardMaterial({ color: "#a55f43", roughness: 0.72 });
+const TV_OLIVE = new THREE.MeshStandardMaterial({ color: "#68705a", roughness: 0.76 });
 
 const GRASS = new THREE.MeshStandardMaterial({ color: "#758066", roughness: 0.97 });
 const GRAVEL = new THREE.MeshStandardMaterial({ color: "#b8aa91", roughness: 1 });
@@ -57,6 +62,56 @@ const OLIVE_LIGHT = new THREE.MeshStandardMaterial({ color: "#87947a", roughness
 const LAVENDER = new THREE.MeshStandardMaterial({ color: "#77708c", roughness: 0.9 });
 
 type Wall = "north" | "south" | "east" | "west";
+
+/** A slim art television with a restrained desert-toned abstract still. */
+export function ArtTV({
+  base,
+  x,
+  z,
+  wall,
+  width = 1.18,
+  height = 0.7,
+}: {
+  base: number;
+  x: number;
+  z: number;
+  wall: Wall;
+  width?: number;
+  height?: number;
+}) {
+  const alongX = wall === "north" || wall === "south";
+  const inward = wall === "north" ? 1 : wall === "south" ? -1 : wall === "west" ? 1 : -1;
+  const rotation = alongX ? (inward < 0 ? Math.PI : 0) : inward * Math.PI / 2;
+  return (
+    <group
+      position={[
+        x - CX + (alongX ? 0 : inward * 0.035),
+        base + 1.38,
+        z - CZ + (alongX ? inward * 0.035 : 0),
+      ]}
+      rotation-y={rotation}
+    >
+      <mesh material={TV_FRAME} castShadow>
+        <boxGeometry args={[width, height, 0.052]} />
+      </mesh>
+      <mesh position={[0, 0, 0.031]} material={TV_SCREEN}>
+        <boxGeometry args={[width - 0.07, height - 0.07, 0.012]} />
+      </mesh>
+      <mesh position={[-width * 0.2, height * 0.08, 0.039]} material={TV_SAND}>
+        <boxGeometry args={[width * 0.34, height * 0.42, 0.008]} />
+      </mesh>
+      <mesh position={[width * 0.14, -height * 0.08, 0.04]} material={TV_CLAY}>
+        <boxGeometry args={[width * 0.27, height * 0.62, 0.008]} />
+      </mesh>
+      <mesh position={[width * 0.29, height * 0.2, 0.041]} material={TV_OLIVE}>
+        <boxGeometry args={[width * 0.16, height * 0.22, 0.008]} />
+      </mesh>
+      <mesh position={[0, -height / 2 - 0.028, 0]} material={TV_FRAME}>
+        <boxGeometry args={[0.18, 0.018, 0.06]} />
+      </mesh>
+    </group>
+  );
+}
 
 export function ArtPanel({
   base,

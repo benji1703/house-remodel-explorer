@@ -2,7 +2,7 @@
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BedsideLamp, FURN, Nightstand, Pendant, QueenBed } from "./furniture";
-import { ArtPanel, BedroomRug, DraperyPair } from "./LuxuryDetails";
+import { ArtTV, BedroomRug, DraperyPair } from "./LuxuryDetails";
 
 /**
  * Master bedroom — queen bed (160×200) against south wall.
@@ -38,7 +38,7 @@ export function MasterBedroom({
       <BedsideLamp base={base + FURN.nightstand.h} x={0.55} z={11.55} nightFactor={nightFactor} />
       <BedsideLamp base={base + FURN.nightstand.h} x={2.85} z={11.55} nightFactor={nightFactor} />
 
-      <ArtPanel base={base} x={3.285} z={10.32} wall="east" width={0.68} height={0.76} />
+      <ArtTV base={base} x={3.285} z={10.32} wall="east" width={1.08} height={0.64} />
       <DraperyPair base={base} x={1.72} z={12.0} wall="south" span={1.5} />
       <Pendant base={base} palette={palette} x={1.7} z={10.95} />
     </group>

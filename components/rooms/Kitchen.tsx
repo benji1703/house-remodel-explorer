@@ -143,17 +143,8 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
       {open && (
         <>
           <Blk x={x} z={z + 0.22} y={base + 0.14} w={0.54} d={0.025} h={0.58} material={APPLIANCE_INTERIOR} />
-          <Blk x={x - 0.255} z={z + 0.02} y={base + 0.14} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
-          <Blk x={x + 0.255} z={z + 0.02} y={base + 0.14} w={0.025} d={0.45} h={0.58} material={APPLIANCE_INTERIOR} />
-          <Blk x={x} z={z + 0.02} y={base + 0.14} w={0.54} d={0.45} h={0.025} material={APPLIANCE_INTERIOR} />
-          {[0.29, 0.54].map((height) => (
-            <group key={height}>
-              <Blk x={x} z={z + 0.225} y={base + height} w={0.46} d={0.018} h={0.018} material={STAINLESS_STEEL} />
-              {[-0.18, -0.09, 0, 0.09, 0.18].map((offset) => (
-                <Blk key={offset} x={x + offset} z={z + 0.225} y={base + height} w={0.008} d={0.3} h={0.008} material={STAINLESS_STEEL} />
-              ))}
-            </group>
-          ))}
+          <Blk x={x} z={z + 0.24} y={base + 0.28} w={0.46} d={0.018} h={0.018} material={STAINLESS_STEEL} />
+          <Blk x={x} z={z + 0.24} y={base + 0.52} w={0.46} d={0.018} h={0.018} material={STAINLESS_STEEL} />
         </>
       )}
       <group
@@ -250,7 +241,8 @@ function IslandBowl({ base, palette, x, z }: { base: number; palette: Palette; x
 function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Palette; x: number; z: number }) {
   const [open, setOpen] = useState(false);
   const doorRef = useRef<THREE.Group>(null);
-  const { w, d, h } = FURN.fridge;
+  const { d, h } = FURN.fridge;
+  const w = 0.9;
 
   useFrame((_state, delta) => {
     if (!doorRef.current) return;
@@ -367,18 +359,14 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
         <Blk key={offset} x={5.35 + offset} z={1.936} y={base + 0.17} w={0.012} d={0.018} h={0.64} material={palette.charcoal} />
       ))}
 
-      <EditableFurniture id="kitchen-integrated-fridge" editing={furnitureEditing} x={4.0} z={0.55} base={base}>
-        <IntegratedFridge base={base} palette={palette} x={4.0} z={0.55} />
+      <EditableFurniture id="kitchen-integrated-fridge" editing={furnitureEditing} x={3.9} z={0.55} base={base}>
+        <IntegratedFridge base={base} palette={palette} x={3.9} z={0.55} />
       </EditableFurniture>
-      {/* The tall bank is capped as one continuous piece so the fridge and
-          pantry read as a deliberate built-in wall, not two broken boxes. */}
       <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
-      {/* Full-height west filler closes the measured wall return at x=3.4 m. */}
-      <SoftBox x={3.525} z={0.55} y={base + 0.08} w={0.25} d={0.69} h={2.15} radius={0.018} material={palette.oak} />
-      <SoftBox x={4.11} z={0.55} y={base + 2.2} w={1.44} d={0.69} h={0.1} radius={0.02} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />
+      <SoftBox x={5.3} z={0.55} y={base + 0.09} w={0.58} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Seat the 40 mm hob flush into the 945 mm worktop datum. */}
       <Cooktop base={base + 0.905} palette={palette} x={6.75} z={0.55} />
       <BuiltInOven base={base} x={6.75} z={0.895} />

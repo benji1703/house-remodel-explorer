@@ -210,7 +210,7 @@ function TallPantry({
   palette,
   x,
   z,
-  w = 0.28,
+  w = 0.34,
 }: {
   base: number;
   palette: Palette;
@@ -224,7 +224,7 @@ function TallPantry({
       <Blk x={x} z={z} y={base + 0.02} w={w - 0.08} d={0.54} h={0.08} material={palette.charcoal} />
       <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.65} h={h - 0.08} radius={0.025} material={palette.oak} />
       <SoftBox x={x} z={z + 0.331} y={base + 0.12} w={w - 0.035} d={0.018} h={h - 0.2} radius={0.008} material={palette.oak} />
-      <Blk x={x - w / 2 + 0.055} z={z + 0.352} y={base + 0.87} w={0.01} d={0.012} h={0.48} material={AGED_BRASS} />
+      <Blk x={x - w / 2 + 0.07} z={z + 0.352} y={base + 0.87} w={0.01} d={0.012} h={0.48} material={AGED_BRASS} />
     </group>
   );
 }
@@ -370,7 +370,10 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <EditableFurniture id="kitchen-integrated-fridge" editing={furnitureEditing} x={4.0} z={0.55} base={base}>
         <IntegratedFridge base={base} palette={palette} x={4.0} z={0.55} />
       </EditableFurniture>
-      <TallPantry base={base} palette={palette} x={4.53} z={0.55} />
+      {/* The tall bank is capped as one continuous piece so the fridge and
+          pantry read as a deliberate built-in wall, not two broken boxes. */}
+      <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
+      <SoftBox x={4.26} z={0.55} y={base + 2.2} w={1.14} d={0.69} h={0.1} radius={0.02} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />

@@ -356,6 +356,7 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <SoftBox x={5.63} z={0.55} y={base + 0.09} w={0.07} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.29} z={0.55} y={base + 0.09} w={0.08} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.335} z={0.55} y={base + 0.09} w={0.19} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
+      <SoftBox x={6.335} z={0.895} y={base + 0.09} w={0.19} d={0.03} h={0.81} radius={0.008} material={palette.oak} />
       <SoftBox x={7.335} z={0.55} y={base + 0.09} w={0.53} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Stone worktop is segmented around the sink and hob rather than a slab
           passing through both cut-outs. */}
@@ -382,7 +383,7 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <SoftBox x={5.3} z={0.55} y={base + 0.09} w={0.58} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Seat the 40 mm hob flush into the 945 mm worktop datum. */}
       <Cooktop base={base + 0.905} palette={palette} x={6.75} z={0.55} />
-      <BuiltInOven base={base} x={6.75} z={0.895} />
+      <BuiltInOven base={base} x={6.75} z={0.875} />
       <ExtractorHood base={base} palette={palette} x={6.75} z={0.28} />
 
       {/* Integrated dishwasher beside the sink. */}

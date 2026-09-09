@@ -33,6 +33,13 @@ const STAINLESS_STEEL = new THREE.MeshPhysicalMaterial({
   clearcoatRoughness: 0.18,
   envMapIntensity: 1.8,
 });
+const SINK_BASIN = new THREE.MeshPhysicalMaterial({
+  color: "#252a27",
+  metalness: 0.28,
+  roughness: 0.24,
+  clearcoat: 0.55,
+  envMapIntensity: 1.35,
+});
 const AGED_BRASS = new THREE.MeshPhysicalMaterial({
   color: "#725c42",
   metalness: 0.84,
@@ -85,8 +92,9 @@ function KitchenSink({ base, palette, x, z }: { base: number; palette: Palette; 
       <Blk x={x} z={z + 0.19} y={counter} w={0.64} d={0.035} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x - 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x + 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
-      <SoftBox x={x} z={z} y={counter - 0.17} w={0.55} d={0.34} h={0.17} radius={0.055} material={palette.charcoal} />
-      <Cyl x={x} z={z} y={counter - 0.165} r={0.025} h={0.008} segments={24} material={STAINLESS_STEEL} />
+      <SoftBox x={x} z={z} y={counter - 0.17} w={0.55} d={0.34} h={0.17} radius={0.055} material={SINK_BASIN} />
+      <SoftBox x={x} z={z} y={counter - 0.16} w={0.46} d={0.25} h={0.15} radius={0.07} material={SINK_BASIN} />
+      <Cyl x={x} z={z} y={counter - 0.155} r={0.025} h={0.008} segments={32} material={STAINLESS_STEEL} />
       <Cyl x={x} z={z - 0.2} y={counter + 0.02} r={0.018} h={0.29} segments={20} material={AGED_BRASS} />
       <mesh
         position={[x - CX, counter + 0.3, z - CZ - 0.13]}
@@ -216,7 +224,7 @@ function TallPantry({
       <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.7} h={h - 0.08} radius={0.025} material={palette.oak} />
       {/* Match the fridge leaf plane and front datum exactly; the old inset
           panel created a dark vertical gap at the appliance seam. */}
-      <SoftBox x={x} z={z + 0.37} y={base + 0.04} w={w - 0.01} d={0.055} h={h - 0.08} radius={0.008} material={palette.oak} />
+      <SoftBox x={x} z={z + 0.37} y={base + 0.04} w={w - 0.01} d={0.055} h={h - 0.04} radius={0.008} material={palette.oak} />
       <Blk x={x - w / 2 + 0.07} z={z + 0.405} y={base + 0.91} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
     </group>
   );
@@ -304,8 +312,8 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
         }}
         userData={{ action: "toggle-integrated-fridge", open }}
       >
-        <mesh position={[w / 2, h / 2, 0]} material={palette.oak} castShadow receiveShadow>
-          <boxGeometry args={[w, h, 0.055]} />
+        <mesh position={[w / 2, h / 2 + 0.02, 0]} material={palette.oak} castShadow receiveShadow>
+          <boxGeometry args={[w, h - 0.04, 0.055]} />
         </mesh>
         <mesh position={[w / 2, h / 2, -0.033]} material={APPLIANCE_INTERIOR}>
           <boxGeometry args={[w - 0.075, h - 0.075, 0.018]} />
@@ -347,12 +355,13 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <SoftBox x={4.84} z={0.55} y={base + 0.09} w={0.32} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       <SoftBox x={5.63} z={0.55} y={base + 0.09} w={0.07} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.29} z={0.55} y={base + 0.09} w={0.08} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
-      <SoftBox x={6.9} z={0.55} y={base + 0.09} w={0.94} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={6.335} z={0.55} y={base + 0.09} w={0.19} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
+      <SoftBox x={7.335} z={0.55} y={base + 0.09} w={0.53} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Stone worktop is segmented around the sink and hob rather than a slab
           passing through both cut-outs. */}
       <SoftBox x={4.81} z={0.55} y={base + 0.9} w={0.34} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
       <SoftBox x={6.005} z={0.55} y={base + 0.9} w={0.77} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
-      <SoftBox x={7.265} z={0.55} y={base + 0.9} w={0.31} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
+      <SoftBox x={7.355} z={0.55} y={base + 0.9} w={0.49} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
 
       {/* The island sits 100+ cm off the north run and clears the east entry. */}
       <Blk x={5.35} z={2.42} y={base + 0.02} w={1.72} d={0.8} h={0.08} material={palette.charcoal} />

@@ -83,7 +83,7 @@ const FRIDGE_LIGHT = new THREE.MeshStandardMaterial({
 const PRODUCE_GREEN = new THREE.MeshStandardMaterial({ color: "#70805d", roughness: 0.92 });
 const PRODUCE_AMBER = new THREE.MeshStandardMaterial({ color: "#b96f42", roughness: 0.88 });
 
-function KitchenSink({ base, palette, x, z }: { base: number; palette: Palette; x: number; z: number }) {
+function KitchenSink({ base, x, z }: { base: number; x: number; z: number }) {
   const counter = base + 0.947;
   return (
     <group>
@@ -378,7 +378,7 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <Blk x={4.07} z={0.55} y={base + 2.206} w={1.24} d={0.7} h={0.024} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
-      <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />
+      <KitchenSink base={base} x={5.3} z={0.55} />
       <SoftBox x={5.3} z={0.55} y={base + 0.09} w={0.58} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Seat the 40 mm hob flush into the 945 mm worktop datum. */}
       <Cooktop base={base + 0.905} palette={palette} x={6.75} z={0.55} />

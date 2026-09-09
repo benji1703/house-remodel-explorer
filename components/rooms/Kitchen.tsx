@@ -213,11 +213,11 @@ function TallPantry({
   return (
     <group>
       <Blk x={x} z={z} y={base + 0.02} w={w - 0.08} d={0.54} h={0.08} material={palette.charcoal} />
-      <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.65} h={h - 0.08} radius={0.025} material={palette.oak} />
+      <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.7} h={h - 0.08} radius={0.025} material={palette.oak} />
       {/* Match the fridge leaf plane and front datum exactly; the old inset
           panel created a dark vertical gap at the appliance seam. */}
-      <SoftBox x={x} z={z + 0.3885} y={base + 0.04} w={w - 0.01} d={0.018} h={h - 0.08} radius={0.008} material={palette.oak} />
-      <Blk x={x - w / 2 + 0.07} z={z + 0.404} y={base + 0.91} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
+      <SoftBox x={x} z={z + 0.37} y={base + 0.04} w={w - 0.01} d={0.055} h={h - 0.08} radius={0.008} material={palette.oak} />
+      <Blk x={x - w / 2 + 0.07} z={z + 0.405} y={base + 0.91} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
     </group>
   );
 }
@@ -353,9 +353,6 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <SoftBox x={4.81} z={0.55} y={base + 0.9} w={0.34} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
       <SoftBox x={6.005} z={0.55} y={base + 0.9} w={0.77} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
       <SoftBox x={7.265} z={0.55} y={base + 0.9} w={0.31} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
-      {[-0.9, -0.3, 0.3, 0.9].map((offset) => (
-        <Blk key={offset} x={6.03 + offset} z={0.884} y={base + 0.16} w={0.007} d={0.018} h={0.66} material={palette.charcoal} />
-      ))}
 
       {/* The island sits 100+ cm off the north run and clears the east entry. */}
       <Blk x={5.35} z={2.42} y={base + 0.02} w={1.72} d={0.8} h={0.08} material={palette.charcoal} />
@@ -369,7 +366,7 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
         <IntegratedFridge base={base} palette={palette} x={3.9} z={0.55} />
       </EditableFurniture>
       <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
-      <Blk x={4.11} z={0.55} y={base + 2.206} w={1.44} d={0.62} h={0.024} material={palette.oak} />
+      <Blk x={4.07} z={0.55} y={base + 2.206} w={1.24} d={0.7} h={0.024} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />

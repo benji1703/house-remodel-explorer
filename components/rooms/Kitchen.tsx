@@ -85,8 +85,8 @@ function KitchenSink({ base, palette, x, z }: { base: number; palette: Palette; 
       <Blk x={x} z={z + 0.19} y={counter} w={0.64} d={0.035} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x - 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x + 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
-      <SoftBox x={x} z={z} y={counter - 0.065} w={0.55} d={0.34} h={0.065} radius={0.055} material={palette.charcoal} />
-      <Cyl x={x} z={z} y={counter - 0.004} r={0.025} h={0.008} segments={24} material={STAINLESS_STEEL} />
+      <SoftBox x={x} z={z} y={counter - 0.17} w={0.55} d={0.34} h={0.17} radius={0.055} material={palette.charcoal} />
+      <Cyl x={x} z={z} y={counter - 0.165} r={0.025} h={0.008} segments={24} material={STAINLESS_STEEL} />
       <Cyl x={x} z={z - 0.2} y={counter + 0.02} r={0.018} h={0.29} segments={20} material={AGED_BRASS} />
       <mesh
         position={[x - CX, counter + 0.3, z - CZ - 0.13]}
@@ -156,8 +156,8 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
         }}
         userData={{ action: "toggle-integrated-dishwasher", open }}
       >
-        <mesh position={[0, 0.335, 0]} material={palette.oak} castShadow receiveShadow>
-          <boxGeometry args={[0.58, 0.67, 0.045]} />
+        <mesh position={[0, 0.395, 0]} material={palette.oak} castShadow receiveShadow>
+          <boxGeometry args={[0.58, 0.79, 0.045]} />
         </mesh>
         <mesh position={[0, 0.615, 0.035]} material={APPLIANCE_BLACK}>
           <boxGeometry args={[0.46, 0.055, 0.014]} />
@@ -169,8 +169,8 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
           <boxGeometry args={[0.012, 0.006, 0.005]} />
         </mesh>
         {open && (
-          <mesh position={[0, 0.325, -0.03]} material={STAINLESS_STEEL} receiveShadow>
-            <boxGeometry args={[0.5, 0.58, 0.018]} />
+          <mesh position={[0, 0.385, -0.03]} material={STAINLESS_STEEL} receiveShadow>
+            <boxGeometry args={[0.5, 0.7, 0.018]} />
           </mesh>
         )}
       </group>
@@ -214,8 +214,8 @@ function TallPantry({
     <group>
       <Blk x={x} z={z} y={base + 0.02} w={w - 0.08} d={0.54} h={0.08} material={palette.charcoal} />
       <SoftBox x={x} z={z} y={base + 0.08} w={w} d={0.65} h={h - 0.08} radius={0.025} material={palette.oak} />
-      <SoftBox x={x} z={z + 0.331} y={base + 0.12} w={w - 0.035} d={0.018} h={h - 0.2} radius={0.008} material={palette.oak} />
-      <Blk x={x - w / 2 + 0.07} z={z + 0.352} y={base + 0.87} w={0.01} d={0.012} h={0.48} material={AGED_BRASS} />
+      <SoftBox x={x} z={z + 0.36} y={base + 0.12} w={w - 0.035} d={0.018} h={h - 0.2} radius={0.008} material={palette.oak} />
+      <Blk x={x - w / 2 + 0.07} z={z + 0.382} y={base + 1.21} w={0.01} d={0.012} h={0.6} material={AGED_BRASS} />
     </group>
   );
 }
@@ -260,10 +260,13 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
           opened door reveals a believable, lit cavity rather than an oak face. */}
       <SoftBox x={x - w / 2 + 0.035} z={z} y={base} w={0.07} d={d} h={h} radius={0.018} material={palette.oak} />
       <SoftBox x={x + w / 2 - 0.035} z={z} y={base} w={0.07} d={d} h={h} radius={0.018} material={palette.oak} />
-      <SoftBox x={x} z={z} y={base + h - 0.035} w={w} d={d} h={0.07} radius={0.018} material={palette.oak} />
+      <Blk x={x} z={z} y={base + h - 0.024} w={w} d={d - 0.04} h={0.024} material={palette.oak} />
       <SoftBox x={x} z={z} y={base + 0.035} w={w} d={d} h={0.07} radius={0.018} material={palette.oak} />
-      <Blk x={x} z={z + d / 2 - 0.035} y={base + h / 2} w={w} d={0.04} h={h - 0.12} material={palette.oak} />
-      <Blk x={x} z={z + 0.015} y={base + 0.09} w={w - 0.08} d={d - 0.1} h={h - 0.19} material={APPLIANCE_INTERIOR} />
+      {/* Rear gable stays behind the cavity and uses Blk's bottom-elevation
+          convention; the old center-style y value created a tall mast above
+          the refrigerator. */}
+      <Blk x={x} z={z - d / 2 + 0.02} y={base + 0.06} w={w} d={0.04} h={h - 0.12} material={palette.oak} />
+      <Blk x={x} z={z - d / 2 + 0.05} y={base + 0.1} w={w - 0.08} d={0.025} h={h - 0.2} material={APPLIANCE_INTERIOR} />
       <Blk x={x} z={z - d * 0.34} y={base + 0.18} w={w - 0.16} d={0.018} h={h - 0.38} material={FRIDGE_LIGHT} />
       {[0.54, 1.02, 1.5, 1.92].map((shelf) => (
         <group key={shelf}>
@@ -315,8 +318,8 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
             </mesh>
           </group>
         ))}
-        <mesh position={[w - 0.065, h * 0.55, 0.035]} material={AGED_BRASS} castShadow>
-          <boxGeometry args={[0.01, 0.54, 0.012]} />
+        <mesh position={[w - 0.065, 1.21, 0.035]} material={AGED_BRASS} castShadow>
+          <boxGeometry args={[0.01, 0.6, 0.012]} />
         </mesh>
       </group>
     </group>
@@ -340,7 +343,8 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
       <Blk x={6.03} z={0.55} y={base + 0.02} w={2.62} d={0.55} h={0.08} material={palette.charcoal} />
       {/* Panel-built run leaves the dishwasher service bay and sink void legible. */}
       <SoftBox x={4.84} z={0.55} y={base + 0.09} w={0.32} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
-      <SoftBox x={5.98} z={0.55} y={base + 0.09} w={0.48} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={5.63} z={0.55} y={base + 0.09} w={0.07} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
+      <SoftBox x={6.29} z={0.55} y={base + 0.09} w={0.08} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.9} z={0.55} y={base + 0.09} w={0.94} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
       {/* Stone worktop is segmented around the sink and hob rather than a slab
           passing through both cut-outs. */}
@@ -363,6 +367,7 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
         <IntegratedFridge base={base} palette={palette} x={3.9} z={0.55} />
       </EditableFurniture>
       <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
+      <Blk x={4.11} z={0.55} y={base + 2.206} w={1.44} d={0.62} h={0.024} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} palette={palette} x={5.3} z={0.55} />

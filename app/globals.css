@@ -1270,13 +1270,34 @@ button { color: inherit; }
   height: 100% !important;
   object-fit: cover;
   transform: scale(1.12);
-  filter: blur(24px) saturate(0.88) brightness(0.9);
+  filter: blur(42px) saturate(0.78) brightness(0.82) !important;
   opacity: 0;
   transition: opacity 0.45s var(--ease);
   pointer-events: none;
 }
 
-.mood-media-backdrop.is-visible { opacity: 0.78; }
+.mood-media-backdrop.is-visible { opacity: 0.76 !important; }
+
+.mood-hero .mood-media.is-loaded { z-index: 2; }
+
+.mood-backdrop-toggle {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 46px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 250, 240, 0.38);
+  border-radius: 999px;
+  background: rgba(65, 53, 40, 0.42);
+  color: #fffaf0;
+  font: 500 9px/1 var(--font-sans), sans-serif;
+  letter-spacing: .05em;
+  cursor: pointer;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+
+.mood-backdrop-toggle:hover { background: rgba(65, 53, 40, 0.62); }
 
 .mood-media.is-loaded {
   opacity: 1;

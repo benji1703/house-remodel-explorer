@@ -124,6 +124,17 @@ function CameraAzimuthTracker({
   return null;
 }
 
+function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<OrbitControlsImpl | null> }) {
+  const { gl } = useThree();
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+    controls.listenToKeyEvents(gl.domElement);
+    return () => controls.stopListenToKeyEvents();
+  }, [controlsRef, gl]);
+  return null;
+}
+
 function CameraDirector({
   zone,
   mode,
@@ -1189,6 +1200,7 @@ function SceneContent({
         panSpeed={quality === "light" ? 0.7 : 1}
         enablePan={quality === "high" && (cameraMode !== "room" || kitchenRoom)}
       />
+      <KeyboardOrbitBridge controlsRef={controlsRef} />
     </>
   );
 }
@@ -1212,6 +1224,8 @@ export function MeasuredHouseScene(props: Props) {
         gl.outputColorSpace = THREE.SRGBColorSpace;
         gl.shadowMap.type = THREE.PCFSoftShadowMap;
         const canvas = gl.domElement;
+        canvas.tabIndex = 0;
+        canvas.setAttribute("aria-label", "Interactive 3D house. Focus and use arrow keys to orbit, plus and minus to zoom.");
         const onContextLost = (event: Event) => {
           event.preventDefault();
           onUnavailable?.();

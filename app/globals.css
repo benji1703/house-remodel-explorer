@@ -1730,10 +1730,6 @@ body.has-lightbox { overflow: hidden; }
     flex-direction: column;
   }
 
-  .shell.is-sheet-open .app-body {
-    touch-action: none;
-  }
-
   .app-bar {
     grid-template-columns: 1fr auto;
     height: 48px;
@@ -2773,6 +2769,7 @@ body.has-lightbox { overflow: hidden; }
 .proof-layout-switch button { border: 0; border-radius: 5px; padding: 6px 9px; background: transparent; color: var(--muted); font-size: 10px; cursor: pointer; }
 .proof-layout-switch button.is-active { background: #29322d; color: #f6f3e9; }
 .source-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; height: 100%; background: var(--line-strong); }
+.comparison-stage.is-proof .source-proof-grid.is-side-by-side { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
 .source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }
 .proof-pane-wrap { position: relative; min-height: 0; display: grid; grid-template-rows: 36px minmax(0, 1fr); }

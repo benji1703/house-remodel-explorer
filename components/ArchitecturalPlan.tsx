@@ -92,7 +92,7 @@ export function ArchitecturalPlan({ selected, onSelect, interactive = false, idP
       <svg
         className="architect-plan"
         viewBox="-90 -155 1660 1495"
-        role="img"
+        role={interactive ? "group" : "img"}
         aria-labelledby={`${idPrefix}-plan-title ${idPrefix}-plan-desc`}
       >
         <title id={`${idPrefix}-plan-title`}>AI-assisted architectural SVG reconstruction of Villa Nehama</title>
@@ -125,11 +125,15 @@ export function ArchitecturalPlan({ selected, onSelect, interactive = false, idP
                 role={interactive ? "button" : undefined}
                 tabIndex={interactive ? 0 : undefined}
                 aria-label={interactive ? `Open ${zone.label}` : undefined}
+                aria-pressed={interactive ? active : undefined}
                 onClick={interactive ? () => onSelect?.(zone.id) : undefined}
                 onKeyDown={
                   interactive
                     ? (event) => {
-                        if (event.key === "Enter" || event.key === " ") onSelect?.(zone.id);
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          onSelect?.(zone.id);
+                        }
                       }
                     : undefined
                 }

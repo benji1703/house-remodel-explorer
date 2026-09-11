@@ -47,7 +47,7 @@ const SHEER = new THREE.MeshPhysicalMaterial({
 const TV_FRAME = new THREE.MeshPhysicalMaterial({ color: "#191a17", metalness: 0.45, roughness: 0.22, clearcoat: 0.6 });
 const TV_SCREEN = new THREE.MeshPhysicalMaterial({ color: "#181d1c", roughness: 0.16, metalness: 0.3, clearcoat: 0.6 });
 
-const GRASS = new THREE.MeshStandardMaterial({ color: "#758066", roughness: 0.97 });
+const GRASS = new THREE.MeshStandardMaterial({ color: "#b6a58d", roughness: 0.97 });
 const GRAVEL = new THREE.MeshStandardMaterial({ color: "#b8aa91", roughness: 1 });
 const SOIL = new THREE.MeshStandardMaterial({ color: "#40392f", roughness: 1 });
 const BARK = new THREE.MeshStandardMaterial({ color: "#6b5945", roughness: 0.96 });

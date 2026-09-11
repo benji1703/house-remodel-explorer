@@ -22,6 +22,7 @@ import { Compass, type CompassHandle } from "./Compass";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MaterialsBoard, MoodTextureStrip } from "./MaterialsBoard";
+import { ProductSourcebook } from "./ProductSourcebook";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
 const MeasuredHouseScene = lazy(() =>
@@ -30,7 +31,7 @@ const MeasuredHouseScene = lazy(() =>
   })),
 );
 
-type View = "model" | "plan" | "references" | "materials";
+type View = "model" | "plan" | "references" | "materials" | "sourcebook";
 type CameraMode = "overview" | "room" | "plan";
 
 function supportsWebGL() {
@@ -69,6 +70,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "plan", label: "Plan" },
   { id: "references", label: "Mood" },
   { id: "materials", label: "Materials" },
+  { id: "sourcebook", label: "Sourcebook" },
 ];
 
 const isView = (value: string | null): value is View =>
@@ -584,7 +586,7 @@ export function HouseExplorer() {
           id="explorer-content"
           tabIndex={-1}
           className={`stage is-${view}`}
-          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : "Materials"}
+          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : "Product sourcebook"}
         >
           {view === "model" && (
             <>
@@ -1122,6 +1124,7 @@ export function HouseExplorer() {
           )}
 
           {view === "materials" && <MaterialsBoard />}
+          {view === "sourcebook" && <ProductSourcebook />}
         </section>
 
         {view === "model" && (

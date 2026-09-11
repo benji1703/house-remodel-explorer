@@ -1681,6 +1681,10 @@ body.has-lightbox { overflow: hidden; }
 .product-sourcebook-head > p:last-child { grid-column: 2; grid-row: 1 / span 2; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
 .product-sourcebook-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--line); }
 .product-reference { display: flex; flex-direction: column; gap: 7px; min-height: 190px; padding: 18px; background: rgba(250, 247, 240, .72); }
+.product-reference-image { position: relative; height: 150px; margin: -18px -18px 8px; overflow: hidden; background: var(--travertine); }
+.product-reference-image img { object-fit: cover; transition: transform .45s var(--ease); }
+.product-reference:hover .product-reference-image img { transform: scale(1.035); }
+.product-reference-copy { display: flex; flex: 1; flex-direction: column; gap: 7px; }
 .product-reference > p { margin: 0; color: var(--timber); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .product-reference h3 { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 23px; font-weight: 500; }
 .product-reference strong { color: var(--muted); font-size: 11px; font-weight: 600; }

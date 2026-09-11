@@ -23,6 +23,7 @@ import { ArchitecturalPlan } from "./ArchitecturalPlan";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MaterialsBoard, MoodTextureStrip } from "./MaterialsBoard";
 import { ProductSourcebook } from "./ProductSourcebook";
+import { PlantsBoard } from "./PlantsBoard";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
 const MeasuredHouseScene = lazy(() =>
@@ -31,7 +32,7 @@ const MeasuredHouseScene = lazy(() =>
   })),
 );
 
-type View = "model" | "plan" | "references" | "materials" | "sourcebook";
+type View = "model" | "plan" | "references" | "materials" | "sourcebook" | "plants";
 type CameraMode = "overview" | "room" | "plan";
 
 function supportsWebGL() {
@@ -71,6 +72,7 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "references", label: "Mood" },
   { id: "materials", label: "Materials" },
   { id: "sourcebook", label: "Sourcebook" },
+  { id: "plants", label: "Plants" },
 ];
 
 const isView = (value: string | null): value is View =>
@@ -587,7 +589,7 @@ export function HouseExplorer() {
           id="explorer-content"
           tabIndex={-1}
           className={`stage is-${view}`}
-          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : "Product sourcebook"}
+          aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : view === "sourcebook" ? "Product sourcebook" : "Plants"}
         >
           {view === "model" && (
             <>
@@ -1126,6 +1128,7 @@ export function HouseExplorer() {
 
           {view === "materials" && <MaterialsBoard />}
           {view === "sourcebook" && <ProductSourcebook />}
+          {view === "plants" && <PlantsBoard />}
         </section>
 
         {view === "model" && (

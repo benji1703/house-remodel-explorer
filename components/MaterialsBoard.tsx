@@ -46,6 +46,7 @@ export function MaterialsBoard() {
         <span style={{ background: "#8b6a49", color: "#fff" }}>Bronze</span>
         <span style={{ background: "#9a7955", color: "#fff" }}>Timber</span>
         <span style={{ background: "#a96b48", color: "#fff" }}>Clay</span>
+        <span style={{ background: "#66735e", color: "#fff" }}>Sage frames</span>
       </div>
 
       <section className="materials-masonry" aria-label="Pinterest-style material moodboard">

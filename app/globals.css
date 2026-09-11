@@ -185,7 +185,8 @@ button { color: inherit; }
 
 .app-body.is-plan,
 .app-body.is-materials,
-.app-body.is-sourcebook {
+.app-body.is-sourcebook,
+.app-body.is-plants {
   grid-template-columns: 1fr;
 }
 
@@ -206,7 +207,8 @@ button { color: inherit; }
 .stage.is-plan,
 .stage.is-references,
 .stage.is-materials,
-.stage.is-sourcebook {
+.stage.is-sourcebook,
+.stage.is-plants {
   background: var(--panel);
   overflow: auto;
 }
@@ -1692,10 +1694,36 @@ body.has-lightbox { overflow: hidden; }
 .product-reference strong { color: var(--muted); font-size: 11px; font-weight: 600; }
 .product-reference span { flex: 1; color: var(--muted); font-size: 11px; line-height: 1.45; }
 .product-reference a { color: var(--ink); font-size: 10px; text-underline-offset: 3px; }
+.plants-brief { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1480px; margin: 0 auto 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.plants-brief div { display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; border-right: 1px solid var(--line); }
+.plants-brief div:last-child { border-right: 0; }
+.plants-brief strong { color: var(--timber); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.plants-brief span { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.plants-grid { max-width: 1480px; margin: 0 auto; columns: 4 280px; column-gap: 16px; }
+.plant-card { display: inline-flex; width: 100%; flex-direction: column; margin: 0 0 16px; overflow: hidden; break-inside: avoid; border: 1px solid rgba(74, 68, 57, 0.09); border-radius: 16px; background: rgba(250, 248, 242, 0.92); box-shadow: 0 12px 28px rgba(49, 43, 34, 0.09); }
+.plant-card figure { position: relative; height: 185px; margin: 0; overflow: hidden; background: var(--travertine); }
+.plant-card figure img { object-fit: cover; transition: transform .45s var(--ease); }
+.plant-card:hover figure img { transform: scale(1.035); }
+.plant-card figure span { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(246,243,235,.84); color: var(--muted); font-size: 9px; font-weight: 700; }
+.plant-card-copy { display: flex; flex-direction: column; gap: 7px; padding: 16px 17px 18px; }
+.plant-card-copy > p { margin: 0; color: var(--timber); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.plant-card-copy h3 { margin: 0; font: 500 22px/1.08 var(--font-display), Georgia, serif; }
+.plant-card-copy em { color: var(--muted); font: italic 12px var(--font-display), Georgia, serif; }
+.plant-card-copy > span { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.plant-card-copy dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--line); }
+.plant-card-copy dl div { display: flex; flex-direction: column; gap: 3px; }
+.plant-card-copy dt { color: var(--faint); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+.plant-card-copy dd { margin: 0; color: var(--ink); font-size: 10px; line-height: 1.25; }
+.plant-card-copy small { color: var(--faint); font-size: 9px; text-transform: capitalize; }
+.plant-card-copy a { color: var(--ink); font-size: 10px; text-underline-offset: 3px; }
 @media (max-width: 800px) {
   .product-sourcebook-head { display: block; }
   .product-sourcebook-head > p:last-child { margin-top: 10px; }
   .product-sourcebook-grid { columns: 1; }
+  .plants-brief { grid-template-columns: 1fr 1fr; }
+  .plants-brief div:nth-child(2) { border-right: 0; }
+  .plants-brief div:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
+  .plants-grid { columns: 1; }
 }
 
 .mobile-only { display: none !important; }
@@ -1771,7 +1799,8 @@ body.has-lightbox { overflow: hidden; }
   .app-body.is-plan,
   .app-body.is-references,
   .app-body.is-materials,
-  .app-body.is-sourcebook {
+  .app-body.is-sourcebook,
+  .app-body.is-plants {
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
@@ -1809,7 +1838,8 @@ body.has-lightbox { overflow: hidden; }
   }
 
   .stage.is-materials,
-  .stage.is-sourcebook {
+  .stage.is-sourcebook,
+  .stage.is-plants {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -1983,7 +2013,7 @@ body.has-lightbox { overflow: hidden; }
     display: grid !important;
     position: relative;
     z-index: 80;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     flex: 0 0 auto;
     min-height: calc(var(--tab-h) + env(safe-area-inset-bottom));
     padding: 4px 10px calc(4px + env(safe-area-inset-bottom));

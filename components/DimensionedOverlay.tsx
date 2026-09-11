@@ -6,13 +6,14 @@ import { geometryApprovalItems } from "@/data/house";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 
 type OverlayMode = "vector" | "measured" | "proof";
-type ProofLayout = "side-by-side" | "stacked";
+type ProofLayout = "side-by-side" | "stacked" | "overlay";
 
-function ProofPane({ children, label }: { children: ReactNode; label: string }) {
+function ProofPane({ children, label, initialOpacity = 1 }: { children: ReactNode; label: string; initialOpacity?: number }) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panEnabled, setPanEnabled] = useState(false);
+  const [opacity, setOpacity] = useState(initialOpacity);
   const paneRef = useRef<HTMLDivElement>(null);
   const hintId = useId();
   const drag = useRef<{ pointerId: number; x: number; y: number; panX: number; panY: number } | null>(null);
@@ -63,10 +64,11 @@ function ProofPane({ children, label }: { children: ReactNode; label: string }) 
         <button type="button" onClick={() => setRotation((value) => value + 1)} aria-label={`Rotate ${label} clockwise`}>↷</button>
         <button type="button" onClick={reset}>Reset</button>
         <button type="button" aria-pressed={panEnabled} onClick={() => setPanEnabled((value) => !value)}>Pan drawing</button>
+        <label className="proof-opacity">Opacity <input type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={(event) => setOpacity(Number(event.target.value))} /><span>{Math.round(opacity * 100)}%</span></label>
       </div>
       <p id={hintId} className="sr-only">Arrow keys pan; plus and minus zoom; Home resets. Enable Pan drawing to drag with one finger. Otherwise swipe to scroll the page or pinch to magnify it. Rotation {rotation} degrees.</p>
       <div ref={paneRef} className={`proof-pane${panEnabled ? " is-panning" : ""}`} role="region" tabIndex={0} aria-label={label} aria-describedby={hintId} onKeyDown={onKeyDown} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onLostPointerCapture={() => { drag.current = null; }}>
-        <div className="proof-pane-content" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)` }}>{children}</div>
+        <div className="proof-pane-content" style={{ opacity, transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)` }}>{children}</div>
       </div>
     </div>
   );
@@ -123,6 +125,7 @@ export function DimensionedOverlay() {
             <div className="proof-layout-switch" role="group" aria-label="Source proof layout">
               <button type="button" className={proofLayout === "side-by-side" ? "is-active" : ""} aria-pressed={proofLayout === "side-by-side"} onClick={() => setProofLayout("side-by-side")}>Side by side</button>
               <button type="button" className={proofLayout === "stacked" ? "is-active" : ""} aria-pressed={proofLayout === "stacked"} onClick={() => setProofLayout("stacked")}>Stacked</button>
+              <button type="button" className={proofLayout === "overlay" ? "is-active" : ""} aria-pressed={proofLayout === "overlay"} onClick={() => setProofLayout("overlay")}>Overlay</button>
             </div>
           )}
         </div>
@@ -146,7 +149,7 @@ export function DimensionedOverlay() {
                 <figcaption><b>01</b> Original field drawing</figcaption>
               </figure>
               <figure>
-                <ProofPane label="AI-assisted SVG reconstruction">
+                <ProofPane label="AI-assisted SVG reconstruction" initialOpacity={proofLayout === "overlay" ? 0.5 : 1}>
                 <div className="source-proof-media source-svg"><ArchitecturalPlan idPrefix="proof" /></div>
                 </ProofPane>
                 <figcaption><b>02</b> AI-assisted SVG reconstruction</figcaption>

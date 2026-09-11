@@ -2768,9 +2768,17 @@ body.has-lightbox { overflow: hidden; }
 .proof-layout-switch { display: inline-flex; gap: 2px; margin-left: auto; padding: 2px; border: 1px solid var(--line-strong); border-radius: 7px; background: rgba(255, 255, 255, 0.35); }
 .proof-layout-switch button { border: 0; border-radius: 5px; padding: 6px 9px; background: transparent; color: var(--muted); font-size: 10px; cursor: pointer; }
 .proof-layout-switch button.is-active { background: #29322d; color: #f6f3e9; }
+.proof-opacity { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; color: var(--muted); font-size: 10px; white-space: nowrap; }
+.proof-opacity input { width: 72px; accent-color: var(--timber); }
+.proof-opacity span { min-width: 28px; font-variant-numeric: tabular-nums; }
 .source-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; height: 100%; background: var(--line-strong); }
 .comparison-stage.is-proof .source-proof-grid.is-side-by-side { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
 .source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.source-proof-grid.is-overlay { position: relative; display: block; overflow: hidden; }
+.source-proof-grid.is-overlay figure { position: absolute; inset: 0; display: block; }
+.source-proof-grid.is-overlay figure:nth-child(2) { z-index: 2; }
+.source-proof-grid.is-overlay figure figcaption { position: absolute; right: 0; bottom: 0; left: 0; height: 44px; background: rgba(248, 245, 237, .86); }
+.source-proof-grid.is-overlay figure:nth-child(2) .proof-pane-wrap { padding-top: 36px; }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }
 .proof-pane-wrap { position: relative; min-height: 0; display: grid; grid-template-rows: 36px minmax(0, 1fr); }
 .proof-pane-tools { z-index: 2; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--line); background: rgba(248, 245, 237, .94); }

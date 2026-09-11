@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { lazy, Suspense, startTransition, useCallback, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import {
@@ -80,7 +80,6 @@ const zoneFromMood = (id: MoodBoardId): ZoneId =>
   id === "terrace" || id === "openings" ? "central-core" : id;
 
 export function HouseExplorer() {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -115,8 +114,11 @@ export function HouseExplorer() {
       if (next.zone && isMoodBoardId(next.zone)) params.set("mood", next.zone);
     }
     const url = `${pathname}?${params.toString()}`;
-    if (mode === "replace") router.replace(url, { scroll: false });
-    else router.push(url, { scroll: false });
+    // These parameters only select local explorer state. Native history keeps
+    // Next's search params and back/forward navigation in sync without waiting
+    // for a server navigation before the camera can respond.
+    if (mode === "replace") window.history.replaceState(null, "", url);
+    else window.history.pushState(null, "", url);
   };
 
   const [designMode, setDesignMode] = useState(true);
@@ -442,7 +444,7 @@ export function HouseExplorer() {
 
   const returnToHouse = () => {
     navigate({ view: "model", camera: "overview" }, "replace");
-    setCameraRevision((revision) => revision + 1);
+    if (cameraMode === "overview") setCameraRevision((revision) => revision + 1);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
   };
@@ -464,7 +466,7 @@ export function HouseExplorer() {
     setSheetOpen(false);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
-    setCameraRevision((revision) => revision + 1);
+    if (cameraMode === "room" && selectedZone === id) setCameraRevision((revision) => revision + 1);
     navigate({ view: "model", zone: id, camera: "room" }, "replace");
   };
 
@@ -862,7 +864,7 @@ export function HouseExplorer() {
                               return;
                             }
                             navigate({ camera: mode }, "replace");
-                            setCameraRevision((revision) => revision + 1);
+                            if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
                           }}
                         >
                           {mode === "overview" ? "House" : mode === "room" ? "Room" : "Plan"}

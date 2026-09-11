@@ -2402,6 +2402,20 @@ body.has-lightbox { overflow: hidden; }
     min-height: 0;
     flex: 1 1 auto;
     overflow: hidden;
+    background:
+      radial-gradient(circle at 12% 12%, rgba(255, 250, 239, 0.72), transparent 36%),
+      radial-gradient(circle at 88% 88%, rgba(164, 132, 94, 0.18), transparent 44%),
+      linear-gradient(135deg, #eee5d7 0%, #ddcfbb 54%, #cdbba2 100%);
+    border-radius: 16px;
+  }
+
+  /* Keep the full picker surface warm too; the image well has transparent
+     letterboxing whenever the photograph is narrower than the viewport. */
+  .references-view .mood-board-stage {
+    background:
+      radial-gradient(circle at 12% 12%, rgba(255, 250, 239, 0.72), transparent 36%),
+      radial-gradient(circle at 88% 88%, rgba(164, 132, 94, 0.18), transparent 44%),
+      linear-gradient(135deg, #eee5d7 0%, #ddcfbb 54%, #cdbba2 100%);
   }
 
   .mood-hero {

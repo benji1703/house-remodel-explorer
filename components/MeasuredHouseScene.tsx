@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls, useTexture } from "@react-three/drei";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
@@ -54,6 +54,19 @@ type Props = {
 const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
 // Minimum change (~0.5°) before we bother lifting a new azimuth value up.
 const AZIMUTH_EPSILON = 0.0087;
+const CAMERA_TRANSITION_MS = 260;
+
+type CameraFlight = {
+  startedAt: number;
+  fromPosition: THREE.Vector3;
+  toPosition: THREE.Vector3;
+  fromTarget: THREE.Vector3;
+  toTarget: THREE.Vector3;
+  fromFov: number;
+  toFov: number;
+  controls: OrbitControlsImpl | null;
+  controlsEnabled: boolean;
+};
 
 const ROOM_CAMERA_PRESETS: Record<ZoneId, { position: [number, number, number]; target: [number, number, number] }> = {
   // Land room views from a generous architectural distance so the transition
@@ -124,7 +137,11 @@ function CameraDirector({
   revision: number;
   kitchenView: KitchenView;
 }) {
-  const { camera, size } = useThree();
+  const { camera, size, invalidate } = useThree();
+  const flightRef = useRef<CameraFlight | null>(null);
+  const interpolatedTarget = useRef(new THREE.Vector3());
+  const lastRequest = useRef<string | null>(null);
+  const reducedMotion = useRef(false);
   const destination = useMemo(() => {
     if (mode === "overview") {
       return {
@@ -153,24 +170,109 @@ function CameraDirector({
     };
   }, [mode, zone, kitchenView]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      reducedMotion.current = media.matches;
+      invalidate();
+    };
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [invalidate]);
+
+  useLayoutEffect(() => {
+    // A resize adjusts the lens without returning an already-orbited camera
+    // to its preset. Repeated navigation retargets from the current frame.
+    const request = `${mode}-${zone.id}-${kitchenView}-${revision}`;
+    const firstPlacement = lastRequest.current === null;
+    const requestChanged = lastRequest.current !== request;
+    lastRequest.current = request;
     const controls = controlsRef.current;
-    if (camera instanceof THREE.PerspectiveCamera) {
-      // Preserve the composition on portrait screens using horizontal FOV.
-      const aspect = size.width / size.height;
-      const verticalFov = mode === "room" ? 50 : 36;
-      const fov = aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(verticalFov) / 2) / aspect)) : verticalFov;
-      camera.setFocalLength(0.5 * camera.getFilmHeight() / Math.tan(THREE.MathUtils.degToRad(fov) / 2));
-      camera.updateProjectionMatrix();
+    const aspect = Math.max(size.width, 1) / Math.max(size.height, 1);
+    const verticalFov = mode === "room" ? 50 : 36;
+    const fov = aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(verticalFov) / 2) / aspect)) : verticalFov;
+    const setFov = (value: number) => {
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.setFocalLength(0.5 * camera.getFilmHeight() / Math.tan(THREE.MathUtils.degToRad(value) / 2));
+      }
+    };
+    if (!requestChanged) {
+      setFov(fov);
+      invalidate();
+      return;
+    }
+
+    const fromPosition = camera.position.clone();
+    const fromTarget = controls?.target.clone() ?? destination.target.clone();
+    const fromFov = camera instanceof THREE.PerspectiveCamera ? camera.fov : fov;
+    const controlsEnabled = controls?.enabled ?? true;
+
+    // Clear residual orbit damping, then resolve the final pose against the
+    // new room's limits before interpolating. Controls cannot clamp the
+    // camera halfway through its journey or add a long settling tail.
+    const damping = controls?.enableDamping ?? false;
+    if (controls) {
+      controls.enableDamping = false;
+      controls.update();
     }
     camera.position.copy(destination.position);
     if (controls) {
       controls.target.copy(destination.target);
       controls.update();
+      controls.enableDamping = damping;
     } else {
       camera.lookAt(destination.target);
     }
-  }, [camera, controlsRef, destination, revision, mode, zone.id, size.width, size.height]);
+    const toPosition = camera.position.clone();
+    const toTarget = controls?.target.clone() ?? destination.target.clone();
+    if (firstPlacement || reducedMotion.current) {
+      setFov(fov);
+      invalidate();
+      return;
+    }
+
+    camera.position.copy(fromPosition);
+    camera.lookAt(fromTarget);
+    if (controls) {
+      controls.target.copy(fromTarget);
+      controls.enabled = false;
+    }
+    const flight: CameraFlight = {
+      startedAt: performance.now(),
+      fromPosition, toPosition, fromTarget, toTarget, fromFov, toFov: fov,
+      controls, controlsEnabled,
+    };
+    flightRef.current = flight;
+    invalidate();
+    return () => {
+      if (flightRef.current === flight) flightRef.current = null;
+      if (controls) controls.enabled = controlsEnabled;
+    };
+  }, [camera, controlsRef, destination, revision, mode, zone.id, kitchenView, size.width, size.height, invalidate]);
+
+  // Run before OrbitControls (-1), so it resumes only after the final pose.
+  // Wall-clock time keeps navigation bounded even when a slow frame occurs.
+  useFrame(() => {
+    const flight = flightRef.current;
+    if (!flight) return;
+    const progress = reducedMotion.current ? 1 : Math.min(1, (performance.now() - flight.startedAt) / CAMERA_TRANSITION_MS);
+    const eased = 1 - (1 - progress) ** 3;
+    camera.position.lerpVectors(flight.fromPosition, flight.toPosition, eased);
+    const target = flight.controls?.target ?? interpolatedTarget.current;
+    target.lerpVectors(flight.fromTarget, flight.toTarget, eased);
+    camera.lookAt(target);
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const fov = THREE.MathUtils.lerp(flight.fromFov, flight.toFov, eased);
+      camera.setFocalLength(0.5 * camera.getFilmHeight() / Math.tan(THREE.MathUtils.degToRad(fov) / 2));
+    }
+    if (progress === 1) {
+      flightRef.current = null;
+      if (flight.controls) flight.controls.enabled = flight.controlsEnabled;
+    } else {
+      invalidate();
+    }
+  }, -2);
 
   return null;
 }

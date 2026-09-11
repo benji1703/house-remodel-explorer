@@ -41,6 +41,7 @@ export function MoodMedia({ src, alt, sizes, priority = false, className, backdr
           unoptimized
           aria-hidden="true"
           className={loaded ? "mood-media-backdrop is-visible" : "mood-media-backdrop"}
+          style={{ filter: "blur(46px) saturate(0.78) brightness(0.82)", transform: "scale(1.2)", zIndex: 0 }}
         />
       )}
       <div

@@ -1195,6 +1195,9 @@ button { color: inherit; }
   background: transparent;
   cursor: zoom-in;
   text-align: left;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
 }
 
 .mood-hero-open:focus-visible {
@@ -1270,7 +1273,7 @@ button { color: inherit; }
   height: 100% !important;
   object-fit: cover;
   transform: scale(1.12);
-  filter: blur(42px) saturate(0.78) brightness(0.82) !important;
+  filter: blur(46px) saturate(0.78) brightness(0.82) !important;
   opacity: 0;
   transition: opacity 0.45s var(--ease);
   pointer-events: none;
@@ -1279,6 +1282,8 @@ button { color: inherit; }
 .mood-media-backdrop.is-visible { opacity: 0.76 !important; }
 
 .mood-hero .mood-media.is-loaded { z-index: 2; }
+
+.mood-hero .mood-media-backdrop.is-visible { z-index: 0; }
 
 .mood-backdrop-toggle {
   position: absolute;

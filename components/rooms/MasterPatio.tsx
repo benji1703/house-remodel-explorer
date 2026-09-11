@@ -24,7 +24,7 @@ export function MasterPatio({
   const d = designAssumptions.masterPergola.depthCm / 100;
   const h = designAssumptions.masterPergola.heightCm / 100;
   // Deck centre just west of master west wall (x=0).
-  const cx = -w / 2 - 0.38;
+  const cx = -w / 2 - 0.18;
   const cz = 10.0;
   const x0 = cx - w / 2;
   const x1 = cx + w / 2;

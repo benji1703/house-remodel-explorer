@@ -1731,7 +1731,7 @@ body.has-lightbox { overflow: hidden; }
 /* ——— Mobile-first phone experience (iPhone 15 Pro and kin) ——— */
 @media (max-width: 800px) {
   :root {
-    --tab-h: 58px;
+    --tab-h: 48px;
     --rail-h: 52px;
   }
 
@@ -1981,13 +1981,15 @@ body.has-lightbox { overflow: hidden; }
     display: grid !important;
     position: relative;
     z-index: 80;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     flex: 0 0 auto;
     min-height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-    background: #f3f0e7;
-    border-top: 1px solid rgba(32, 41, 34, 0.16);
-    box-shadow: 0 -10px 28px rgba(20, 28, 23, 0.12);
+    padding: 4px 10px calc(4px + env(safe-area-inset-bottom));
+    background: rgba(15, 20, 17, 0.94);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -8px 24px rgba(4, 7, 5, 0.24);
+    backdrop-filter: blur(20px) saturate(1.15);
+    -webkit-backdrop-filter: blur(20px) saturate(1.15);
     touch-action: manipulation;
   }
 
@@ -1997,13 +1999,13 @@ body.has-lightbox { overflow: hidden; }
     align-items: center;
     justify-content: center;
     gap: 0;
-    min-height: 44px;
+    min-height: 34px;
     border: 0;
-    border-radius: 0;
+    border-radius: 9px;
     background: transparent;
-    color: #667168;
-    font-size: 12px;
-    font-weight: 600;
+    color: rgba(239, 239, 231, 0.62);
+    font-size: 10px;
+    font-weight: 500;
     letter-spacing: 0.01em;
     cursor: pointer;
     touch-action: manipulation;
@@ -2021,9 +2023,9 @@ body.has-lightbox { overflow: hidden; }
   }
 
   .tab-item.is-active {
-    color: #202922;
-    background: #dfe7d8;
-    box-shadow: inset 0 -2px 0 #8b6a49;
+    color: var(--ink);
+    background: #f2efe6;
+    box-shadow: 0 4px 12px rgba(2, 5, 3, 0.24);
   }
 
   .detail {

@@ -1795,7 +1795,8 @@ body.has-lightbox { overflow: hidden; }
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding-bottom: 12px;
+    padding-bottom: 8px;
+    background: #f2eee5;
   }
 
   .stage.is-references {
@@ -1927,12 +1928,12 @@ body.has-lightbox { overflow: hidden; }
   .mobile-room-rail {
     display: flex !important;
     flex: 0 0 auto;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
+    padding: 6px 10px;
     overflow-x: auto;
     scrollbar-width: none;
-    background: var(--paper);
-    border-top: 1px solid var(--line);
+    background: rgba(15, 20, 17, 0.96);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     -webkit-overflow-scrolling: touch;
   }
 
@@ -1943,13 +1944,13 @@ body.has-lightbox { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 36px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: var(--control-radius);
-    background: rgba(109, 122, 104, 0.12);
-    color: var(--muted);
-    font-size: 12px;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(239, 239, 231, 0.72);
+    font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
@@ -1959,7 +1960,7 @@ body.has-lightbox { overflow: hidden; }
     font-style: normal;
     font-size: 10px;
     font-weight: 600;
-    color: var(--faint);
+    color: rgba(239, 239, 231, 0.46);
   }
 
   .room-chip:focus-visible,
@@ -1970,9 +1971,10 @@ body.has-lightbox { overflow: hidden; }
   }
 
   .room-chip.is-active {
-    background: transparent;
+    background: #f2efe6;
     color: var(--ink);
-    box-shadow: inset 0 -2px 0 var(--timber);
+    border-color: transparent;
+    box-shadow: 0 3px 10px rgba(2, 5, 3, 0.24);
   }
 
   .room-chip.is-active em { color: var(--timber); }
@@ -1981,7 +1983,7 @@ body.has-lightbox { overflow: hidden; }
     display: grid !important;
     position: relative;
     z-index: 80;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     flex: 0 0 auto;
     min-height: calc(var(--tab-h) + env(safe-area-inset-bottom));
     padding: 4px 10px calc(4px + env(safe-area-inset-bottom));
@@ -2000,6 +2002,7 @@ body.has-lightbox { overflow: hidden; }
     justify-content: center;
     gap: 0;
     min-height: 34px;
+    min-width: 0;
     border: 0;
     border-radius: 9px;
     background: transparent;
@@ -2007,6 +2010,9 @@ body.has-lightbox { overflow: hidden; }
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     cursor: pointer;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
@@ -2871,14 +2877,16 @@ body.has-lightbox { overflow: hidden; }
   .mobile-model-actions button.is-active { background: #f0eee7; color: #28302b; }
   .daylight-note { display: none; }
   .dimensioned-overlay-container { grid-template-columns: 1fr; padding: 10px 12px 24px; min-height: 0; }
+  .stage.is-plan .dimensioned-overlay-container { padding: 12px 10px 20px; }
   .plan-provenance { grid-template-columns: 36px minmax(0, 1fr); }
   .plan-ai-mark { width: 36px; height: 36px; }
   .plan-file-type { display: none; }
-  .comparison-controls { flex-direction: column; align-items: stretch; gap: 8px; }
-  .mode-selector { width: 100%; }
+  .comparison-controls { flex-direction: column; align-items: stretch; gap: 7px; }
+  .mode-selector { width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .mode-selector::-webkit-scrollbar { display: none; }
   .mode-selector button { flex: 1; padding-inline: 8px; }
   .plan-mode-note { text-align: left; }
-  .comparison-stage { height: min(66dvh, 560px); }
+  .comparison-stage { height: min(58dvh, 500px); min-height: 310px; border-radius: 12px; }
   .architect-plan { min-width: 650px; }
   .source-proof-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
   .source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }

@@ -443,7 +443,7 @@ function finish(
 }
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
-const FRAME_GREEN = "#6e5845";
+const FRAME_GREEN = "#66735e";
 /** Pale natural oak — shared by doors and joinery to sit quietly with the floor. */
 const LIGHT_OAK = "#e6d6bb";
 
@@ -498,7 +498,7 @@ function buildPalette(
     };
   }
 
-  // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
+// Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
   const travertine = finish("#d7c9b5", 0.58, 0, 0.035, textures.stone, 0.008);
   const microcement = finish("#c8beb1", 0.89, 0, 0.02, textures.stone, 0.004);
   const oakFloor = new THREE.MeshPhysicalMaterial({

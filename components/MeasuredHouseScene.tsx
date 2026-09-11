@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, Html, Lightformer, OrbitControls, useTexture } from "@react-three/drei";
+import { Html, OrbitControls, useTexture } from "@react-three/drei";
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -22,6 +22,8 @@ import { Terrace } from "./rooms/Terrace";
 import { OpeningOnWall } from "./rooms/Openings";
 import type { FurnitureEditingState } from "./rooms/EditableFurniture";
 import { MediterraneanLandscape } from "./rooms/LuxuryDetails";
+import { LightingRig } from "./scene/LightingRig";
+import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
   selectedZone: ZoneId;
@@ -323,6 +325,7 @@ function buildPalette(
     microtopping: ReturnType<typeof createMineralTextures>;
   },
   floorFinish: FloorFinish,
+  enableTransmission: boolean,
 ) {
   if (!designMode) {
     const grey = finish("#b6b5b0", 0.9);
@@ -336,7 +339,7 @@ function buildPalette(
         roughness: 0.08,
         transparent: true,
         opacity: 0.24,
-        transmission: 0.72,
+        transmission: enableTransmission ? 0.72 : 0,
         thickness: 0.012,
         envMapIntensity: 1.8,
       }),
@@ -411,7 +414,7 @@ function buildPalette(
       envMapIntensity: 2.2,
       transparent: true,
       opacity: 0.28,
-      transmission: 0.82,
+      transmission: enableTransmission ? 0.82 : 0,
       thickness: 0.018,
       ior: 1.46,
     }),
@@ -799,53 +802,6 @@ function ZoneFloor({
   );
 }
 
-/**
- * Dusk gradient dome, vertex-coloured in JS so no texture or shader chunk is
- * needed: lavender-blue zenith down to a warm peach horizon that brightens
- * towards the sun, matching the evening sky in the outdoor moodboard.
- */
-function SkyDome({ sunDirection, hour }: { sunDirection: THREE.Vector3; hour: number }) {
-  const geometry = useMemo(() => {
-    const daylight = Math.sin(THREE.MathUtils.clamp((hour - 6) / 14, 0, 1) * Math.PI);
-    const zenith = new THREE.Color("#273549").lerp(new THREE.Color("#9db7d6"), daylight);
-    const horizon = new THREE.Color("#826b70").lerp(new THREE.Color("#edf1ef"), daylight * 0.86);
-    const haze = new THREE.Color("#424653").lerp(new THREE.Color("#c9d0ce"), daylight);
-    const glow = new THREE.Color("#ff9b52").lerp(new THREE.Color("#fff0cf"), daylight);
-    const sun = sunDirection;
-
-    const sphere = new THREE.SphereGeometry(60, 32, 20);
-    const position = sphere.getAttribute("position");
-    const colors = new Float32Array(position.count * 3);
-    const dir = new THREE.Vector3();
-    const color = new THREE.Color();
-
-    for (let i = 0; i < position.count; i += 1) {
-      dir.fromBufferAttribute(position, i).normalize();
-      const up = dir.y;
-      if (up >= 0) {
-        color.copy(horizon).lerp(zenith, THREE.MathUtils.smoothstep(up, 0, 0.55));
-      } else {
-        color.copy(horizon).lerp(haze, THREE.MathUtils.smoothstep(-up, 0, 0.3));
-      }
-      const towardsSun = Math.max(0, dir.dot(sun));
-      const nearHorizon = 1 - THREE.MathUtils.smoothstep(Math.abs(up), 0, 0.7);
-      color.lerp(glow, Math.pow(towardsSun, 4) * nearHorizon * 0.6);
-      colors[i * 3] = color.r;
-      colors[i * 3 + 1] = color.g;
-      colors[i * 3 + 2] = color.b;
-    }
-
-    sphere.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-    return sphere;
-  }, [hour, sunDirection]);
-
-  return (
-    <mesh geometry={geometry} frustumCulled={false}>
-      <meshBasicMaterial vertexColors side={THREE.BackSide} fog={false} depthWrite={false} />
-    </mesh>
-  );
-}
-
 function GroundSlab({ palette }: { palette: Palette }) {
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
@@ -935,7 +891,7 @@ function SceneContent({
       quality,
     ],
   );
-  const palette = useMemo(() => buildPalette(designMode, textureSet, floorFinish), [designMode, textureSet, floorFinish]);
+  const palette = useMemo(() => buildPalette(designMode, textureSet, floorFinish, false), [designMode, textureSet, floorFinish]);
   useEffect(() => {
     RectAreaLightUniformsLib.init();
   }, []);
@@ -993,79 +949,7 @@ function SceneContent({
 
   return (
     <>
-      <color attach="background" args={[designMode ? sun.sky : "#e5e5ea"]} />
-      <fog attach="fog" args={[designMode ? sun.sky : "#e5e5ea", 25, 49]} />
-      {designMode && <SkyDome sunDirection={sun.direction} hour={sunHour} />}
-
-      {/* A single-frame lightformer probe stands in for an HDRI: warm sun wall
-          to the west, cool sky overhead, sand bounce below. No external asset. */}
-      {designMode && (
-        <Environment key={`${sunHour}-${quality}`} frames={1} resolution={quality === "high" ? 256 : 64}>
-          <color attach="background" args={["#3a3730"]} />
-          <Lightformer form="rect" intensity={0.18 + sun.daylight * 2.8} color={sun.color} scale={[16, 6, 1]} position={sun.position} />
-          <Lightformer form="rect" intensity={0.2 + sun.daylight * 1.15} color="#d9e4ef" scale={[18, 18, 1]} position={[0, 14, 0]} rotation-x={Math.PI / 2} />
-          <Lightformer form="rect" intensity={0.1 + sun.daylight * 0.42} color="#c8b28e" scale={[20, 20, 1]} position={[0, -8, 0]} rotation-x={-Math.PI / 2} />
-          <Lightformer form="rect" intensity={0.4 + sun.daylight * 2} color="#f2f3ed" scale={[5, 3, 1]} position={[0, 2, -7]} rotation-y={Math.PI} />
-        </Environment>
-      )}
-
-      <hemisphereLight args={["#e8edf2", "#c9b99e", designMode ? 0.2 + sun.daylight * 0.9 : 1.1]} />
-      <ambientLight intensity={designMode ? 0.07 + sun.daylight * 0.14 : 0.45} />
-      {designMode && kitchenRoom && (
-        <>
-          <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 3.2} color="#f1f4f6" />
-          <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 4} color="#fff1db" />
-        </>
-      )}
-      <directionalLight
-        position={designMode ? sun.position : [9, 13, 6]}
-        intensity={designMode ? sun.intensity : 2.3}
-        color={designMode ? sun.color : "#fff1dc"}
-        castShadow={quality === "high"}
-        shadow-mapSize-width={quality === "high" ? 4096 : 512}
-        shadow-mapSize-height={quality === "high" ? 4096 : 512}
-        shadow-camera-left={-13}
-        shadow-camera-right={13}
-        shadow-camera-top={13}
-        shadow-camera-bottom={-13}
-        shadow-camera-far={45}
-        shadow-bias={-0.0004}
-        shadow-normalBias={0.03}
-        shadow-radius={quality === "high" ? 3 : 1}
-      />
-      <directionalLight
-        position={designMode ? [9, 6, 7] : [-8, 6, -6]}
-        intensity={designMode ? 0.08 + sun.daylight * 0.38 : 0.55}
-        color={designMode ? "#a9c2e0" : "#ccd8e8"}
-      />
-      {designMode && quality === "high" && (
-        <>
-          <pointLight position={[0, 2.1, 0.2]} intensity={0.5 + sun.practical * 4.5} distance={6} decay={2} color="#ffd1a0" />
-          <pointLight position={[-0.1, 2.1, -4.2]} intensity={0.4 + sun.practical * 3.8} distance={5.5} decay={2} color="#ffd1a0" />
-          {/* Pergola downlight, matching the terrace spots on the moodboard. */}
-          <pointLight position={[-3.9, 2.4, -0.15]} intensity={0.35 + sun.practical * 3.4} distance={5.5} decay={2} color="#ffc58a" />
-        </>
-      )}
-      {designMode && (
-        <>
-          <pointLight position={[-4.0, 1.05, 5.05]} intensity={0.08 + sun.practical * 3.4} distance={3.7} decay={2} color="#ffc27f" />
-          <pointLight position={[4.55, 1.05, 0.4]} intensity={0.08 + sun.practical * 3.0} distance={3.5} decay={2} color="#ffc786" />
-          <pointLight position={[4.55, 1.05, 4.8]} intensity={0.08 + sun.practical * 3.0} distance={3.5} decay={2} color="#ffc786" />
-        </>
-      )}
-      {designMode && (
-        <ContactShadows
-          frames={1}
-          key={`${floorFinish}-${cameraMode}-${selectedZone}-${removedFurniture.join(',')}-${JSON.stringify(furnitureSizes)}`}
-          position={kitchenRoom ? [-0.2, 0.103, -4.0] : [0, 0.103, 0]}
-          scale={kitchenRoom ? 6 : 17}
-          resolution={quality === "high" ? 1024 : 512}
-          blur={quality === "high" ? 2.5 : 2.6}
-          far={2.4}
-          opacity={quality === "high" ? 0.2 : 0.22}
-          color="#62594f"
-        />
-      )}
+      <LightingRig designMode={designMode} quality={quality} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} sun={sun} />
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} />}
       <GroundSlab palette={palette} />
@@ -1209,10 +1093,11 @@ function SceneContent({
 
 export function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
+  const profile = lightingProfiles[quality];
 
   return (
     <Canvas
-      dpr={quality === "high" ? [1, 2] : [0.75, 1.15]}
+      dpr={profile.dpr}
       shadows={quality === "high" ? "soft" : false}
       // The initial camera matches CameraDirector's composed dollhouse view so
       // there is no low-angle flash while controls mount.

@@ -2384,6 +2384,57 @@ body.has-lightbox { overflow: hidden; }
 @media (min-width: 801px) {
   .mobile-only { display: none !important; }
   .desktop-only { display: revert !important; }
+
+  /* Editorial full-screen mood view: preserve the complete photograph and
+     give its thumbnail rail a dedicated column beside it. */
+  .mood-board-stage {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 18px;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .mood-hero {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    background: #d8d3c8;
+  }
+
+  .mood-hero-open,
+  .mood-hero .mood-media,
+  .mood-hero .mood-skeleton { object-fit: contain; }
+
+  .mood-side {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .mood-gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 66px;
+    gap: 10px;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 3px 4px 6px 2px;
+  }
+
+  .mood-thumb { width: 100%; height: 66px; }
+  .mood-finishes-block { flex: 0 0 auto; }
 }
 
 /* ——— 2026 architectural sheet + daylight experience ——— */
@@ -2627,6 +2678,16 @@ body.has-lightbox { overflow: hidden; }
 .measured-view figcaption { position: absolute; left: 16px; bottom: 14px; padding: 7px 10px; background: rgba(40, 48, 43, 0.86); color: #f6f3ea; font-size: 10px; letter-spacing: 0.03em; }
 .source-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; height: 100%; background: var(--line-strong); }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }
+.proof-pane-wrap { position: relative; min-height: 0; display: grid; grid-template-rows: 36px minmax(0, 1fr); }
+.proof-pane-tools { z-index: 2; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--line); background: rgba(248, 245, 237, .94); }
+.proof-pane-tools button { min-width: 26px; height: 25px; padding: 0 7px; border: 1px solid var(--line-strong); border-radius: 6px; background: transparent; color: var(--ink); font-size: 12px; cursor: pointer; }
+.proof-pane-tools button:hover { background: var(--panel); }
+.proof-pane-tools span { min-width: 38px; color: var(--muted); font-size: 10px; text-align: center; font-variant-numeric: tabular-nums; }
+.proof-pane { position: relative; min-height: 0; overflow: hidden; cursor: grab; touch-action: none; background: #d9d5ca; }
+.proof-pane:active { cursor: grabbing; }
+.proof-pane-content { position: absolute; inset: 0; display: grid; place-items: center; transform-origin: center; will-change: transform; }
+.proof-pane-content > .source-proof-media { width: 100%; height: 100%; }
+.proof-pane-content .architect-plan { width: 100%; height: 100%; }
 .source-proof-media { position: relative; min-height: 0; overflow: auto; }
 .source-proof-media.source-scan { background: #d9d5ca; }
 .source-proof-media.source-scan img { object-fit: contain; padding: 18px; }

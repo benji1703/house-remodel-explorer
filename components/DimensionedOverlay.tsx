@@ -1,11 +1,46 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState, type PointerEvent, type ReactNode, type WheelEvent } from "react";
 import { geometryApprovalItems } from "@/data/house";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 
 type OverlayMode = "vector" | "measured" | "proof";
+
+function ProofPane({ children, label }: { children: ReactNode; label: string }) {
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
+  };
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return;
+    setPan({ x: drag.current.panX + event.clientX - drag.current.x, y: drag.current.panY + event.clientY - drag.current.y });
+  };
+  const reset = () => { setZoom(1); setRotation(0); setPan({ x: 0, y: 0 }); };
+  const onWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setZoom((value) => Math.max(0.55, Math.min(4, value * (event.deltaY > 0 ? 0.92 : 1.08))));
+  };
+  return (
+    <div className="proof-pane-wrap">
+      <div className="proof-pane-tools" role="group" aria-label={`${label} alignment controls`}>
+        <button type="button" onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))} aria-label="Zoom out">−</button>
+        <span>{Math.round(zoom * 100)}%</span>
+        <button type="button" onClick={() => setZoom((value) => Math.min(4, value + 0.15))} aria-label="Zoom in">+</button>
+        <button type="button" onClick={() => setRotation((value) => value - 1)} aria-label="Rotate counterclockwise">↶</button>
+        <button type="button" onClick={() => setRotation((value) => value + 1)} aria-label="Rotate clockwise">↷</button>
+        <button type="button" onClick={reset}>Reset</button>
+      </div>
+      <div className="proof-pane" aria-label={`${label}; drag to pan, scroll to zoom`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }} onWheel={onWheel}>
+        <div className="proof-pane-content" style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom}) rotate(${rotation}deg)` }}>{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export function DimensionedOverlay() {
   const [mode, setMode] = useState<OverlayMode>("vector");
@@ -63,13 +98,17 @@ export function DimensionedOverlay() {
           {mode === "proof" && (
             <div className="source-proof-grid">
               <figure>
+                <ProofPane label="Original field drawing">
                 <div className="source-proof-media source-scan">
                   <Image src="/references/measured-plan.jpeg" alt="Original photographed measured plan" fill sizes="(max-width: 800px) 100vw, 42vw" unoptimized />
                 </div>
+                </ProofPane>
                 <figcaption><b>01</b> Original field drawing</figcaption>
               </figure>
               <figure>
+                <ProofPane label="AI-assisted SVG reconstruction">
                 <div className="source-proof-media source-svg"><ArchitecturalPlan idPrefix="proof" /></div>
+                </ProofPane>
                 <figcaption><b>02</b> AI-assisted SVG reconstruction</figcaption>
               </figure>
             </div>

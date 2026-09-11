@@ -71,7 +71,7 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, kitc
       )}
       <hemisphereLight args={["#e8edf2", "#c9b99e", designMode ? 0.2 + sun.daylight * 0.9 : 1.1]} />
       <ambientLight intensity={designMode ? 0.07 + sun.daylight * 0.14 : 0.45} />
-      {designMode && kitchenRoom && <>
+      {localLights && kitchenRoom && <>
         <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 3.2} color="#f1f4f6" />
         <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 4} color="#fff1db" />
       </>}

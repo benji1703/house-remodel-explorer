@@ -1,5 +1,6 @@
 "use client";
 
+import { dampSceneValue } from "@/lib/dampSceneValue";
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
@@ -238,13 +239,14 @@ export function BelgianDoor({
   const leafRef = useRef<THREE.Group>(null);
   const rotY = -swing * ajar;
 
-  useFrame((_state, delta) => {
+  useFrame(({ invalidate }, delta) => {
     if (!leafRef.current) return;
-    leafRef.current.rotation.y = THREE.MathUtils.damp(
+    leafRef.current.rotation.y = dampSceneValue(
       leafRef.current.rotation.y,
       open ? rotY : 0,
       7.5,
       delta,
+      invalidate,
     );
   });
 
@@ -368,13 +370,14 @@ export function SlidingDoor({
   const handleZ = face * (DOOR_LEAF_THICK / 2 + 0.008);
   const leafRef = useRef<THREE.Group>(null);
 
-  useFrame((_state, delta) => {
+  useFrame(({ invalidate }, delta) => {
     if (!leafRef.current) return;
-    leafRef.current.position.x = THREE.MathUtils.damp(
+    leafRef.current.position.x = dampSceneValue(
       leafRef.current.position.x,
       closedX + (isOpen ? travel : 0),
       8,
       delta,
+      invalidate,
     );
   });
 
@@ -441,7 +444,7 @@ export function BelgianTerraceDoors({
   const extFace = -(wallThickness / 2) - 0.01;
   const leavesRef = useRef<Array<THREE.Group | null>>([]);
 
-  useFrame((_state, delta) => {
+  useFrame(({ invalidate }, delta) => {
     leavesRef.current.forEach((leaf, index) => {
       if (!leaf) return;
       const closedX = -width / 2 + leafW * (index + 0.5);
@@ -450,7 +453,7 @@ export function BelgianTerraceDoors({
       const openX = left
         ? -width / 2 + leafW * (0.35 + stackIndex * 0.18)
         : width / 2 - leafW * (0.35 + stackIndex * 0.18);
-      leaf.position.x = THREE.MathUtils.damp(leaf.position.x, open ? openX : closedX, 7, delta);
+      leaf.position.x = dampSceneValue(leaf.position.x, open ? openX : closedX, 7, delta, invalidate);
     });
   });
   return (

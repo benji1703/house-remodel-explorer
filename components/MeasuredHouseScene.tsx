@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls, useTexture } from "@react-three/drei";
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
@@ -23,6 +23,7 @@ import { OpeningOnWall } from "./rooms/Openings";
 import type { FurnitureEditingState } from "./rooms/EditableFurniture";
 import { MediterraneanLandscape } from "./rooms/LuxuryDetails";
 import { LightingRig } from "./scene/LightingRig";
+import { dampSceneValue } from "@/lib/dampSceneValue";
 import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
@@ -151,7 +152,7 @@ function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<Orb
     };
     canvas.addEventListener("keydown", onKeyDown);
     return () => canvas.removeEventListener("keydown", onKeyDown);
-  }, [controlsRef, gl]);
+  }, [camera, controlsRef, gl]);
   return null;
 }
 
@@ -760,14 +761,14 @@ function WallRun({
     return () => displayMaterial.dispose();
   }, [displayMaterial, material]);
 
-  useFrame(({ camera }, delta) => {
+  useFrame(({ camera, invalidate }, delta) => {
     if (!focusZone || displayMaterial === material) return;
     const firstMesh = groupRef.current?.children.find((object): object is THREE.Mesh => object instanceof THREE.Mesh);
     const activeMaterial = firstMesh?.material;
     if (!(activeMaterial instanceof THREE.Material)) return;
     const cameraPlan: PlanPoint = [camera.position.x + CX, camera.position.z + CZ];
     const obstructed = wallObstructsZone(a, b, cameraPlan, focusZone);
-    activeMaterial.opacity = THREE.MathUtils.damp(activeMaterial.opacity, obstructed ? 0.055 : 1, 12, delta);
+    activeMaterial.opacity = dampSceneValue(activeMaterial.opacity, obstructed ? 0.055 : 1, 12, delta, invalidate);
     const transparent = activeMaterial.opacity < 0.999;
     if (activeMaterial.transparent !== transparent) {
       activeMaterial.transparent = transparent;
@@ -949,6 +950,14 @@ function GroundSlab({ palette }: { palette: Palette }) {
   return (
     <mesh geometry={geometry} rotation-x={Math.PI / 2} position-y={0.002} material={palette.ground} receiveShadow />
   );
+}
+
+/** Mount on first visit, then retain GPU resources during camera navigation. */
+function ResidentRoom({ visible, children }: { visible: boolean; children: ReactNode }) {
+  const [visited, setVisited] = useState(visible);
+  if (visible && !visited) setVisited(true);
+  if (!visible && !visited) return null;
+  return <group visible={visible}>{children}</group>;
 }
 
 function SceneContent({
@@ -1166,31 +1175,32 @@ function SceneContent({
         }),
       )}
 
+      {/* Retain room GPU resources between views; hidden groups submit no draws. */}
       {designMode && (
         <>
-          {(cameraMode !== "room" || selectedZone === "central-core") && <Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} />}
-          {(cameraMode !== "room" || selectedZone === "southwest-room") && <MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} />}
-          {(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core") && (
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core")}><Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}><MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core")}>
             <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} appliances={kitchenAppliances} onToggleAppliance={onToggleKitchenAppliance} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension") && (
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension")}>
             <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "southwest-room") && (
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}>
             <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "east-upper-room") && (
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-upper-room")}>
             <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "east-lower-room") && (
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-lower-room")}>
             <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "service-core") && (
-            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room"} />
-          )}
-          {(cameraMode !== "room" || selectedZone === "ensuite") && (
-            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room"} />
-          )}
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "service-core")}>
+            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} />
+          </ResidentRoom>
+          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
+            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} />
+          </ResidentRoom>
         </>
       )}
 
@@ -1231,12 +1241,13 @@ export function MeasuredHouseScene(props: Props) {
 
   return (
     <Canvas
+      frameloop="demand"
       dpr={profile.dpr}
       shadows={quality === "high" ? "soft" : false}
       // The initial camera matches CameraDirector's composed dollhouse view so
       // there is no low-angle flash while controls mount.
       camera={{ position: [-13.8, 16.4, -10.4], fov: 36, near: 0.1, far: 200 }}
-      gl={{ antialias: quality === "high", powerPreference: "high-performance", alpha: false }}
+      gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
       performance={{ min: quality === "high" ? 0.7 : 0.5 }}
       onCreated={({ gl }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;

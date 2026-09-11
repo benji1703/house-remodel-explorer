@@ -1,4 +1,5 @@
 "use client";
+import { dampSceneValue } from "@/lib/dampSceneValue";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -164,10 +165,10 @@ function BuiltInOven({ base, x, z }: { base: number; x: number; z: number }) {
 function IntegratedDishwasher({ base, palette, x, z, open, onToggle }: { base: number; palette: Palette; x: number; z: number; open: boolean; onToggle: () => void }) {
   const doorRef = useRef<THREE.Group>(null);
 
-  useFrame((_state, delta) => {
+  useFrame(({ invalidate }, delta) => {
     if (!doorRef.current) return;
     const target = open ? Math.PI * 0.43 : 0;
-    doorRef.current.rotation.x = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? target : THREE.MathUtils.damp(doorRef.current.rotation.x, target, 9, delta);
+    doorRef.current.rotation.x = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? target : dampSceneValue(doorRef.current.rotation.x, target, 9, delta, invalidate);
   });
 
   return (
@@ -277,13 +278,14 @@ function IntegratedFridge({ base, palette, x, z, open, onToggle }: { base: numbe
   const { d, h } = FURN.fridge;
   const w = 0.9;
 
-  useFrame((_state, delta) => {
+  useFrame(({ invalidate }, delta) => {
     if (!doorRef.current) return;
-    doorRef.current.rotation.y = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? (open ? -Math.PI * 0.48 : 0) : THREE.MathUtils.damp(
+    doorRef.current.rotation.y = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? (open ? -Math.PI * 0.48 : 0) : dampSceneValue(
       doorRef.current.rotation.y,
       open ? -Math.PI * 0.48 : 0,
       10,
       delta,
+      invalidate,
     );
   });
 

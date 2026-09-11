@@ -202,7 +202,8 @@ export function HouseExplorer() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      const isSmall = window.matchMedia("(max-width: 800px)").matches;
+      const isSmall = window.matchMedia("(max-width: 800px)").matches
+        || window.matchMedia("(pointer: coarse)").matches;
       const saveData =
         "connection" in navigator &&
         Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);

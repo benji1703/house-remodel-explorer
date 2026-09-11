@@ -1176,8 +1176,12 @@ button { color: inherit; }
   min-height: clamp(320px, 42vh, 520px);
   aspect-ratio: 16 / 9;
   width: 100%;
-  background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
-  box-shadow: 0 16px 38px rgba(36, 43, 39, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  background:
+    radial-gradient(circle at 15% 8%, rgba(255, 250, 239, 0.86), transparent 38%),
+    radial-gradient(circle at 92% 94%, rgba(164, 132, 94, 0.2), transparent 46%),
+    linear-gradient(135deg, #eee5d7 0%, #ddcfbb 52%, #cdbba2 100%);
+  background-color: #dfd1bd;
+  box-shadow: 0 16px 38px rgba(85, 63, 42, 0.16), inset 0 1px 0 rgba(255, 252, 244, 0.88);
 }
 
 .mood-hero-open {
@@ -2407,13 +2411,21 @@ body.has-lightbox { overflow: hidden; }
     height: 100%;
     min-height: 0;
     aspect-ratio: auto;
-    background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
-    border: 1px solid rgba(43, 52, 47, 0.12);
-    box-shadow: 0 18px 44px rgba(36, 43, 39, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255, 250, 239, 0.86), transparent 38%),
+      radial-gradient(circle at 92% 94%, rgba(164, 132, 94, 0.2), transparent 46%),
+      linear-gradient(135deg, #eee5d7 0%, #ddcfbb 52%, #cdbba2 100%);
+    background-color: #dfd1bd;
+    border: 1px solid rgba(116, 91, 61, 0.2);
+    box-shadow: 0 18px 44px rgba(85, 63, 42, 0.2), inset 0 1px 0 rgba(255, 252, 244, 0.9);
+    backdrop-filter: blur(18px) saturate(112%);
+    -webkit-backdrop-filter: blur(18px) saturate(112%);
   }
 
   .mood-hero .mood-skeleton {
-    background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255, 250, 239, 0.86), transparent 38%),
+      linear-gradient(135deg, #eee5d7 0%, #ddcfbb 52%, #cdbba2 100%);
   }
 
   .mood-hero-open,

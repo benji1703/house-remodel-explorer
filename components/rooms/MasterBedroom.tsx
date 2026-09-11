@@ -22,7 +22,8 @@ export function MasterBedroom({
 }) {
   return (
     <group>
-      <BedroomRug base={base} x={1.7} z={10.78} w={2.72} d={2.74} />
+      {/* South edge at 11.98 m stays inside the 12.00 m finished wall face. */}
+      <BedroomRug base={base} x={1.7} z={10.61} w={2.72} d={2.74} />
       {/* Queen centred on width; head against south wall. */}
       <EditableFurniture id="master-bed" editing={furnitureEditing} x={1.7} z={10.95} base={base}>
         <QueenBed base={base} palette={palette} x={1.7} z={10.95} along="z" headToward="+" />

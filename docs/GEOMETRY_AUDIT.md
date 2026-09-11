@@ -105,3 +105,22 @@ Construction documentation still needs elevations and on-site verification; the 
 ## Acceptance rule
 
 No detailed 3D asset, furniture plan, kitchen layout, opening, or appliance placement is considered dimensionally correct until it derives from the approved master overlay.
+
+## Kitchen rendering repair — 2026-09-09
+
+- Existing measured footprint and opening positions/widths are unchanged; checked against the master overlay's 420 × 380 cm north bay.
+- Kitchen window sill/head now include the existing 10 cm world floor elevation. The approved 95/220 cm heights remain relative to finished floor; previously the worktop hid the bottom of the frame.
+- Room wall display uses the accepted 250 cm finished height; the overview keeps its existing dollhouse section.
+- Remodel joinery is constrained to the existing inner wall faces: west x = 350 cm, east x = 750 cm, north z = 10 cm. The refrigerator moves 5 cm inward; the end unit and continuous worktop stop before the east face.
+- The new worktop uses real sink/hob cutouts. Cabinet depths, island position and circulation remain the existing remodel intent. These are visualization repairs, not construction approval or a new measured furniture survey.
+- Sand microtopping is an optional finish throughout dry rooms; limewash and microtopping maps use independent pigment, fine relief and roughness, aligned at consistent physical scales.
+
+## Whole-house visual repair — 2026-09-10
+
+- Reviewed all seven room viewpoints and the house overview in the local browser. Corrected the guest-bedroom camera that started behind the TV/wardrobe; widened room framing and backed the bathroom cameras away from fixtures.
+- No measured footprint, wall run, opening position/width or floor level changed in this pass. Bathroom mirrors remain on their existing side walls so they do not cover the south windows. Furniture remains remodel visualization, not surveyed construction detail.
+- Wall-mounted screens, mirrors, curtains and the affected built-ins hide their backs when viewed through a cutaway; furniture selection outlines only appear with the furniture editor open.
+- Repaired existing bedding/curtain meshes with draped surfaces, fine weave and rounded pillows; sanitaryware now has hollow ceramic profiles and basin-centred tap outlets. Pendant cords terminate at the existing 250 cm finished-ceiling datum.
+- Replaced exaggerated, joint-painted joinery grain with a seamless restrained oak texture. Kitchen cabinetry has its own warmer natural-oak material at the owner's request; pale worktops, walls and sand floors are unaffected by that colour change.
+- Patio furniture/plants now meet the existing 8 cm terrace and 6 cm master-deck tops. Replaced faceted tree crowns with instanced leaves and polygonal groundcover with existing foliage assets, without relocating landscaping. Exterior dressing remains non-surveyed design intent.
+- Planar bathroom reflections are limited to full-detail room views; the lighter profile and overview use environment reflections. This is a real-time visual improvement, not a claim of a photographic as-built match; exact existing finishes and exterior surroundings still need site photography.

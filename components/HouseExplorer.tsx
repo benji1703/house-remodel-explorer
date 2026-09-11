@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { lazy, Suspense, startTransition, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
+import { lazy, Suspense, startTransition, useCallback, useEffect, useRef, useState, useTransition, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
 import {
-  furnitureById,
   furnitureCatalog,
   furnitureDimensions,
   type FurnitureDimensions,
@@ -14,7 +13,12 @@ import {
 } from "@/data/furniture";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { site } from "@/data/site";
-import { gsap, motionEase, motionEaseIn, useGSAP } from "@/lib/gsap";
+import { kitchenViews, type KitchenView, type FloorFinish } from "@/data/kitchen";
+import { FURNITURE_STORAGE_KEY, parseFurnitureLayout } from "@/lib/furnitureLayout";
+import { usePanelFocus } from "@/lib/usePanelFocus";
+import { RoomDirectory } from "./RoomDirectory";
+import { SceneBoundary } from "./SceneBoundary";
+import { Compass, type CompassHandle } from "./Compass";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MaterialsBoard, MoodTextureStrip } from "./MaterialsBoard";
@@ -27,6 +31,18 @@ const MeasuredHouseScene = lazy(() =>
 );
 
 type View = "model" | "plan" | "references" | "materials";
+type CameraMode = "overview" | "room" | "plan";
+
+function supportsWebGL() {
+  try {
+    const context = document.createElement("canvas").getContext("webgl2");
+    const supported = Boolean(context);
+    context?.getExtension("WEBGL_lose_context")?.loseContext();
+    return supported;
+  } catch {
+    return false;
+  }
+}
 
 const Icon = ({ name }: { name: "close" | "chevron" }) => {
   const paths = {
@@ -60,8 +76,6 @@ const isView = (value: string | null): value is View =>
 const isZoneId = (value: string | null): value is ZoneId =>
   house.zones.some((zone) => zone.id === value);
 
-const FURNITURE_STORAGE_KEY = "villa-nehama:furniture-layout:v1";
-
 const zoneFromMood = (id: MoodBoardId): ZoneId =>
   id === "terrace" || id === "openings" ? "central-core" : id;
 
@@ -74,7 +88,11 @@ export function HouseExplorer() {
   const zoneParam = searchParams.get("zone");
   const moodParam = searchParams.get("mood");
   const view: View = isView(viewParam) ? viewParam : "model";
+  const cameraParam = searchParams.get("camera");
+  const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan"
+    ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
   const selectedZone: ZoneId = isZoneId(zoneParam) ? zoneParam : "north-extension";
+  const floorFinish: FloorFinish = searchParams.get("floor") === "sand-microtopping" ? "sand-microtopping" : "oak";
   const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
     ? moodParam
     : isMoodBoardId(zoneParam)
@@ -82,11 +100,13 @@ export function HouseExplorer() {
       : "central-core";
 
   const navigate = (
-    next: { view?: View; zone?: ZoneId; mood?: MoodBoardId },
+    next: { view?: View; zone?: ZoneId; mood?: MoodBoardId; floor?: FloorFinish; camera?: CameraMode },
     mode: "push" | "replace" = "push",
   ) => {
     const params = new URLSearchParams(searchParams.toString());
+    if (next.floor) params.set("floor", next.floor);
     params.set("view", next.view ?? view);
+    params.set("camera", next.camera ?? cameraMode);
     if (next.mood) {
       params.set("mood", next.mood);
       params.set("zone", zoneFromMood(next.mood));
@@ -103,13 +123,16 @@ export function HouseExplorer() {
   const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   const [showMeasurements, setShowMeasurements] = useState(false);
-  const [cameraAzimuth, setCameraAzimuth] = useState(0);
+  const compassRef = useRef<CompassHandle>(null);
+  const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
   // Open on a curated late-afternoon presentation light; the controls still
   // offer local time for daylight studies.
   const [sunHour, setSunHour] = useState(16.75);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
-  const [cameraMode, setCameraMode] = useState<"overview" | "room" | "plan">("overview");
+  const [kitchenView, setKitchenView] = useState<KitchenView>("entrance");
+  const [kitchenAppliances, setKitchenAppliances] = useState({ fridge: false, dishwasher: false });
+  const toggleKitchenAppliance = (id: "fridge" | "dishwasher") => setKitchenAppliances((previous) => ({ ...previous, [id]: !previous[id] }));
   const [cameraRevision, setCameraRevision] = useState(0);
   const [furnitureSizes, setFurnitureSizes] = useState<FurnitureSizeOverrides>({});
   const [removedFurniture, setRemovedFurniture] = useState<FurnitureId[]>([]);
@@ -123,32 +146,32 @@ export function HouseExplorer() {
   const [experienceOpen, setExperienceOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [refsPending, startRefsTransition] = useTransition();
-  const shellRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLElement>(null);
   const moodHeroButtonRef = useRef<HTMLButtonElement>(null);
   const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
   const moodLightboxCloseRef = useRef<HTMLButtonElement>(null);
-  const scrimRef = useRef<HTMLButtonElement>(null);
-  const sheetWasOpen = useRef(false);
+  const experienceRef = useRef<HTMLElement>(null);
+  const furnitureRef = useRef<HTMLElement>(null);
+
+  usePanelFocus(detailRef, compact && sheetOpen, () => setSheetOpen(false), true);
+  usePanelFocus(experienceRef, experienceOpen, () => setExperienceOpen(false), compact);
+  usePanelFocus(furnitureRef, furnitureEditorOpen, () => setFurnitureEditorOpen(false), compact);
+
+  const handleSceneUnavailable = useCallback(() => {
+    setWebglSupport(false);
+    setExperienceOpen(false);
+    setFurnitureEditorOpen(false);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
         const saved = window.localStorage.getItem(FURNITURE_STORAGE_KEY);
         if (saved) {
-          const parsed = JSON.parse(saved) as {
-            sizes?: FurnitureSizeOverrides;
-            removedIds?: string[];
-          };
-          if (parsed.sizes && typeof parsed.sizes === "object") setFurnitureSizes(parsed.sizes);
-          if (Array.isArray(parsed.removedIds)) {
-            setRemovedFurniture(
-              parsed.removedIds.filter((id): id is FurnitureId =>
-                furnitureCatalog.some((item) => item.id === id),
-              ),
-            );
-          }
+          const parsed = parseFurnitureLayout(JSON.parse(saved));
+          setFurnitureSizes(parsed.sizes);
+          setRemovedFurniture(parsed.removedIds);
         }
       } catch {
         // Ignore malformed or unavailable browser storage and retain defaults.
@@ -178,8 +201,7 @@ export function HouseExplorer() {
         "connection" in navigator &&
         Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
       if (isSmall || saveData) setQuality("light");
-      const canvas = document.createElement("canvas");
-      setWebglSupport(Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl")));
+      setWebglSupport(supportsWebGL());
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -191,15 +213,6 @@ export function HouseExplorer() {
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
-
-  useEffect(() => {
-    if (!sheetOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSheetOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sheetOpen]);
 
   const active = house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0];
   const activeZoneIndex = Math.max(0, house.zones.findIndex((zone) => zone.id === active.id));
@@ -226,7 +239,6 @@ export function HouseExplorer() {
     setDoorStates((current) => ({ ...current, [id]: !(current[id] ?? allDoorsOpen) }));
   };
 
-  const selectedFurniture = furnitureById[selectedFurnitureId];
   const selectedFurnitureSize = furnitureDimensions(selectedFurnitureId, furnitureSizes);
 
   const updateFurnitureDimension = (key: keyof FurnitureDimensions, value: number) => {
@@ -358,13 +370,12 @@ export function HouseExplorer() {
 
   useEffect(() => {
     if (view !== "references") return;
-    const current = activeMood.images.map((image) => image.src);
     const neighbors = [
       activeMood.images[(moodImageIndex + 1) % moodImageCount]?.src,
       activeMood.images[(moodImageIndex - 1 + moodImageCount) % moodImageCount]?.src,
     ].filter(Boolean) as string[];
     const boardCovers = roomMoodBoards.map((board) => board.images[0]?.src).filter(Boolean) as string[];
-    prefetchMoodSrcs([...current, ...neighbors, ...boardCovers]);
+    prefetchMoodSrcs([...neighbors, ...boardCovers]);
   }, [view, activeMood, moodImageIndex, moodImageCount]);
 
   useEffect(() => {
@@ -417,56 +428,6 @@ export function HouseExplorer() {
     stepMoodImage(dx < 0 ? 1 : -1);
   };
 
-  useGSAP(
-    () => {
-      const media = gsap.matchMedia();
-      media.add("(max-width: 800px) and (prefers-reduced-motion: no-preference)", () => {
-        const detail = detailRef.current;
-        const scrim = scrimRef.current;
-        if (!detail) return;
-        const wasOpen = sheetWasOpen.current;
-        sheetWasOpen.current = sheetOpen;
-
-        if (sheetOpen) {
-          gsap.set(detail, { display: "flex", pointerEvents: "auto" });
-          gsap.set(scrim, { pointerEvents: "auto" });
-          gsap.fromTo(scrim, { opacity: 0 }, { opacity: 1, duration: 0.28, ease: motionEase, overwrite: "auto" });
-          gsap.fromTo(
-            detail,
-            { yPercent: 108 },
-            { yPercent: 0, duration: 0.5, ease: motionEase, overwrite: "auto" },
-          );
-          return;
-        }
-
-        gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
-        gsap.set(detail, { yPercent: 108, pointerEvents: "none" });
-        if (!wasOpen) return;
-
-        gsap.to(scrim, {
-          opacity: 0,
-          duration: 0.22,
-          ease: motionEaseIn,
-          overwrite: "auto",
-        });
-        gsap.fromTo(
-          detail,
-          { yPercent: 0, pointerEvents: "none" },
-          { yPercent: 108, duration: 0.38, ease: motionEaseIn, overwrite: "auto" },
-        );
-      });
-      media.add("(max-width: 800px) and (prefers-reduced-motion: reduce)", () => {
-        const detail = detailRef.current;
-        const scrim = scrimRef.current;
-        sheetWasOpen.current = sheetOpen;
-        if (!detail) return;
-        gsap.set(detail, { clearProps: "transform,y,yPercent", pointerEvents: sheetOpen ? "auto" : "none" });
-        gsap.set(scrim, { opacity: sheetOpen ? 1 : 0, pointerEvents: sheetOpen ? "auto" : "none" });
-      });
-    },
-    { scope: shellRef, dependencies: [sheetOpen, compact, view] },
-  );
-
   const selectMoodBoard = (id: MoodBoardId) => {
     startRefsTransition(() => {
       navigate({ view: "references", mood: id }, "replace");
@@ -480,7 +441,7 @@ export function HouseExplorer() {
   };
 
   const returnToHouse = () => {
-    setCameraMode("overview");
+    navigate({ view: "model", camera: "overview" }, "replace");
     setCameraRevision((revision) => revision + 1);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
@@ -491,24 +452,32 @@ export function HouseExplorer() {
     setSheetOpen(false);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
-    sheetWasOpen.current = false;
-    // Kill any leftover sheet transforms so the tab bar stays tappable.
-    const detail = detailRef.current;
-    const scrim = scrimRef.current;
-    if (detail && compact) {
-      gsap.killTweensOf(detail);
-      gsap.set(detail, { yPercent: 108, pointerEvents: "none", clearProps: "transform,y" });
+    if (next === "model") {
+      returnToHouse();
+      return;
     }
-    if (scrim) {
-      gsap.killTweensOf(scrim);
-      gsap.set(scrim, { opacity: 0, pointerEvents: "none" });
-    }
-    // The House tab doubles as a reliable reset from every room camera, even
-    // when the user is already in the 3D view.
-    if (next === "model") returnToHouse();
     if (next === view) return;
     navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next }, "replace");
   };
+
+  const selectRoom = (id: ZoneId) => {
+    setSheetOpen(false);
+    setExperienceOpen(false);
+    setFurnitureEditorOpen(false);
+    setCameraRevision((revision) => revision + 1);
+    navigate({ view: "model", zone: id, camera: "room" }, "replace");
+  };
+
+  const planFallback = (
+    <div className="webgl-fallback">
+      <div className="fallback-notice" role="status">
+        <strong>The house, in plan.</strong>
+        <p>3D is unavailable here. You can still explore every room and its finishes.</p>
+        <button type="button" onClick={() => setWebglSupport(supportsWebGL())}>Try 3D again</button>
+      </div>
+      <ArchitecturalPlan selected={cameraMode === "room" ? selectedZone : undefined} onSelect={selectRoom} interactive idPrefix="fallback" />
+    </div>
+  );
 
   const detailPanel = view === "references" ? (
     <>
@@ -526,20 +495,26 @@ export function HouseExplorer() {
         className="detail-cta"
         aria-label={`Open ${activeMood.label} in the house model`}
         onClick={() => {
-          setSheetOpen(false);
-          setCameraMode("room");
-          setCameraRevision((revision) => revision + 1);
-          navigate({ view: "model", zone: zoneFromMood(activeMood.id) });
+          selectRoom(zoneFromMood(activeMood.id));
         }}
       >
         <span className="detail-thumb">
           <Image src={heroMoodImage.src} alt="" fill sizes="64px" unoptimized />
         </span>
         <span>
-          <small>House</small>
-          Walk {activeMood.label}
+          <small>Explore in 3D</small>
+          View {activeMood.label}
         </span>
       </button>
+    </>
+  ) : cameraMode !== "room" ? (
+    <>
+      <p className="detail-kicker">A home, reimagined</p>
+      <h2>Warm materials.<br />Room to live.</h2>
+      <p className="detail-copy">Explore Villa Nehama, from the whole-house plan to the light, finishes and details of each room.</p>
+      <RoomDirectory onSelect={selectRoom} />
+      <p className="detail-note">A remodel study based on the measured drawing. Furnishings and finishes show design intent.</p>
+      <button type="button" className="overview-plan-link" onClick={() => goToView("plan")}>View the measured plan <span aria-hidden="true">↗</span></button>
     </>
   ) : (
     <>
@@ -592,17 +567,18 @@ export function HouseExplorer() {
           />
         </span>
         <span>
-          <small>Materials</small>
+          <small>Mood references</small>
           {active.label} palette
         </span>
       </button>
+      <RoomDirectory selected={selectedZone} onSelect={selectRoom} />
     </>
   );
 
   return (
-    <main ref={shellRef} className={sheetOpen ? "shell is-sheet-open has-motion" : "shell has-motion"}>
+    <main className={sheetOpen ? "shell is-sheet-open" : "shell"}>
       <header className="app-bar">
-        <a className="logo" href="#top" aria-label={`${site.name} home`}>
+<a className="logo" href="#top" aria-label={`${site.name} home`} onClick={(event) => { event.preventDefault(); goToView("model"); }}>
           <FootprintMark />
           <span className="logo-text">
             <span className="logo-mark">{site.wordmark.primary}</span>
@@ -629,10 +605,11 @@ export function HouseExplorer() {
             <button
               type="button"
               className="ghost-button"
+              aria-label="Use lighter rendering"
               aria-pressed={quality === "light"}
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Use faster load" : "Use full detail"}
+              {quality === "high" ? "Detail: High" : "Detail: Light"}
             </button>
           )}
         </div>
@@ -648,28 +625,29 @@ export function HouseExplorer() {
             <>
               <div className="three-stage">
                 {webglSupport === true && (
-                  <Suspense fallback={<div className="model-loading">Settling the house…</div>}>
+                  <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
+                  <Suspense fallback={<div className="model-loading" role="status">Opening your house…</div>}>
                     <MeasuredHouseScene
                       selectedZone={selectedZone}
-                      onSelectZone={(id) => {
-                        setCameraMode("room");
-                        setCameraRevision((revision) => revision + 1);
-                        setExperienceOpen(false);
-                        navigate({ zone: id }, "replace");
-                      }}
+                      onSelectZone={selectRoom}
+                      onUnavailable={handleSceneUnavailable}
                       designMode={designMode}
                       quality={quality}
                       showMeasurements={showMeasurements}
-                      onCameraAzimuth={setCameraAzimuth}
+                      onCameraAzimuth={updateCompass}
                       sunHour={sunHour}
                       allDoorsOpen={allDoorsOpen}
                       doorStates={doorStates}
                       onToggleDoor={toggleDoor}
                       cameraMode={cameraMode}
                       cameraRevision={cameraRevision}
+                      kitchenView={kitchenView}
+                      floorFinish={floorFinish}
+                      kitchenAppliances={kitchenAppliances}
+                      onToggleKitchenAppliance={toggleKitchenAppliance}
                       furnitureSizes={furnitureSizes}
                       removedFurniture={removedFurniture}
-                      selectedFurnitureId={selectedFurnitureId}
+                      selectedFurnitureId={furnitureEditorOpen ? selectedFurnitureId : undefined}
                       onSelectFurniture={(id) => {
                         setSelectedFurnitureId(id);
                         if (!compact) setFurnitureEditorOpen(true);
@@ -677,22 +655,13 @@ export function HouseExplorer() {
                       }}
                     />
                   </Suspense>
+                  </SceneBoundary>
                 )}
-                {webglSupport === false && (
-                  <div className="webgl-fallback">
-                    <ArchitecturalPlan
-                      selected={selectedZone}
-                      onSelect={(id) => navigate({ zone: id }, "replace")}
-                      interactive
-                      idPrefix="fallback"
-                    />
-                    <p>Plan only — WebGL unavailable</p>
-                  </div>
-                )}
-                {webglSupport === null && <div className="model-loading">Settling the house…</div>}
+                {webglSupport === false && planFallback}
+                {webglSupport === null && <div className="model-loading" role="status">Opening your house…</div>}
               </div>
 
-              <div className="stage-toolbar" role="group" aria-label="Model controls">
+              <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">
                 <div className="segmented">
                   <button
                     type="button"
@@ -718,7 +687,7 @@ export function HouseExplorer() {
                       className={furnitureEditorOpen ? "toolbar-chip desktop-model-control is-active" : "toolbar-chip desktop-model-control"}
                       aria-expanded={furnitureEditorOpen}
                       aria-controls="furniture-editor"
-                      onClick={() => setFurnitureEditorOpen((value) => !value)}
+                      onClick={() => { setExperienceOpen(false); setFurnitureEditorOpen((value) => !value); }}
                     >
                       Furniture
                     </button>
@@ -758,7 +727,7 @@ export function HouseExplorer() {
               />
 
               {webglSupport === true && furnitureEditorOpen && (
-                <aside className="furniture-editor" id="furniture-editor" aria-label="Furniture sizing editor">
+                <aside ref={furnitureRef} className="furniture-editor" id="furniture-editor" aria-label="Furniture sizing editor">
                   <div className="furniture-editor-head">
                     <div>
                       <p>Model schedule</p>
@@ -777,11 +746,6 @@ export function HouseExplorer() {
                       ))}
                     </select>
                   </label>
-
-                  <div className="furniture-uuid">
-                    <span>Stable UUID</span>
-                    <code>{selectedFurniture.uuid}</code>
-                  </div>
 
                   <div className="furniture-dimensions">
                     {([
@@ -825,6 +789,7 @@ export function HouseExplorer() {
 
               {webglSupport === true && (
                 <section
+                  ref={experienceRef}
                   className={experienceOpen ? "experience-dock is-open" : "experience-dock"}
                   id="experience-controls"
                   aria-label="Daylight, door, and camera controls"
@@ -841,7 +806,7 @@ export function HouseExplorer() {
                       <button type="button" onClick={useLocalTime}>Local now</button>
                       <button
                         type="button"
-                        className="experience-close mobile-only"
+                        className="experience-close"
                         aria-label="Close controls"
                         onClick={() => setExperienceOpen(false)}
                       >
@@ -883,7 +848,7 @@ export function HouseExplorer() {
                     </div>
                   </div>
                   <div className="camera-control">
-                    <span><b>Camera</b><small>Smooth architectural views</small></span>
+                    <span><b>Camera</b><small>Choose a viewpoint</small></span>
                     <div className="camera-control-buttons" role="group" aria-label="Camera view">
                       {(["overview", "room", "plan"] as const).map((mode) => (
                         <button
@@ -896,7 +861,7 @@ export function HouseExplorer() {
                               returnToHouse();
                               return;
                             }
-                            setCameraMode(mode);
+                            navigate({ camera: mode }, "replace");
                             setCameraRevision((revision) => revision + 1);
                           }}
                         >
@@ -905,6 +870,18 @@ export function HouseExplorer() {
                       ))}
                     </div>
                   </div>
+                  <fieldset className="finish-control">
+                    <legend>Floor finish</legend>
+                    <div className="finish-options">
+                      {([['oak', 'Oak parquet'], ['sand-microtopping', 'Sand microtopping']] as const).map(([id, label]) => (
+                        <button key={id} type="button" aria-pressed={floorFinish === id} onClick={() => navigate({ floor: id }, "replace")}>
+                          <span className={`finish-swatch is-${id}`} aria-hidden="true" />
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p>Continuous finish throughout the dry rooms.</p>
+                  </fieldset>
                   <div className="mobile-model-actions mobile-only">
                     <button
                       type="button"
@@ -923,11 +900,10 @@ export function HouseExplorer() {
                       {showMeasurements ? "Hide dimensions" : "Show dimensions"}
                     </button>
                   </div>
-                  <p className="daylight-note">Illustrative solar study · plan north, not surveyed true north</p>
                 </section>
               )}
 
-              {cameraMode === "room" && (
+              {cameraMode !== "overview" && webglSupport === true && (
                 <button
                   type="button"
                   className="return-house-button"
@@ -937,6 +913,16 @@ export function HouseExplorer() {
                   <FootprintMark />
                   <span>Back to house</span>
                 </button>
+              )}
+              {cameraMode === "room" && selectedZone === "north-extension" && webglSupport === true && (
+                <div className="kitchen-view-strip" role="group" aria-label="Kitchen viewpoints">
+                  {kitchenViews.map((shot, index) => (
+                    <button key={shot.id} type="button" aria-pressed={kitchenView === shot.id} onClick={() => {
+                      setKitchenView(shot.id);
+                      setCameraRevision((revision) => revision + 1);
+                    }}><span>0{index + 1}</span>{shot.label}</button>
+                  ))}
+                </div>
               )}
 
               <div className="stage-hud">
@@ -949,9 +935,9 @@ export function HouseExplorer() {
                     aria-controls="detail-sheet"
                   >
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{active.shortLabel}</p>
-                      <h2>{active.label}</h2>
-                      <p className="hud-hint">Orbit · pinch · open room note</p>
+                      <p className="hud-kicker">{cameraMode === "room" ? "Room details" : "Villa Nehama"}</p>
+                      <h2>{cameraMode === "room" ? active.label : "Explore the house"}</h2>
+                      <p className="hud-hint">{webglSupport === false ? "Tap for rooms and finishes" : "Drag to orbit · pinch to zoom · room notes"}</p>
                     </div>
                     <span className="hud-open" aria-hidden="true">
                       <Icon name="chevron" />
@@ -960,21 +946,13 @@ export function HouseExplorer() {
                 ) : (
                   <div className="hud-card">
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{cameraMode === "overview" ? "House overview" : active.shortLabel}</p>
-                      <h2>{cameraMode === "overview" ? "Choose a room to explore" : active.label}</h2>
-                      <p className="hud-hint">{cameraMode === "overview" ? "Select a room · orbit · scroll" : "Orbit · scroll · north on the right"}</p>
+                      <p className="hud-kicker">{cameraMode === "overview" ? "House overview" : cameraMode === "plan" ? "Top view" : active.shortLabel}</p>
+                      <h2>{cameraMode !== "room" ? "Choose a room to explore" : active.label}</h2>
+                      <p className="hud-hint">{webglSupport === false ? "Select a room to see its details" : "Drag to orbit · scroll to zoom · arrow keys when focused"}</p>
                     </div>
                   </div>
                 )}
-                <div
-                  className="orientation"
-                  role="status"
-                  aria-live="polite"
-                  aria-label={`North; camera heading ${Math.round(((cameraAzimuth % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) * (180 / Math.PI))} degrees`}
-                >
-                  <b>N</b>
-                  <span style={webglSupport === true ? { transform: `rotate(${cameraAzimuth}rad)` } : undefined} />
-                </div>
+                {webglSupport === true && <Compass ref={compassRef} />}
               </div>
             </>
           )}
@@ -983,8 +961,8 @@ export function HouseExplorer() {
             <div className="plan-view">
               <header className="view-intro">
                 <p className="view-kicker">Measured drawing</p>
-                <h2>Survey to architectural SVG</h2>
-                <p>An AI-assisted, editable architectural reconstruction—auditable against the original drawing.</p>
+                <h2>The measured plan</h2>
+                <p>Explore the dimensions and compare the house with the original survey.</p>
               </header>
               <DimensionedOverlay />
             </div>
@@ -1107,7 +1085,7 @@ export function HouseExplorer() {
                   <button
                     type="button"
                     className="mobile-inline-cta mobile-only"
-                    onClick={() => navigate({ view: "model", zone: zoneFromMood(activeMood.id) })}
+                    onClick={() => selectRoom(zoneFromMood(activeMood.id))}
                   >
                     Open the house
                   </button>
@@ -1143,9 +1121,9 @@ export function HouseExplorer() {
                     </div>
                     <footer className="mood-lightbox-foot">
                       <span>{heroMoodImage.caption}</span>
-                      <div className="mood-lightbox-dots" role="tablist" aria-label="Choose mood image">
+                      <div className="mood-lightbox-dots" role="group" aria-label="Choose mood image">
                         {activeMood.images.map((image, index) => (
-                          <button key={image.src} type="button" role="tab" aria-selected={index === moodImageIndex} aria-label={`Image ${index + 1}: ${image.caption}`} className={index === moodImageIndex ? "is-active" : ""} onClick={() => selectMoodImage(index)} />
+                          <button key={image.src} type="button" aria-pressed={index === moodImageIndex} aria-label={`Image ${index + 1}: ${image.caption}`} className={index === moodImageIndex ? "is-active" : ""} onClick={() => selectMoodImage(index)} />
                         ))}
                       </div>
                     </footer>
@@ -1164,16 +1142,14 @@ export function HouseExplorer() {
               <button
                 key={zone.id}
                 type="button"
-                className={selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
+                className={cameraMode === "room" && selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
+                aria-pressed={cameraMode === "room" && selectedZone === zone.id}
                 onClick={() => {
                   if (selectedZone === zone.id && cameraMode === "room") {
                     setSheetOpen(true);
                     return;
                   }
-                  setCameraMode("room");
-                  setCameraRevision((revision) => revision + 1);
-                  setExperienceOpen(false);
-                  navigate({ zone: zone.id }, "replace");
+                  selectRoom(zone.id);
                 }}
               >
                 <em>{zone.shortLabel}</em>
@@ -1186,7 +1162,6 @@ export function HouseExplorer() {
         {(view === "model" || view === "references") && (
           <>
             <button
-              ref={scrimRef}
               type="button"
               className={sheetOpen ? "sheet-scrim is-open mobile-only" : "sheet-scrim mobile-only"}
               aria-label="Close details"
@@ -1197,7 +1172,6 @@ export function HouseExplorer() {
               ref={detailRef}
               id="detail-sheet"
               className={sheetOpen ? "detail is-open" : "detail"}
-              aria-live="polite"
               aria-hidden={compact ? !sheetOpen : undefined}
               inert={compact && !sheetOpen ? true : undefined}
             >

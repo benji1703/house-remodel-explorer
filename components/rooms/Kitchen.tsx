@@ -1,11 +1,31 @@
 "use client";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BarStool, Cooktop, FURN, Pendant } from "./furniture";
+import { kitchenPresentation } from "@/data/kitchen";
+
+function KitchenWorktop({ base, palette }: { base: number; palette: Palette }) {
+  const geometry = useMemo(() => {
+    const rectangle = (bounds: readonly number[], hole = false) => {
+      const [left, right, back, front] = bounds.map((value) => value / 100);
+      const path = hole ? new THREE.Path() : new THREE.Shape();
+      path.moveTo(left - CX, back - CZ);
+      path.lineTo(right - CX, back - CZ);
+      path.lineTo(right - CX, front - CZ);
+      path.lineTo(left - CX, front - CZ);
+      path.closePath();
+      return path;
+    };
+    const shape = rectangle(kitchenPresentation.counterBoundsCm) as THREE.Shape;
+    shape.holes.push(rectangle(kitchenPresentation.sinkCutoutCm, true), rectangle(kitchenPresentation.hobCutoutCm, true));
+    return new THREE.ExtrudeGeometry(shape, { depth: kitchenPresentation.counterThicknessCm / 100 - 0.004, bevelEnabled: true, bevelSize: 0.002, bevelThickness: 0.002, bevelSegments: 2, steps: 1 });
+  }, []);
+  return <mesh name="kitchen-continuous-worktop" position-y={base + (kitchenPresentation.counterHeightCm + kitchenPresentation.counterThicknessCm) / 100 - 0.002} rotation-x={Math.PI / 2} geometry={geometry} material={palette.stone} castShadow receiveShadow />;
+}
 
 const WINE_GREEN = new THREE.MeshPhysicalMaterial({
   color: "#263d32",
@@ -85,6 +105,11 @@ const PRODUCE_AMBER = new THREE.MeshStandardMaterial({ color: "#b96f42", roughne
 
 function KitchenSink({ base, x, z }: { base: number; x: number; z: number }) {
   const counter = base + 0.947;
+  const spout = useMemo(() => new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0.23, 0),
+    new THREE.Vector3(0, 0.31, 0.065), new THREE.Vector3(0, 0.28, 0.15),
+    new THREE.Vector3(0, 0.23, 0.15),
+  ]), []);
   return (
     <group>
       {/* Four thin rails leave a real void around the recessed basin. */}
@@ -92,18 +117,17 @@ function KitchenSink({ base, x, z }: { base: number; x: number; z: number }) {
       <Blk x={x} z={z + 0.19} y={counter} w={0.64} d={0.035} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x - 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
       <Blk x={x + 0.302} z={z} y={counter} w={0.035} d={0.35} h={0.018} material={STAINLESS_STEEL} />
-      <SoftBox x={x} z={z} y={counter - 0.17} w={0.55} d={0.34} h={0.17} radius={0.055} material={SINK_BASIN} />
-      <SoftBox x={x} z={z} y={counter - 0.16} w={0.46} d={0.25} h={0.15} radius={0.07} material={SINK_BASIN} />
-      <Cyl x={x} z={z} y={counter - 0.155} r={0.025} h={0.008} segments={32} material={STAINLESS_STEEL} />
-      <Cyl x={x} z={z - 0.2} y={counter + 0.02} r={0.018} h={0.29} segments={20} material={AGED_BRASS} />
-      <mesh
-        position={[x - CX, counter + 0.3, z - CZ - 0.13]}
-        rotation-x={Math.PI / 2}
-        material={AGED_BRASS}
-        castShadow
-      >
-        <cylinderGeometry args={[0.016, 0.016, 0.14, 20]} />
+      <SoftBox x={x} z={z} y={counter - 0.19} w={0.59} d={0.35} h={0.016} radius={0.008} material={SINK_BASIN} />
+      {[-1, 1].map((side) => <group key={side}>
+        <Blk x={x + side * 0.29} z={z} y={counter - 0.18} w={0.015} d={0.35} h={0.18} material={SINK_BASIN} />
+        <Blk x={x} z={z + side * 0.17} y={counter - 0.18} w={0.59} d={0.015} h={0.18} material={SINK_BASIN} />
+      </group>)}
+      <Cyl x={x} z={z} y={counter - 0.171} r={0.028} h={0.004} segments={32} material={STAINLESS_STEEL} />
+      <Cyl x={x} z={z - 0.26} y={counter} r={0.029} h={0.015} segments={32} material={AGED_BRASS} />
+      <mesh position={[x - CX, counter + 0.015, z - CZ - 0.26]} material={AGED_BRASS} castShadow>
+        <tubeGeometry args={[spout, 48, 0.012, 16, false]} />
       </mesh>
+      <Cyl x={x + 0.055} z={z - 0.26} y={counter + 0.02} r={0.008} h={0.09} segments={16} material={AGED_BRASS} />
     </group>
   );
 }
@@ -137,13 +161,13 @@ function BuiltInOven({ base, x, z }: { base: number; x: number; z: number }) {
   );
 }
 
-function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: Palette; x: number; z: number }) {
-  const [open, setOpen] = useState(false);
+function IntegratedDishwasher({ base, palette, x, z, open, onToggle }: { base: number; palette: Palette; x: number; z: number; open: boolean; onToggle: () => void }) {
   const doorRef = useRef<THREE.Group>(null);
 
   useFrame((_state, delta) => {
     if (!doorRef.current) return;
-    doorRef.current.rotation.x = THREE.MathUtils.damp(doorRef.current.rotation.x, open ? Math.PI * 0.43 : 0, 9, delta);
+    const target = open ? Math.PI * 0.43 : 0;
+    doorRef.current.rotation.x = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? target : THREE.MathUtils.damp(doorRef.current.rotation.x, target, 9, delta);
   });
 
   return (
@@ -160,7 +184,7 @@ function IntegratedDishwasher({ base, palette, x, z }: { base: number; palette: 
         position={[x - CX, base + 0.11, z + 0.292 - CZ]}
         onClick={(event) => {
           event.stopPropagation();
-          setOpen((value) => !value);
+          onToggle();
         }}
         userData={{ action: "toggle-integrated-dishwasher", open }}
       >
@@ -248,15 +272,14 @@ function IslandBowl({ base, palette, x, z }: { base: number; palette: Palette; x
   );
 }
 
-function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Palette; x: number; z: number }) {
-  const [open, setOpen] = useState(false);
+function IntegratedFridge({ base, palette, x, z, open, onToggle }: { base: number; palette: Palette; x: number; z: number; open: boolean; onToggle: () => void }) {
   const doorRef = useRef<THREE.Group>(null);
   const { d, h } = FURN.fridge;
   const w = 0.9;
 
   useFrame((_state, delta) => {
     if (!doorRef.current) return;
-    doorRef.current.rotation.y = THREE.MathUtils.damp(
+    doorRef.current.rotation.y = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? (open ? -Math.PI * 0.48 : 0) : THREE.MathUtils.damp(
       doorRef.current.rotation.y,
       open ? -Math.PI * 0.48 : 0,
       10,
@@ -308,7 +331,7 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
         position={[x - CX - w / 2, base, z - CZ + d / 2 + 0.02]}
         onClick={(event) => {
           event.stopPropagation();
-          setOpen((value) => !value);
+          onToggle();
         }}
         userData={{ action: "toggle-integrated-fridge", open }}
       >
@@ -341,28 +364,37 @@ function IntegratedFridge({ base, palette, x, z }: { base: number; palette: Pale
  * East wall: window north (~z 0.25–1.45), main entry further south (~z 2.65–3.65).
  * Cabinetry clears both openings.
  */
-export function Kitchen({ base, palette, furnitureEditing }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState }) {
+export function Kitchen({ base, palette: sharedPalette, furnitureEditing, appliances, onToggleAppliance }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState; appliances?: { fridge: boolean; dishwasher: boolean }; onToggleAppliance?: (id: "fridge" | "dishwasher") => void }) {
+  const oak = useMemo(() => {
+    const material = sharedPalette.oak.clone() as THREE.MeshPhysicalMaterial;
+    material.color.set("#bd986a");
+    material.roughness = 0.56;
+    material.bumpScale = 0.00012;
+    return material;
+  }, [sharedPalette.oak]);
+  useEffect(() => () => oak.dispose(), [oak]);
+  const palette = useMemo(() => ({ ...sharedPalette, oak }), [sharedPalette, oak]);
+  const [localAppliances, setLocalAppliances] = useState({ fridge: false, dishwasher: false });
+  const activeAppliances = appliances ?? localAppliances;
+  const toggle = (id: "fridge" | "dishwasher") => onToggleAppliance ? onToggleAppliance(id) : setLocalAppliances((previous) => ({ ...previous, [id]: !previous[id] }));
   return (
     <group>
       {/* Keep the measured window legible: a low stone upstand follows the
           sink run, while the cooktop alone receives a full fire-safe panel. */}
-      <Blk x={5.25} z={0.205} y={base + 0.94} w={1.75} d={0.025} h={0.1} material={palette.stone} />
-      <Blk x={6.78} z={0.205} y={base + 0.94} w={0.96} d={0.025} h={0.56} material={palette.stone} />
+      <Blk x={6.88} z={0.116} y={base + 0.945} w={1.22} d={0.03} h={0.55} material={palette.stone} />
 
       {/* Side-to-side storage: fridge + pull-out west, low units beneath the measured window. */}
       <Blk x={6.03} z={0.55} y={base + 0.02} w={2.62} d={0.55} h={0.08} material={palette.charcoal} />
       {/* Panel-built run leaves the dishwasher service bay and sink void legible. */}
-      <SoftBox x={4.84} z={0.55} y={base + 0.09} w={0.32} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={4.855} z={0.55} y={base + 0.09} w={0.30} d={0.65} h={0.81} radius={0.008} material={palette.oak} />
       <SoftBox x={5.63} z={0.55} y={base + 0.09} w={0.07} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.29} z={0.55} y={base + 0.09} w={0.08} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.335} z={0.55} y={base + 0.09} w={0.19} d={0.65} h={0.81} radius={0.012} material={palette.oak} />
       <SoftBox x={6.335} z={0.895} y={base + 0.09} w={0.19} d={0.03} h={0.81} radius={0.008} material={palette.oak} />
-      <SoftBox x={7.335} z={0.55} y={base + 0.09} w={0.53} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <SoftBox x={7.30} z={0.55} y={base + 0.09} w={0.38} d={0.65} h={0.81} radius={0.009} material={palette.oak} />
       {/* Stone worktop is segmented around the sink and hob rather than a slab
           passing through both cut-outs. */}
-      <SoftBox x={4.81} z={0.55} y={base + 0.9} w={0.34} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
-      <SoftBox x={6.005} z={0.55} y={base + 0.9} w={0.77} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
-      <SoftBox x={7.355} z={0.55} y={base + 0.9} w={0.49} d={0.69} h={0.045} radius={0.018} material={palette.stone} />
+      <KitchenWorktop base={base} palette={palette} />
 
       {/* The island sits 100+ cm off the north run and clears the east entry. */}
       <Blk x={5.35} z={2.42} y={base + 0.02} w={1.72} d={0.8} h={0.08} material={palette.charcoal} />
@@ -372,22 +404,23 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
         <Blk key={offset} x={5.35 + offset} z={1.936} y={base + 0.17} w={0.012} d={0.018} h={0.64} material={palette.charcoal} />
       ))}
 
-      <EditableFurniture id="kitchen-integrated-fridge" editing={furnitureEditing} x={3.9} z={0.55} base={base}>
-        <IntegratedFridge base={base} palette={palette} x={3.9} z={0.55} />
+      <EditableFurniture id="kitchen-integrated-fridge" editing={furnitureEditing} x={3.95} z={0.55} base={base}>
+        <IntegratedFridge base={base} palette={palette} x={3.95} z={0.55} open={activeAppliances.fridge} onToggle={() => toggle('fridge')} />
       </EditableFurniture>
-      <TallPantry base={base} palette={palette} x={4.52} z={0.55} />
-      <Blk x={4.07} z={0.55} y={base + 2.206} w={1.24} d={0.7} h={0.024} material={palette.oak} />
+      <TallPantry base={base} palette={palette} x={4.545} z={0.55} w={0.29} />
+      <Blk x={4.095} z={0.55} y={base + 2.206} w={1.19} d={0.7} h={0.024} material={palette.oak} />
 
       {/* Complete work triangle without placing flame/heat behind island seats. */}
       <KitchenSink base={base} x={5.3} z={0.55} />
-      <SoftBox x={5.3} z={0.55} y={base + 0.09} w={0.58} d={0.65} h={0.81} radius={0.025} material={palette.oak} />
+      <Blk x={5.3} z={0.55} y={base + 0.09} w={0.59} d={0.65} h={0.035} material={palette.oak} />
+      {[-1, 1].map((side) => <SoftBox key={side} x={5.3 + side * 0.148} z={0.885} y={base + 0.12} w={0.291} d={0.024} h={0.773} radius={0.004} material={palette.oak} />)}
       {/* Seat the 40 mm hob flush into the 945 mm worktop datum. */}
       <Cooktop base={base + 0.905} palette={palette} x={6.75} z={0.55} />
       <BuiltInOven base={base} x={6.75} z={0.875} />
       <ExtractorHood base={base} palette={palette} x={6.75} z={0.28} />
 
       {/* Integrated dishwasher beside the sink. */}
-      <IntegratedDishwasher base={base} palette={palette} x={5.95} z={0.61} />
+      <IntegratedDishwasher base={base} palette={palette} x={5.95} z={0.61} open={activeAppliances.dishwasher} onToggle={() => toggle('dishwasher')} />
 
       {/* Handleless storage on the working side of the island. */}
       {[-0.28, 0, 0.28].map((offset) => (
@@ -404,9 +437,9 @@ export function Kitchen({ base, palette, furnitureEditing }: { base: number; pal
         <BarStool base={base} palette={palette} x={5.7} z={3.32} />
       </EditableFurniture>
 
-      <IslandBowl base={base + 1.045} palette={palette} x={5.25} z={2.42} />
-      <Pendant base={base} palette={palette} x={4.95} z={2.42} y={2.42} />
-      <Pendant base={base} palette={palette} x={5.75} z={2.42} y={2.42} />
+      <IslandBowl base={base + 0.993} palette={palette} x={5.25} z={2.42} />
+      <Pendant base={base} palette={palette} x={4.95} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} />
+      <Pendant base={base} palette={palette} x={5.75} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} />
     </group>
   );
 }

@@ -1,11 +1,30 @@
 "use client";
 
 import { RoundedBox } from "@react-three/drei";
+import { useFrame } from "@react-three/fiber";
+import { useRef, type ReactNode } from "react";
 import * as THREE from "three";
 
 // Scene centring, so the measured footprint orbits around the origin.
 export const CX = 5.7;
 export const CZ = 6.05;
+
+/** Wall-mounted objects must not show their solid backs through a cutaway. */
+export function WallAttachment({ x, z, wall, children }: {
+  x: number; z: number; wall: "north" | "south" | "east" | "west"; children: ReactNode;
+}) {
+  const group = useRef<THREE.Group>(null);
+  useFrame(({ camera }) => {
+    if (!group.current) return;
+    const distance = wall === "north" ? camera.position.z - (z - CZ)
+      : wall === "south" ? z - CZ - camera.position.z
+      : wall === "west" ? camera.position.x - (x - CX)
+      : x - CX - camera.position.x;
+    // Overhead dollhouse views retain furnishings; room cutaways hide backs.
+    group.current.visible = camera.position.y > 3.2 || distance > -0.08;
+  });
+  return <group ref={group}>{children}</group>;
+}
 
 /** Axis-aligned box placed by plan coordinates (metres, un-centred). */
 export function Blk({

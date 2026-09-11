@@ -175,6 +175,10 @@ export function BelgianWindow({
       <mesh position={[0, -h / 2 + 0.01, face - 0.05]} material={palette.frame} castShadow receiveShadow>
         <boxGeometry args={[width + 0.08, 0.03, 0.1]} />
       </mesh>
+      {/* Interior stone reveal ends below the opening datum. */}
+      <mesh position={[0, -h / 2 - 0.014, wallThickness * 0.2]} material={palette.stone} receiveShadow>
+        <boxGeometry args={[width - 0.025, 0.025, wallThickness * 0.8]} />
+      </mesh>
 
       {shutters && (
         <>
@@ -245,7 +249,16 @@ export function BelgianDoor({
   });
 
   return (
-    <group position={[0, midY, 0]}>
+    <group
+      position={[0, midY, 0]}
+      onClick={(event) => {
+        if (!onToggle) return;
+        event.stopPropagation();
+        onToggle();
+      }}
+      onPointerEnter={() => { if (onToggle) document.body.style.cursor = "pointer"; }}
+      onPointerLeave={() => { document.body.style.cursor = "default"; }}
+    >
       <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={exterior} />
       <group
         ref={leafRef}
@@ -313,7 +326,7 @@ export function BelgianDoor({
   );
 }
 
-/** Surface-sliding oak door — leaf rides the room face, not the wall core. */
+/** Pocket oak door — leaf retracts into the wall core instead of riding the room face. */
 export function SlidingDoor({
   width,
   head,
@@ -344,13 +357,15 @@ export function SlidingDoor({
   const leafW = width - FRAME * 1.2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
-  const travel = Math.min(Math.max(open, 0), 0.92) * leafW * slide;
-  // Keep leaf + handle clear of the slab (surface mount on the chosen face).
-  const trackZ = face * (wallThickness / 2 + DOOR_LEAF_THICK / 2 + 0.014);
+  // The leaf travels past the clear opening and is swallowed by the adjacent
+  // wall run. Keep the closed leaf just inside the partition to avoid a
+  // surface-mounted panel or a visible door slab on top of the wall.
+  const travel = Math.min(Math.max(open, 0), 1) * leafW * 1.18 * slide;
+  const trackZ = face * 0.006;
   const closedX = -width / 2 + FRAME * 0.6 + leafW / 2;
   // Pull on the exposed room face, trailing edge when open.
   const handleX = -slide * leafW * 0.32;
-  const handleZ = face * (DOOR_LEAF_THICK / 2 + 0.016);
+  const handleZ = face * (DOOR_LEAF_THICK / 2 + 0.008);
   const leafRef = useRef<THREE.Group>(null);
 
   useFrame((_state, delta) => {
@@ -364,25 +379,24 @@ export function SlidingDoor({
   });
 
   return (
-    <group position={[0, midY, 0]}>
+    <group
+      position={[0, midY, 0]}
+      onClick={(event) => {
+        if (!onToggle) return;
+        event.stopPropagation();
+        onToggle();
+      }}
+      onPointerEnter={() => { if (onToggle) document.body.style.cursor = "pointer"; }}
+      onPointerLeave={() => { document.body.style.cursor = "default"; }}
+    >
       <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={false} />
       <mesh position={[0, h / 2 - FRAME * 0.6, trackZ]} material={palette.charcoal}>
         <boxGeometry args={[width - FRAME, 0.02, 0.028]} />
       </mesh>
       <group
         ref={leafRef}
+        visible={!isOpen}
         position={[closedX + (isOpen ? travel : 0), 0, trackZ]}
-        onClick={(event) => {
-          if (!onToggle) return;
-          event.stopPropagation();
-          onToggle();
-        }}
-        onPointerEnter={() => {
-          if (onToggle) document.body.style.cursor = "pointer";
-        }}
-        onPointerLeave={() => {
-          if (onToggle) document.body.style.cursor = "default";
-        }}
       >
         <mesh material={wood} castShadow receiveShadow>
           <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />

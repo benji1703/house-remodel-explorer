@@ -1,8 +1,9 @@
 "use client";
 import type { Palette } from "./shared";
+import { WallAttachment } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BedsideLamp, Dresser, FURN, LoungeChair, Nightstand, QueenBed, Wardrobe } from "./furniture";
-import { ArtTV, BedroomRug, DecorTray, DraperyPair, RoundRug } from "./LuxuryDetails";
+import { BedroomRug, DecorTray, DraperyPair, RoundRug } from "./LuxuryDetails";
 
 /**
  * East bedrooms — queen 160×200.
@@ -33,14 +34,15 @@ export function EastUpperRoom({
       </EditableFurniture>
       <BedsideLamp base={base + FURN.nightstand.h} x={10.7} z={7.62} nightFactor={nightFactor} />
 
-      <Wardrobe base={base} palette={palette} x={9.85} z={8.2} along="x" width={2.7} />
+      <WallAttachment x={9.85} z={8.5} wall="south">
+        <Wardrobe base={base} palette={palette} x={9.85} z={8.2} along="x" width={2.7} />
+      </WallAttachment>
 
       {/* Chair in the free north-west corner, away from the wardrobe. */}
       <EditableFurniture id="east-upper-chair" editing={furnitureEditing} x={8.35} z={5.65} base={base}>
         <LoungeChair base={base} palette={palette} x={8.35} z={5.65} face="s" />
       </EditableFurniture>
       <RoundRug base={base} x={8.35} z={5.65} radius={0.58} />
-      <ArtTV base={base} x={7.715} z={7.82} wall="west" width={0.96} height={0.58} />
       <DraperyPair base={base} x={11.29} z={6.9} wall="east" span={1.4} />
     </group>
   );
@@ -71,14 +73,15 @@ export function EastLowerRoom({
       <BedsideLamp base={base + FURN.nightstand.h} x={10.7} z={11.72} nightFactor={nightFactor} />
 
       {/* West-wall built-in, kept south of the measured room doorway. */}
-      <Wardrobe base={base} palette={palette} x={7.92} z={11.14} along="z" width={1.72} frontSide={1} />
+      <WallAttachment x={7.62} z={11.14} wall="west">
+        <Wardrobe base={base} palette={palette} x={7.92} z={11.14} along="z" width={1.72} frontSide={1} />
+      </WallAttachment>
 
       {/* Low dresser moves to the newly open north wall, opposite the bed. */}
       <EditableFurniture id="east-lower-dresser" editing={furnitureEditing} x={9.65} z={8.84} base={base}>
         <Dresser base={base} palette={palette} x={9.65} z={8.84} along="x" />
       </EditableFurniture>
       <DecorTray base={base + FURN.dresser.h + 0.01} palette={palette} x={9.65} z={8.84} />
-      <ArtTV base={base} x={11.285} z={11.34} wall="east" width={0.96} height={0.58} />
       <DraperyPair base={base} x={9.5} z={11.985} wall="south" span={1.4} />
     </group>
   );

@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
+import { designAssumptions } from "@/data/house";
+import { createTextileBump } from "@/lib/textileTexture";
 
 /**
  * Furniture sizing — Israeli / European residential standards.
@@ -46,7 +48,43 @@ const BOUCLE = new THREE.MeshPhysicalMaterial({
   sheenColor: new THREE.Color("#fffaf1"),
   sheenRoughness: 0.82,
   envMapIntensity: 0.65,
+  bumpMap: createTextileBump(),
+  bumpScale: 0.0012,
 });
+
+const BED_LINEN = new THREE.MeshPhysicalMaterial({
+  color: "#f3ede2", roughness: 0.93, sheen: 0.55,
+  sheenColor: new THREE.Color("#fffaf0"), side: THREE.DoubleSide,
+  bumpMap: BOUCLE.bumpMap, bumpScale: 0.0007,
+});
+
+const duvetGeometry = new THREE.PlaneGeometry(1.66, 1.48, 64, 56);
+duvetGeometry.rotateX(-Math.PI / 2);
+const duvetPositions = duvetGeometry.attributes.position;
+for (let i = 0; i < duvetPositions.count; i++) {
+  const x = duvetPositions.getX(i), z = duvetPositions.getZ(i);
+  const sideDrop = Math.max(0, (Math.abs(x) - 0.70) / 0.13);
+  const footDrop = Math.max(0, (-z - 0.60) / 0.14);
+  const folds = Math.sin(x * 19 + z * 6) * 0.006 + Math.sin(z * 25 - x * 5) * 0.004;
+  const turnedEdge = Math.exp(-(((z - 0.63) / 0.07) ** 2)) * 0.045;
+  duvetPositions.setY(i, 0.035 + folds + turnedEdge - sideDrop ** 2 * 0.15 - footDrop ** 2 * 0.10);
+}
+duvetGeometry.computeVertexNormals();
+
+const pillowGeometry = new THREE.SphereGeometry(1, 40, 24);
+const pillowPositions = pillowGeometry.attributes.position;
+for (let i = 0; i < pillowPositions.count; i++) {
+  const x = pillowPositions.getX(i), z = pillowPositions.getZ(i);
+  pillowPositions.setX(i, Math.sign(x) * Math.abs(x) ** 0.55);
+  pillowPositions.setZ(i, Math.sign(z) * Math.abs(z) ** 0.55);
+}
+pillowGeometry.computeVertexNormals();
+
+function LinenPillow({ x, z, y, rotated = false }: { x: number; z: number; y: number; rotated?: boolean }) {
+  return (
+    <mesh position={[x - CX, y + 0.07, z - CZ]} rotation-y={rotated ? Math.PI / 2 : 0} scale={[0.31, 0.075, 0.20]} geometry={pillowGeometry} material={BED_LINEN} castShadow receiveShadow />
+  );
+}
 
 const SADDLE_LEATHER = new THREE.MeshPhysicalMaterial({
   color: "#8f674b",
@@ -175,15 +213,18 @@ export function QueenBed({
       <SoftBox x={x} z={z} y={base + 0.035} w={planW - 0.1} d={planD - 0.1} h={0.045} radius={0.02} material={BRONZE} />
       <SoftBox x={x} z={z} y={base + h - mattress} w={planW - 0.05} d={planD - 0.05} h={mattress} radius={0.075} material={BOUCLE} />
       <SoftBox x={headX} z={headZ} y={base + 0.12} w={headW} d={headD} h={0.72} radius={0.055} material={BOUCLE} />
+      <group position={[x - CX, base + h, z - CZ]} rotation-y={headOnZ ? (sign > 0 ? 0 : Math.PI) : sign * Math.PI / 2}>
+        <mesh position={[0, 0, -0.22]} geometry={duvetGeometry} material={BED_LINEN} castShadow receiveShadow />
+      </group>
       {headOnZ ? (
         <>
-          <SoftBox x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={BOUCLE} />
-          <SoftBox x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} w={0.58} d={0.3} h={0.11} radius={0.055} material={BOUCLE} />
+          <LinenPillow x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
+          <LinenPillow x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
         </>
       ) : (
         <>
-          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={BOUCLE} />
-          <SoftBox x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} w={0.3} d={0.58} h={0.11} radius={0.055} material={BOUCLE} />
+          <LinenPillow x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} rotated />
+          <LinenPillow x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} rotated />
         </>
       )}
     </group>
@@ -471,6 +512,7 @@ export function BarStool({
   const { w, d, h } = FURN.stool;
   return (
     <group>
+      <Cyl x={x} z={z} y={base} r={0.175} h={0.025} material={BRONZE} segments={40} />
       <Cyl x={x} z={z} y={base} r={0.032} h={h - 0.08} material={BRONZE} segments={24} />
       <Cyl x={x} z={z} y={base + 0.21} r={0.16} h={0.018} material={BRONZE} segments={28} />
       <SoftBox x={x} z={z} y={base + h - 0.08} w={w} d={d} h={0.08} radius={0.07} material={SADDLE_LEATHER} />
@@ -482,7 +524,7 @@ export function Pendant({
   base,
   x,
   z,
-  y = 2.3,
+  y = 2.05,
 }: {
   base: number;
   palette: Palette;
@@ -491,10 +533,11 @@ export function Pendant({
   y?: number;
 }) {
   const { r, h } = FURN.pendant;
+  const cordLength = Math.max(0.03, designAssumptions.finishedCeilingHeightCm / 100 - y);
   return (
     <group>
-      <mesh position={[x - CX, base + y + 0.2, z - CZ]} material={BRONZE}>
-        <cylinderGeometry args={[0.008, 0.008, 0.4, 16]} />
+      <mesh position={[x - CX, base + y + cordLength / 2, z - CZ]} material={BRONZE}>
+        <cylinderGeometry args={[0.004, 0.004, cordLength, 16]} />
       </mesh>
       <mesh position={[x - CX, base + y - h / 2, z - CZ]} material={BRONZE} castShadow>
         <cylinderGeometry args={[r * 0.5, r, h, 32, 1, false]} />

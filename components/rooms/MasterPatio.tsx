@@ -92,14 +92,14 @@ export function MasterPatio({
       })}
 
       {/* Light greenery + lounge */}
-      <EditableFurniture id="master-patio-chair" editing={furnitureEditing} x={cx - 0.35} z={cz + 0.4} base={0} swapPlanAxes>
-        <LoungeChair base={0} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
+      <EditableFurniture id="master-patio-chair" editing={furnitureEditing} x={cx - 0.35} z={cz + 0.4} base={0.06} swapPlanAxes>
+        <LoungeChair base={0.06} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
       </EditableFurniture>
-      <SideTable base={0} palette={palette} x={cx + 0.48} z={cz + 0.42} />
-      <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
-      <PlanterBox base={0} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
-      <PotPlant base={0} palette={palette} x={x1 - 0.4} z={z0 + 0.5} scale={1.1} />
-      <PotPlant base={0} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
+      <SideTable base={0.06} palette={palette} x={cx + 0.48} z={cz + 0.42} />
+      <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
+      <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
+      <PotPlant base={0.06} palette={palette} x={x1 - 0.4} z={z0 + 0.5} scale={1.1} />
+      <PotPlant base={0.06} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
 
       {quality === "high" &&
         [0, 1, 2].map((i) => {

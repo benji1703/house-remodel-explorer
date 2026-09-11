@@ -1,9 +1,11 @@
 "use client";
 
-import { RoundedBox, useTexture } from "@react-three/drei";
+import { MeshReflectorMaterial, RoundedBox, useTexture } from "@react-three/drei";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
+import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
+import { createTextileBump } from "@/lib/textileTexture";
 
 const BRUSHED_BRASS = new THREE.MeshPhysicalMaterial({
   color: "#8b7453",
@@ -30,40 +32,30 @@ const LINEN = new THREE.MeshPhysicalMaterial({
   sheen: 0.72,
   sheenColor: new THREE.Color("#fff8ec"),
   sheenRoughness: 0.86,
+  bumpMap: createTextileBump(),
+  bumpScale: 0.0008,
 });
 const SHEER = new THREE.MeshPhysicalMaterial({
   color: "#f7f0e4",
   roughness: 0.92,
-  transmission: 0.13,
-  transparent: true,
-  opacity: 0.78,
+  sheen: 0.6,
+  sheenColor: new THREE.Color("#fff9ef"),
+  bumpMap: LINEN.bumpMap,
+  bumpScale: 0.0006,
   side: THREE.DoubleSide,
-  depthWrite: false,
-});
-const MIRROR = new THREE.MeshPhysicalMaterial({
-  color: "#d7dfdc",
-  metalness: 0.82,
-  roughness: 0.06,
-  clearcoat: 0.45,
-  envMapIntensity: 2.25,
 });
 const TV_FRAME = new THREE.MeshPhysicalMaterial({ color: "#191a17", metalness: 0.45, roughness: 0.22, clearcoat: 0.6 });
-const TV_SCREEN = new THREE.MeshPhysicalMaterial({ color: "#574234", roughness: 0.32, metalness: 0.08, clearcoat: 0.38 });
-const TV_SAND = new THREE.MeshStandardMaterial({ color: "#c59a68", roughness: 0.7 });
-const TV_CLAY = new THREE.MeshStandardMaterial({ color: "#a55f43", roughness: 0.72 });
-const TV_OLIVE = new THREE.MeshStandardMaterial({ color: "#68705a", roughness: 0.76 });
+const TV_SCREEN = new THREE.MeshPhysicalMaterial({ color: "#181d1c", roughness: 0.16, metalness: 0.3, clearcoat: 0.6 });
 
 const GRASS = new THREE.MeshStandardMaterial({ color: "#758066", roughness: 0.97 });
 const GRAVEL = new THREE.MeshStandardMaterial({ color: "#b8aa91", roughness: 1 });
 const SOIL = new THREE.MeshStandardMaterial({ color: "#40392f", roughness: 1 });
 const BARK = new THREE.MeshStandardMaterial({ color: "#6b5945", roughness: 0.96 });
 const OLIVE = new THREE.MeshStandardMaterial({ color: "#6e8064", roughness: 0.92 });
-const OLIVE_LIGHT = new THREE.MeshStandardMaterial({ color: "#87947a", roughness: 0.94 });
-const LAVENDER = new THREE.MeshStandardMaterial({ color: "#77708c", roughness: 0.9 });
 
 type Wall = "north" | "south" | "east" | "west";
 
-/** A slim art television with a restrained desert-toned abstract still. */
+/** Slim, switched-off television; no repeated placeholder artwork. */
 export function ArtTV({
   base,
   x,
@@ -83,6 +75,7 @@ export function ArtTV({
   const inward = wall === "north" ? 1 : wall === "south" ? -1 : wall === "west" ? 1 : -1;
   const rotation = alongX ? (inward < 0 ? Math.PI : 0) : inward * Math.PI / 2;
   return (
+    <WallAttachment x={x} z={z} wall={wall}>
     <group
       position={[
         x - CX + (alongX ? 0 : inward * 0.035),
@@ -97,19 +90,11 @@ export function ArtTV({
       <mesh position={[0, 0, 0.031]} material={TV_SCREEN}>
         <boxGeometry args={[width - 0.07, height - 0.07, 0.012]} />
       </mesh>
-      <mesh position={[-width * 0.2, height * 0.08, 0.039]} material={TV_SAND}>
-        <boxGeometry args={[width * 0.34, height * 0.42, 0.008]} />
-      </mesh>
-      <mesh position={[width * 0.14, -height * 0.08, 0.04]} material={TV_CLAY}>
-        <boxGeometry args={[width * 0.27, height * 0.62, 0.008]} />
-      </mesh>
-      <mesh position={[width * 0.29, height * 0.2, 0.041]} material={TV_OLIVE}>
-        <boxGeometry args={[width * 0.16, height * 0.22, 0.008]} />
-      </mesh>
       <mesh position={[0, -height / 2 - 0.028, 0]} material={TV_FRAME}>
         <boxGeometry args={[0.18, 0.018, 0.06]} />
       </mesh>
     </group>
+    </WallAttachment>
   );
 }
 
@@ -161,6 +146,7 @@ export function WallMirror({
   wall,
   width = 0.82,
   height = 0.9,
+  reflect = false,
 }: {
   base: number;
   x: number;
@@ -168,14 +154,19 @@ export function WallMirror({
   wall: Wall;
   width?: number;
   height?: number;
+  reflect?: boolean;
 }) {
   const alongX = wall === "north" || wall === "south";
   const inward = wall === "north" ? 1 : wall === "south" ? -1 : wall === "west" ? 1 : -1;
   return (
-    <group>
+    <WallAttachment x={x} z={z} wall={wall}>
       <SoftBox x={x} z={z} y={base + 1.13} w={alongX ? width + 0.04 : 0.03} d={alongX ? 0.03 : width + 0.04} h={height + 0.04} radius={0.035} material={BRUSHED_BRASS} />
-      <SoftBox x={x + (alongX ? 0 : inward * 0.022)} z={z + (alongX ? inward * 0.022 : 0)} y={base + 1.16} w={alongX ? width : 0.018} d={alongX ? 0.018 : width} h={height} radius={0.03} material={MIRROR} />
-    </group>
+      <mesh position={[x - CX + (alongX ? 0 : inward * 0.022), base + 1.15 + height / 2, z - CZ + (alongX ? inward * 0.022 : 0)]} rotation-y={alongX ? (inward < 0 ? Math.PI : 0) : inward * Math.PI / 2}>
+        <planeGeometry args={[width, height]} />
+        {reflect ? <MeshReflectorMaterial resolution={512} mirror={1} mixStrength={1} mixBlur={0} blur={[0, 0]} color="#f5f5f2" metalness={0} roughness={0.03} depthScale={0} />
+          : <meshPhysicalMaterial color="#d7dfdc" metalness={1} roughness={0.06} envMapIntensity={1} />}
+      </mesh>
+    </WallAttachment>
   );
 }
 
@@ -257,55 +248,84 @@ export function DecorTray({ base, x, z, palette }: { base: number; x: number; z:
       <Cyl x={x} z={z} y={base} r={0.2} h={0.018} segments={44} material={BRUSHED_BRASS} />
       <Cyl x={x - 0.07} z={z} y={base + 0.018} r={0.045} h={0.14} segments={30} material={CLAY} />
       <Cyl x={x + 0.07} z={z + 0.025} y={base + 0.018} r={0.038} h={0.09} segments={30} material={palette.charcoal} />
-      <mesh position={[x - 0.07 - CX, base + 0.18, z - CZ]} material={DEEP_GREEN}>
-        <sphereGeometry args={[0.105, 22, 14]} />
-      </mesh>
     </group>
   );
 }
 
 export function DraperyPair({ base, x, z, wall, span = 1.5 }: { base: number; x: number; z: number; wall: Wall; span?: number }) {
   const alongX = wall === "north" || wall === "south";
+  const inward = wall === "north" || wall === "west" ? 1 : -1;
+  const geometry = useMemo(() => {
+    const cloth = new THREE.PlaneGeometry(0.28, 2.3, 36, 28);
+    const positions = cloth.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const u = positions.getX(i) / 0.28 + 0.5;
+      const v = positions.getY(i) / 2.3 + 0.5;
+      positions.setZ(i, Math.sin(u * Math.PI * 10) * (0.018 + (1 - v) * 0.012));
+      positions.setY(i, positions.getY(i) + Math.sin(u * Math.PI * 10) * 0.006 * (1 - v));
+    }
+    cloth.computeVertexNormals();
+    return cloth;
+  }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   return (
-    <group>
+    <WallAttachment x={x} z={z} wall={wall}>
+      <Blk x={x + (alongX ? 0 : inward * 0.045)} z={z + (alongX ? inward * 0.045 : 0)} y={base + 2.345} w={alongX ? span + 0.6 : 0.035} d={alongX ? 0.035 : span + 0.6} h={0.02} material={BRUSHED_BRASS} />
       {[-1, 1].map((side) => (
-        <SoftBox
+        <mesh
           key={side}
-          x={x + (alongX ? side * (span / 2 + 0.12) : 0)}
-          z={z + (alongX ? 0 : side * (span / 2 + 0.12))}
-          y={base + 0.12}
-          w={alongX ? 0.23 : 0.025}
-          d={alongX ? 0.025 : 0.23}
-          h={1.98}
-          radius={0.012}
+          position={[x - CX + (alongX ? side * (span / 2 + 0.15) : inward * 0.05), base + 1.195, z - CZ + (alongX ? inward * 0.05 : side * (span / 2 + 0.15))]}
+          rotation-y={alongX ? 0 : Math.PI / 2}
+          geometry={geometry}
           material={SHEER}
+          receiveShadow
         />
       ))}
-    </group>
+    </WallAttachment>
   );
+}
+
+function LeafCanopy({ scale }: { scale: number }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const transform = new THREE.Object3D();
+    const color = new THREE.Color();
+    const random = (i: number, seed: number) => {
+      const n = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
+      return n - Math.floor(n);
+    };
+    const clusters = [[-0.28, 1.38, 0.02, 0.46], [0.22, 1.48, -0.05, 0.5], [0, 1.76, 0.18, 0.52], [-0.12, 1.68, -0.28, 0.43], [0.32, 1.75, 0.28, 0.38]];
+    for (let i = 0; i < 1400; i++) {
+      const [x, y, z, radius] = clusters[i % clusters.length];
+      const theta = random(i, 1) * Math.PI * 2;
+      const vertical = random(i, 2) * 2 - 1;
+      const radial = Math.cbrt(random(i, 3)) * radius;
+      const horizontal = Math.sqrt(1 - vertical * vertical) * radial;
+      transform.position.set((x + Math.cos(theta) * horizontal * 1.15) * scale, (y + vertical * radial * 0.72) * scale, (z + Math.sin(theta) * horizontal) * scale);
+      transform.rotation.set(random(i, 4) * Math.PI, random(i, 5) * Math.PI, random(i, 6) * Math.PI);
+      const size = (0.045 + random(i, 7) * 0.04) * scale;
+      transform.scale.set(size, size * 0.075, size * 0.38);
+      transform.updateMatrix();
+      mesh.setMatrixAt(i, transform.matrix);
+      color.setHSL(0.22 + random(i, 8) * 0.035, 0.15 + random(i, 9) * 0.12, 0.3 + random(i, 10) * 0.2);
+      mesh.setColorAt(i, color);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, [scale]);
+  return <instancedMesh ref={ref} args={[undefined, undefined, 1400]} material={OLIVE} castShadow receiveShadow>
+    <sphereGeometry args={[1, 8, 4]} />
+  </instancedMesh>;
 }
 
 function CanopyTree({ x, z, scale = 1 }: { x: number; z: number; scale?: number }) {
   return (
     <group>
       <Cyl x={x} z={z} y={-0.02} r={0.1 * scale} h={1.65 * scale} segments={16} material={BARK} />
-      {[
-        [-0.28, 1.38, 0.02, 0.46],
-        [0.22, 1.48, -0.05, 0.5],
-        [0, 1.76, 0.18, 0.52],
-        [-0.12, 1.68, -0.28, 0.43],
-        [0.32, 1.75, 0.28, 0.38],
-      ].map(([dx, y, dz, radius], index) => (
-        <mesh
-          key={index}
-          position={[x + dx * scale - CX, y * scale, z + dz * scale - CZ]}
-          scale={[1.15, 0.72, 1]}
-          material={index % 2 === 0 ? OLIVE : OLIVE_LIGHT}
-          castShadow
-        >
-          <dodecahedronGeometry args={[radius * scale, 1]} />
-        </mesh>
-      ))}
+      <group position={[x - CX, 0, z - CZ]}><LeafCanopy scale={scale} /></group>
     </group>
   );
 }
@@ -314,24 +334,14 @@ function GroundcoverMound({ x, z, scale = 1 }: { x: number; z: number; scale?: n
   return (
     <group>
       <Cyl x={x} z={z} y={-0.025} r={0.32 * scale} h={0.07} segments={24} material={SOIL} />
-      {[-2, -1, 0, 1, 2].map((index) => (
-        <mesh
-          key={index}
-          position={[x - CX + index * 0.09 * scale, 0.18 * scale, z - CZ + ((index * 7) % 3) * 0.055]}
-          scale={[0.72, 1.2, 0.72]}
-          material={index % 2 === 0 ? LAVENDER : OLIVE}
-          castShadow
-        >
-          <icosahedronGeometry args={[0.19 * scale, 1]} />
-        </mesh>
-      ))}
+      <MyrtleCluster x={x} z={z} scale={scale * 0.55} />
     </group>
   );
 }
 
 function MyrtleCluster({ x, z, scale = 1 }: { x: number; z: number; scale?: number }) {
   const source = useTexture("/textures/myrtle-foliage.png");
-  const material = new THREE.MeshStandardMaterial({
+  const material = useMemo(() => new THREE.MeshStandardMaterial({
     map: source,
     color: "#718064",
     roughness: 0.94,
@@ -339,7 +349,8 @@ function MyrtleCluster({ x, z, scale = 1 }: { x: number; z: number; scale?: numb
     alphaTest: 0.42,
     side: THREE.DoubleSide,
     depthWrite: true,
-  });
+  }), [source]);
+  useEffect(() => () => material.dispose(), [material]);
   return (
     <group position={[x - CX, 0.48 * scale, z - CZ]} scale={scale} rotation-y={(x * 2.3 + z * 4.1) % Math.PI}>
       {[0, Math.PI / 2, Math.PI / 4].map((rotation) => (

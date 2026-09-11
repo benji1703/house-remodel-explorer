@@ -2,7 +2,7 @@
 
 import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
-import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
+import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
 import { WallMirror } from "./LuxuryDetails";
 
@@ -72,6 +72,19 @@ const WATER = new THREE.MeshPhysicalMaterial({
 
 const DARK_GAP = new THREE.MeshStandardMaterial({ color: "#393a36", roughness: 0.62 });
 
+// Closed revolved profiles give sanitaryware a real ceramic thickness and
+// recessed interior; no opaque disk or solid sphere fills the opening.
+const TOILET_PROFILE = [
+  [0.08, 0.02], [0.14, 0.04], [0.20, 0.13], [0.222, 0.25],
+  [0.219, 0.275], [0.188, 0.275], [0.178, 0.23], [0.14, 0.15],
+  [0.065, 0.10], [0, 0.10], [0, 0.02], [0.08, 0.02],
+].map(([r, y]) => new THREE.Vector2(r, y));
+const BASIN_PROFILE = [
+  [0, 0], [0.09, 0], [0.145, 0.025], [0.178, 0.075],
+  [0.18, 0.11], [0.17, 0.116], [0.16, 0.108], [0.154, 0.072],
+  [0.125, 0.04], [0.07, 0.022], [0, 0.022], [0, 0],
+].map(([r, y]) => new THREE.Vector2(r, y));
+
 function wallRotation(against: Wall) {
   if (against === "s") return Math.PI;
   if (against === "w") return Math.PI / 2;
@@ -79,25 +92,25 @@ function wallRotation(against: Wall) {
   return 0;
 }
 
-function ToiletBowl() {
+function ToiletBowl({ wallHung }: { wallHung: boolean }) {
   return (
     <group>
-      <mesh position={[0, 0.34, 0.42]} scale={[0.76, 0.48, 1.1]} material={CERAMIC} castShadow receiveShadow>
-        <sphereGeometry args={[0.28, 40, 24]} />
+      <mesh position={[0, 0.18, 0.46]} scale={[0.78, 1, 1.08]} material={CERAMIC} castShadow receiveShadow>
+        <latheGeometry args={[TOILET_PROFILE, 64]} />
       </mesh>
       <mesh position={[0, 0.455, 0.46]} rotation-x={-Math.PI / 2} scale={[0.78, 1.08, 1]} material={CERAMIC} castShadow>
         <torusGeometry args={[0.19, 0.029, 14, 48]} />
       </mesh>
-      <mesh position={[0, 0.458, 0.46]} rotation-x={-Math.PI / 2} scale={[0.76, 1.02, 1]} material={WATER}>
-        <circleGeometry args={[0.145, 40]} />
+      <mesh position={[0, 0.292, 0.46]} rotation-x={-Math.PI / 2} scale={[0.76, 1.02, 1]} material={WATER}>
+        <circleGeometry args={[0.078, 40]} />
       </mesh>
       <mesh position={[0, 0.482, 0.455]} rotation-x={-Math.PI / 2} scale={[0.79, 1.08, 1]} material={CERAMIC} castShadow>
         <torusGeometry args={[0.205, 0.014, 10, 48]} />
       </mesh>
       <RoundedBox
-        args={[0.23, 0.25, 0.32]}
-        position={[0, 0.18, 0.24]}
-        radius={0.065}
+        args={wallHung ? [0.25, 0.18, 0.33] : [0.23, 0.25, 0.32]}
+        position={wallHung ? [0, 0.32, 0.165] : [0, 0.135, 0.40]}
+        radius={0.035}
         smoothness={5}
         material={CERAMIC}
         castShadow
@@ -140,7 +153,7 @@ function Toilet({
         </>
       )}
       {wallHung && (
-        <>
+        <WallAttachment x={x} z={z} wall={against === "n" ? "north" : against === "s" ? "south" : against === "e" ? "east" : "west"}>
           <RoundedBox
             args={[0.24, 0.015, 0.15]}
             position={[0, 0.93, 0.006]}
@@ -155,9 +168,9 @@ function Toilet({
               <circleGeometry args={[0.022, 24]} />
             </mesh>
           ))}
-        </>
+        </WallAttachment>
       )}
-      <ToiletBowl />
+      <ToiletBowl wallHung={wallHung} />
     </group>
   );
 }
@@ -241,11 +254,8 @@ function Shower({
 function Basin({ base, x, z }: { base: number; x: number; z: number }) {
   return (
     <group position={[x - CX, base, z - CZ]}>
-      <mesh position={[0, 0.015, 0]} rotation-x={-Math.PI / 2} scale={[1.35, 0.82, 1]} material={CERAMIC} castShadow>
-        <torusGeometry args={[0.14, 0.026, 12, 44]} />
-      </mesh>
-      <mesh position={[0, 0.012, 0]} rotation-x={-Math.PI / 2} scale={[1.28, 0.75, 1]} material={CERAMIC_INNER}>
-        <circleGeometry args={[0.118, 40]} />
+      <mesh scale={[1.3, 1, 0.82]} material={CERAMIC} castShadow receiveShadow>
+        <latheGeometry args={[BASIN_PROFILE, 64]} />
       </mesh>
       <mesh position={[0, 0.024, 0]} material={CHROME}>
         <cylinderGeometry args={[0.014, 0.014, 0.006, 20]} />
@@ -268,7 +278,7 @@ function MixerTap({ base, x, z }: { base: number; x: number; z: number }) {
   );
 }
 
-/** Floating oak vanity, honed top, inset ceramic basin and detailed mixer. */
+/** Floating oak vanity, honed top, hollow vessel basin and aligned mixer. */
 function Vanity({
   base,
   palette,
@@ -296,8 +306,8 @@ function Vanity({
         </group>
       ))}
       <SoftBox x={x} z={z} y={base + 0.72} w={w + 0.035} d={0.51} h={0.035} radius={0.014} material={palette.stone} />
-      <Basin base={base + 0.765} x={x - w * 0.1} z={z - 0.02} />
-      <MixerTap base={base + 0.77} x={x + w * 0.22} z={z + 0.13} />
+      <Basin base={base + 0.755} x={x - w * 0.1} z={z - 0.02} />
+      <MixerTap base={base + 0.755} x={x - w * 0.1} z={z + 0.15} />
 
       <Cyl x={x - w * 0.34} z={z + 0.12} y={base + 0.77} r={0.025} h={0.11} segments={20} material={CERAMIC_INNER} />
       <Cyl x={x - w * 0.34} z={z + 0.12} y={base + 0.88} r={0.012} h={0.025} segments={16} material={CHROME} />
@@ -314,7 +324,7 @@ function Vanity({
 }
 
 /** Main bathroom — wall-hung WC, full shower and wide floating vanity. */
-export function MainBathroom({ base, palette }: { base: number; palette: Palette }) {
+export function MainBathroom({ base, palette, reflections = false }: { base: number; palette: Palette; reflections?: boolean }) {
   return (
     <group>
       {/* Thin stone liners sit entirely inside the wet corner and give the
@@ -327,19 +337,19 @@ export function MainBathroom({ base, palette }: { base: number; palette: Palette
       <Toilet base={base} x={5.02} z={11.05} against="w" wallHung />
       <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
       <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
-      <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} />
+      <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} reflect={reflections} />
       <pointLight position={[5.25 - CX, base + 1.58, 11.42 - CZ]} intensity={0.8} distance={1.8} decay={2} color="#ffd3a0" />
     </group>
   );
 }
 
 /** Ensuite — compact close-coupled WC and a proportioned floating vanity. */
-export function EnsuiteBathroom({ base, palette }: { base: number; palette: Palette }) {
+export function EnsuiteBathroom({ base, palette, reflections = false }: { base: number; palette: Palette; reflections?: boolean }) {
   return (
     <group>
       <Toilet base={base} x={4.15} z={10.29} against="n" />
       <Vanity base={base} palette={palette} x={4.15} z={11.72} w={0.95} mirror={false} />
-      <WallMirror base={base} x={4.845} z={11.34} wall="east" width={0.62} height={0.76} />
+      <WallMirror base={base} x={4.845} z={11.34} wall="east" width={0.62} height={0.76} reflect={reflections} />
       <pointLight position={[4.55 - CX, base + 1.58, 11.34 - CZ]} intensity={0.72} distance={1.55} decay={2} color="#ffd3a0" />
     </group>
   );

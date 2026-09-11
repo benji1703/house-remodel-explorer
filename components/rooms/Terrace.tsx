@@ -55,14 +55,14 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
         );
       })}
 
-      <EditableFurniture id="terrace-dining-set" editing={furnitureEditing} x={1.85} z={6.0} base={0}>
-        <DiningSet base={0} palette={palette} x={1.85} z={6.0} />
+      <EditableFurniture id="terrace-dining-set" editing={furnitureEditing} x={1.85} z={6.0} base={0.08}>
+        <DiningSet base={0.08} palette={palette} x={1.85} z={6.0} />
       </EditableFurniture>
-      <DecorTray base={0.77} palette={palette} x={1.85} z={6.0} />
-      <PlanterBox base={0} palette={palette} x={0.45} z={5.1} />
-      <PlanterBox base={0} palette={palette} x={0.45} z={6.7} />
-      <PotPlant base={0} palette={palette} x={0.45} z={3.7} scale={1.15} />
-      <PotPlant base={0} palette={palette} x={3.15} z={8.0} scale={1.05} />
+      <DecorTray base={0.83} palette={palette} x={1.85} z={6.0} />
+      <PlanterBox base={0.08} palette={palette} x={0.45} z={5.1} />
+      <PlanterBox base={0.08} palette={palette} x={0.45} z={6.7} />
+      <PotPlant base={0.08} palette={palette} x={0.45} z={3.7} scale={1.15} />
+      <PotPlant base={0.08} palette={palette} x={3.15} z={8.0} scale={1.05} />
     </group>
   );
 }

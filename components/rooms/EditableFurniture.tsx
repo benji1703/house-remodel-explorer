@@ -8,7 +8,7 @@ import { CX, CZ } from "./shared";
 export type FurnitureEditingState = {
   sizes: FurnitureSizeOverrides;
   removedIds: FurnitureId[];
-  selectedId: FurnitureId;
+  selectedId?: FurnitureId;
   onSelect: (id: FurnitureId) => void;
 };
 

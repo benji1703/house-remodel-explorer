@@ -1027,6 +1027,7 @@ export function HouseExplorer() {
                       alt={heroMoodImage.alt}
                       sizes="(max-width: 800px) 100vw, 62vw"
                       priority
+                      backdrop
                     />
                     <span className="mood-hero-open-label">View full image <span aria-hidden="true">↗</span></span>
                   </button>

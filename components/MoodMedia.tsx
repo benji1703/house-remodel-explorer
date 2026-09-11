@@ -23,14 +23,26 @@ type MoodMediaProps = {
   sizes: string;
   priority?: boolean;
   className?: string;
+  backdrop?: boolean;
 };
 
-export function MoodMedia({ src, alt, sizes, priority = false, className }: MoodMediaProps) {
+export function MoodMedia({ src, alt, sizes, priority = false, className, backdrop = false }: MoodMediaProps) {
   const [loaded, setLoaded] = useState(() => loadedSrcs.has(src));
   const mediaRef = useRef<HTMLImageElement | null>(null);
 
   return (
     <>
+      {backdrop && (
+        <Image
+          src={src}
+          alt=""
+          fill
+          sizes={sizes}
+          unoptimized
+          aria-hidden="true"
+          className={loaded ? "mood-media-backdrop is-visible" : "mood-media-backdrop"}
+        />
+      )}
       <div
         className={loaded ? "mood-skeleton is-done" : "mood-skeleton"}
         aria-hidden="true"

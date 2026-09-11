@@ -1263,6 +1263,21 @@ button { color: inherit; }
   transition: opacity 0.45s var(--ease);
 }
 
+.mood-media-backdrop {
+  position: absolute !important;
+  z-index: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  transform: scale(1.12);
+  filter: blur(24px) saturate(0.88) brightness(0.9);
+  opacity: 0;
+  transition: opacity 0.45s var(--ease);
+  pointer-events: none;
+}
+
+.mood-media-backdrop.is-visible { opacity: 0.78; }
+
 .mood-media.is-loaded {
   opacity: 1;
 }
@@ -2457,6 +2472,12 @@ body.has-lightbox { overflow: hidden; }
   .mood-hero-open,
   .mood-hero .mood-media,
   .mood-hero .mood-skeleton { object-fit: contain; }
+
+  .mood-hero .mood-media-backdrop {
+    object-fit: cover;
+    transform: scale(1.14);
+    filter: blur(28px) saturate(0.92) brightness(0.88);
+  }
 
   .mood-side {
     grid-column: 1;

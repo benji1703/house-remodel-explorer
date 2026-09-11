@@ -6,6 +6,7 @@ import { geometryApprovalItems } from "@/data/house";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 
 type OverlayMode = "vector" | "measured" | "proof";
+type ProofLayout = "side-by-side" | "stacked";
 
 function ProofPane({ children, label }: { children: ReactNode; label: string }) {
   const [zoom, setZoom] = useState(1);
@@ -44,6 +45,7 @@ function ProofPane({ children, label }: { children: ReactNode; label: string }) 
 
 export function DimensionedOverlay() {
   const [mode, setMode] = useState<OverlayMode>("vector");
+  const [proofLayout, setProofLayout] = useState<ProofLayout>("side-by-side");
   const unresolved = geometryApprovalItems.filter((item) => !item.approved);
   const unresolvedByCategory = unresolved.reduce(
     (acc, item) => {
@@ -85,6 +87,12 @@ export function DimensionedOverlay() {
             {mode === "measured" && "Authoritative photographed field drawing"}
             {mode === "proof" && "Side-by-side audit · no false survey registration"}
           </p>
+          {mode === "proof" && (
+            <div className="proof-layout-switch" role="group" aria-label="Source proof layout">
+              <button type="button" className={proofLayout === "side-by-side" ? "is-active" : ""} aria-pressed={proofLayout === "side-by-side"} onClick={() => setProofLayout("side-by-side")}>Side by side</button>
+              <button type="button" className={proofLayout === "stacked" ? "is-active" : ""} aria-pressed={proofLayout === "stacked"} onClick={() => setProofLayout("stacked")}>Stacked</button>
+            </div>
+          )}
         </div>
 
         <div className={`comparison-stage is-${mode}`} role="tabpanel">
@@ -96,7 +104,7 @@ export function DimensionedOverlay() {
             </figure>
           )}
           {mode === "proof" && (
-            <div className="source-proof-grid">
+            <div className={`source-proof-grid is-${proofLayout}`}>
               <figure>
                 <ProofPane label="Original field drawing">
                 <div className="source-proof-media source-scan">

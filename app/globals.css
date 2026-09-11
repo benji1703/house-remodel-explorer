@@ -2769,7 +2769,11 @@ body.has-lightbox { overflow: hidden; }
 .measured-view { position: absolute; inset: 0; margin: 0; }
 .measured-view img { object-fit: contain; padding: 30px; }
 .measured-view figcaption { position: absolute; left: 16px; bottom: 14px; padding: 7px 10px; background: rgba(40, 48, 43, 0.86); color: #f6f3ea; font-size: 10px; letter-spacing: 0.03em; }
-.source-proof-grid { display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 1px; height: 100%; background: var(--line-strong); }
+.proof-layout-switch { display: inline-flex; gap: 2px; margin-left: auto; padding: 2px; border: 1px solid var(--line-strong); border-radius: 7px; background: rgba(255, 255, 255, 0.35); }
+.proof-layout-switch button { border: 0; border-radius: 5px; padding: 6px 9px; background: transparent; color: var(--muted); font-size: 10px; cursor: pointer; }
+.proof-layout-switch button.is-active { background: #29322d; color: #f6f3e9; }
+.source-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; height: 100%; background: var(--line-strong); }
+.source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }
 .proof-pane-wrap { position: relative; min-height: 0; display: grid; grid-template-rows: 36px minmax(0, 1fr); }
 .proof-pane-tools { z-index: 2; display: flex; align-items: center; gap: 5px; padding: 5px 8px; border-bottom: 1px solid var(--line); background: rgba(248, 245, 237, .94); }
@@ -2843,7 +2847,8 @@ body.has-lightbox { overflow: hidden; }
   .plan-mode-note { text-align: left; }
   .comparison-stage { height: min(66dvh, 560px); }
   .architect-plan { min-width: 650px; }
-  .source-proof-grid { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .source-proof-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
+  .source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .source-proof-grid figure { grid-template-rows: minmax(0, 1fr) 34px; }
   .approval-checklist { max-height: none; }
 }

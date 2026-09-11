@@ -25,7 +25,7 @@ const OXIDISED_BRONZE = new THREE.MeshPhysicalMaterial({
 
 const PAPER = new THREE.MeshStandardMaterial({ color: "#e8ddcc", roughness: 0.94 });
 const CLAY = new THREE.MeshPhysicalMaterial({ color: "#9a6548", roughness: 0.84, clearcoat: 0.05 });
-const DEEP_GREEN = new THREE.MeshPhysicalMaterial({ color: "#1f3a31", roughness: 0.48, clearcoat: 0.16 });
+const DEEP_GREEN = new THREE.MeshPhysicalMaterial({ color: "#3b3028", roughness: 0.48, clearcoat: 0.16 });
 const LINEN = new THREE.MeshPhysicalMaterial({
   color: "#d9cfbe",
   roughness: 1,
@@ -343,7 +343,7 @@ function MyrtleCluster({ x, z, scale = 1 }: { x: number; z: number; scale?: numb
   const source = useTexture("/textures/myrtle-foliage.png");
   const material = useMemo(() => new THREE.MeshStandardMaterial({
     map: source,
-    color: "#718064",
+    color: "#9a7955",
     roughness: 0.94,
     transparent: true,
     alphaTest: 0.42,

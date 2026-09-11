@@ -125,12 +125,32 @@ function CameraAzimuthTracker({
 }
 
 function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<OrbitControlsImpl | null> }) {
-  const { gl } = useThree();
+  const { gl, camera } = useThree();
   useEffect(() => {
     const controls = controlsRef.current;
     if (!controls) return;
-    controls.listenToKeyEvents(gl.domElement);
-    return () => controls.stopListenToKeyEvents();
+    const canvas = gl.domElement;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (document.activeElement !== canvas) return;
+      const directions: Record<string, [number, number]> = {
+        ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1],
+      };
+      const direction = directions[event.key];
+      if (!direction) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const amount = event.shiftKey ? 0.22 : event.ctrlKey || event.metaKey ? 0.14 : 0.08;
+      const offset = camera.position.clone().sub(controls.target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      spherical.theta += direction[0] * amount;
+      spherical.phi = THREE.MathUtils.clamp(spherical.phi + direction[1] * amount, controls.minPolarAngle + 0.01, controls.maxPolarAngle - 0.01);
+      offset.setFromSpherical(spherical);
+      camera.position.copy(controls.target).add(offset);
+      camera.lookAt(controls.target);
+      controls.update();
+    };
+    canvas.addEventListener("keydown", onKeyDown);
+    return () => canvas.removeEventListener("keydown", onKeyDown);
   }, [controlsRef, gl]);
   return null;
 }
@@ -423,7 +443,7 @@ function finish(
 }
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
-const FRAME_GREEN = "#66735e";
+const FRAME_GREEN = "#6e5845";
 /** Pale natural oak — shared by doors and joinery to sit quietly with the floor. */
 const LIGHT_OAK = "#e6d6bb";
 

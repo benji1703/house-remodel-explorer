@@ -98,7 +98,7 @@ export function MasterPatio({
       <SideTable base={0.06} palette={palette} x={cx + 0.48} z={cz + 0.42} />
       <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
       <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
-      <PotPlant base={0.06} palette={palette} x={x1 - 0.4} z={z0 + 0.5} scale={1.1} />
+      {/* Keep the west exit landing clear for the door leaf and first step. */}
       <PotPlant base={0.06} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
 
       {quality === "high" &&

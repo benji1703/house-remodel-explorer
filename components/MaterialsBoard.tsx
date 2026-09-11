@@ -43,8 +43,8 @@ export function MaterialsBoard() {
         <span style={{ background: "#c5a47e" }}>Oak</span>
         <span style={{ background: "#e7ded1" }}>Plaster</span>
         <span style={{ background: "#d7c9b5" }}>Stone</span>
-        <span style={{ background: "#66735e", color: "#fff" }}>Sage</span>
-        <span style={{ background: "#718064", color: "#fff" }}>Leaf</span>
+        <span style={{ background: "#8b6a49", color: "#fff" }}>Bronze</span>
+        <span style={{ background: "#9a7955", color: "#fff" }}>Timber</span>
         <span style={{ background: "#a96b48", color: "#fff" }}>Clay</span>
       </div>
 

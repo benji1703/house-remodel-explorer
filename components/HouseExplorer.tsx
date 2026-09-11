@@ -540,7 +540,6 @@ export function HouseExplorer() {
 
   return (
     <main className={sheetOpen ? "shell is-sheet-open" : "shell"}>
-      <a className="skip-link" href="#explorer-content" onClick={() => stageRef.current?.focus({ preventScroll: true })}>Skip to explorer</a>
       <header className="app-bar">
 <a className="logo" href="#top" aria-label={`${site.name} home`} onClick={(event) => { event.preventDefault(); goToView("model"); }}>
           <FootprintMark />

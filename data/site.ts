@@ -1,6 +1,6 @@
 /**
  * Public brand + share surface for Villa Nehama.
- * Single-storey remodel — lime-wash, oak, microcement, Belgian sage frames.
+ * Single-storey remodel — lime-wash, oak, microcement, Belgian bronze frames.
  */
 export const site = {
   name: "Villa Nehama",
@@ -8,12 +8,12 @@ export const site = {
   wordmark: { primary: "Villa Nehama", secondary: "11.4 × 12.1 m · Israel" },
   tagline: "North light in the kitchen, west terrace at dusk",
   description:
-    "Villa Nehama — single-storey remodel in Israel. Measured plan, model, and finishes: lime-wash, oak, microcement, Belgian sage frames.",
+    "Villa Nehama — single-storey remodel in Israel. Measured plan, model, and finishes: lime-wash, oak, microcement, Belgian bronze frames.",
   /** ~150 chars — WhatsApp / iMessage preview. */
   shareDescription:
-    "Villa Nehama, Israel. Measured plan and 3D model — lime-wash, oak, sage Belgian frames, west terrace.",
+    "Villa Nehama, Israel. Measured plan and 3D model — lime-wash, oak, bronze Belgian frames, west terrace.",
   ogAlt:
-    "Living opening to a timber terrace at dusk — lime-wash plaster, microcement, sage frames.",
+    "Living opening to a timber terrace at dusk — lime-wash plaster, microcement, bronze frames.",
   locale: "en_IL",
   keywords: [
     "Villa Nehama",

@@ -1176,6 +1176,8 @@ button { color: inherit; }
   min-height: clamp(320px, 42vh, 520px);
   aspect-ratio: 16 / 9;
   width: 100%;
+  background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
+  box-shadow: 0 16px 38px rgba(36, 43, 39, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
 .mood-hero-open {
@@ -2405,7 +2407,13 @@ body.has-lightbox { overflow: hidden; }
     height: 100%;
     min-height: 0;
     aspect-ratio: auto;
-    background: #d8d3c8;
+    background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
+    border: 1px solid rgba(43, 52, 47, 0.12);
+    box-shadow: 0 18px 44px rgba(36, 43, 39, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  }
+
+  .mood-hero .mood-skeleton {
+    background: linear-gradient(145deg, #f4f5f4 0%, #e7e9e8 52%, #dfe3e1 100%);
   }
 
   .mood-hero-open,

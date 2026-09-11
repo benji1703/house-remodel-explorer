@@ -184,7 +184,8 @@ button { color: inherit; }
 }
 
 .app-body.is-plan,
-.app-body.is-materials {
+.app-body.is-materials,
+.app-body.is-sourcebook {
   grid-template-columns: 1fr;
 }
 
@@ -204,7 +205,8 @@ button { color: inherit; }
 
 .stage.is-plan,
 .stage.is-references,
-.stage.is-materials {
+.stage.is-materials,
+.stage.is-sourcebook {
   background: var(--panel);
   overflow: auto;
 }
@@ -1769,7 +1771,8 @@ body.has-lightbox { overflow: hidden; }
   .app-body,
   .app-body.is-plan,
   .app-body.is-references,
-  .app-body.is-materials {
+  .app-body.is-materials,
+  .app-body.is-sourcebook {
     position: relative;
     flex: 1 1 auto;
     min-height: 0;
@@ -1805,7 +1808,8 @@ body.has-lightbox { overflow: hidden; }
     background: var(--panel);
   }
 
-  .stage.is-materials {
+  .stage.is-materials,
+  .stage.is-sourcebook {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;

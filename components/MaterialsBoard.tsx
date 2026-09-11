@@ -78,9 +78,9 @@ export function MaterialsBoard() {
 
       <section className="product-sourcebook" aria-labelledby="product-sourcebook-title">
         <div className="product-sourcebook-head">
-          <p className="materials-kicker">Specification references</p>
+          <p className="materials-kicker">Israeli specification references</p>
           <h2 id="product-sourcebook-title">Objects with a reason to be here.</h2>
-          <p>Real products selected by room, proportion and material relationship. Confirm dimensions, finish samples and local availability before specifying.</p>
+          <p>Real products and showrooms selected by room, proportion and material relationship. Confirm dimensions, finish samples and local availability before specifying.</p>
         </div>
         <div className="product-sourcebook-grid">
           {productReferences.map((product) => (
@@ -89,7 +89,7 @@ export function MaterialsBoard() {
               <h3>{product.name}</h3>
               <strong>{product.maker}</strong>
               <span>{product.rationale}</span>
-              <a href={product.url} target="_blank" rel="noreferrer">View manufacturer reference ↗</a>
+              <a href={product.url} target="_blank" rel="noreferrer">View product reference ↗</a>
             </article>
           ))}
         </div>

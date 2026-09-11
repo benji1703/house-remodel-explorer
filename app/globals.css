@@ -2422,6 +2422,18 @@ body.has-lightbox { overflow: hidden; }
     -webkit-backdrop-filter: blur(18px) saturate(112%);
   }
 
+  /* The generic stage figure rule is intentionally stronger than .mood-hero;
+     keep the image well on the same warm travertine surface. */
+  .mood-board-stage > figure.mood-hero {
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255, 250, 239, 0.86), transparent 38%),
+      radial-gradient(circle at 92% 94%, rgba(164, 132, 94, 0.2), transparent 46%),
+      linear-gradient(135deg, #eee5d7 0%, #ddcfbb 52%, #cdbba2 100%);
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 18px 44px rgba(85, 63, 42, 0.2), inset 0 0 0 1px rgba(255, 252, 244, 0.78), inset 0 1px 0 rgba(255, 252, 244, 0.9);
+  }
+
   .mood-hero .mood-skeleton {
     background:
       radial-gradient(circle at 15% 8%, rgba(255, 250, 239, 0.86), transparent 38%),

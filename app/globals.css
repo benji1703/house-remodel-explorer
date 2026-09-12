@@ -1821,6 +1821,7 @@ body.has-lightbox { overflow: hidden; }
     overflow: hidden;
     overscroll-behavior: none;
     -webkit-text-size-adjust: 100%;
+    background: var(--paper);
   }
 
   .desktop-only { display: none !important; }
@@ -1878,7 +1879,7 @@ body.has-lightbox { overflow: hidden; }
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     padding-bottom: 8px;
-    background: #f2eee5;
+    background: linear-gradient(180deg, #eee5d7 0%, #ddcfbb 100%);
   }
 
   .stage.is-references {
@@ -2366,11 +2367,15 @@ body.has-lightbox { overflow: hidden; }
     flex: 0 0 auto;
     width: 100%;
     min-height: 0;
-    aspect-ratio: 4 / 5;
-    max-height: none;
+    aspect-ratio: 4 / 3;
+    max-height: min(46dvh, 430px);
     border-radius: 14px;
     touch-action: pan-y;
   }
+
+  .mood-hero-open,
+  .mood-hero .mood-media,
+  .mood-hero .mood-skeleton { object-fit: contain; }
 
   .mood-hero-arrow { width: 44px; height: 44px; margin-top: -22px; }
   .mood-hero-arrow.is-prev { left: 10px; }
@@ -2982,6 +2987,13 @@ body.has-lightbox { overflow: hidden; }
   .mode-selector button { flex: 1; padding-inline: 8px; }
   .plan-mode-note { text-align: left; }
   .comparison-stage { height: min(58dvh, 500px); min-height: 310px; border-radius: 12px; }
+  .comparison-stage,
+  .comparison-stage.is-measured,
+  .comparison-stage.is-proof,
+  .proof-pane,
+  .source-proof-grid,
+  .source-proof-grid.is-overlay { background-color: #ddcfbb; }
+  .source-proof-grid.is-overlay { background-image: url('/references/measured-plan.jpeg'), linear-gradient(135deg, #eee5d7, #ddcfbb); }
   .architect-plan { min-width: 650px; }
   .source-proof-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
   .source-proof-grid figure { grid-template-rows: minmax(0, 1fr) 34px; }

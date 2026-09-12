@@ -2198,7 +2198,12 @@ body.has-lightbox { overflow: hidden; }
     background: linear-gradient(180deg, var(--panel) 70%, transparent);
   }
 
-  .view-intro h2 { font-size: 30px; }
+.view-intro h2 { font-size: 30px; }
+
+  .plan-view { min-height: 100%; padding: 0 0 30px; background: linear-gradient(180deg, #f2eee5 0%, #ebe5da 100%); }
+  .plan-view .view-intro { max-width: 1480px; margin: 0 auto; padding: 26px 16px 12px; }
+  .plan-view .view-intro h2 { margin: 0; font: italic 400 clamp(38px, 10vw, 54px)/.98 var(--font-display), Georgia, serif; letter-spacing: -.04em; }
+  .plan-view .view-intro > p:last-child { max-width: 34ch; margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.5; }
 
   .dimensioned-overlay-container {
     grid-template-columns: 1fr;
@@ -2224,6 +2229,9 @@ body.has-lightbox { overflow: hidden; }
 
   .approval-checklist {
     max-height: none;
+    order: -1;
+    margin: 0 10px;
+    border-radius: 12px;
   }
 
   .mood-masthead {
@@ -2849,10 +2857,10 @@ body.has-lightbox { overflow: hidden; }
 .proof-opacity span { min-width: 28px; font-variant-numeric: tabular-nums; }
 .source-proof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; height: 100%; background: var(--line-strong); }
 .comparison-stage.is-proof .source-proof-grid.is-side-by-side { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
-.source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .source-proof-grid.is-overlay { position: relative; display: block; overflow: hidden; }
 .source-proof-grid.is-overlay figure { position: absolute; inset: 0; display: block; }
 .source-proof-grid.is-overlay figure:nth-child(2) { z-index: 2; }
+.source-proof-grid.is-overlay .proof-pane-wrap { position: absolute; inset: 0; }
 .source-proof-grid.is-overlay figure figcaption { position: absolute; right: 0; bottom: 0; left: 0; height: 44px; background: rgba(248, 245, 237, .86); }
 .source-proof-grid.is-overlay figure:nth-child(2) .proof-pane-wrap { padding-top: 36px; }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }
@@ -2931,7 +2939,6 @@ body.has-lightbox { overflow: hidden; }
   .comparison-stage { height: min(58dvh, 500px); min-height: 310px; border-radius: 12px; }
   .architect-plan { min-width: 650px; }
   .source-proof-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
-  .source-proof-grid.is-stacked { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   .source-proof-grid figure { grid-template-rows: minmax(0, 1fr) 34px; }
   .approval-checklist { max-height: none; }
 }

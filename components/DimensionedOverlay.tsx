@@ -6,7 +6,7 @@ import { geometryApprovalItems } from "@/data/house";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
 
 type OverlayMode = "vector" | "measured" | "proof";
-type ProofLayout = "side-by-side" | "stacked" | "overlay";
+type ProofLayout = "side-by-side" | "overlay";
 
 function ProofPane({ children, label, initialOpacity = 1 }: { children: ReactNode; label: string; initialOpacity?: number }) {
   const [zoom, setZoom] = useState(1);
@@ -124,7 +124,6 @@ export function DimensionedOverlay() {
           {mode === "proof" && (
             <div className="proof-layout-switch" role="group" aria-label="Source proof layout">
               <button type="button" className={proofLayout === "side-by-side" ? "is-active" : ""} aria-pressed={proofLayout === "side-by-side"} onClick={() => setProofLayout("side-by-side")}>Side by side</button>
-              <button type="button" className={proofLayout === "stacked" ? "is-active" : ""} aria-pressed={proofLayout === "stacked"} onClick={() => setProofLayout("stacked")}>Stacked</button>
               <button type="button" className={proofLayout === "overlay" ? "is-active" : ""} aria-pressed={proofLayout === "overlay"} onClick={() => setProofLayout("overlay")}>Overlay</button>
             </div>
           )}

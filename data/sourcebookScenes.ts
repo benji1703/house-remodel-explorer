@@ -27,7 +27,7 @@ export const sourcebookScenes: SourcebookScene[] = [
     description: "Warm microcement, a floating oak vanity, and restrained chrome sit inside the compact measured room. The pocket door stays clear of the circulation and shower glass.",
     image: "/references/sourcebook/ensuite.webp",
     alt: "Villa Nehama ensuite with warm microcement, oak vanity, vessel basin and sage framed window",
-    products: [byName("Essence basin mixer 24174A01"), byName("Essence 60 vessel basin 3960800H"), byName("Grohtherm shower system"), byName("Arena Cosmopolitan")],
+    products: [byName("Essence basin mixer 24174A01"), byName("Essence 60 vessel basin 3960800H"), byName("Grohtherm shower system"), byName("Bau Ceramic wall-hung WC 39427000")],
   },
   {
     eyebrow: "Courtyard · pergola",

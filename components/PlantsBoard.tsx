@@ -13,6 +13,10 @@ export function PlantsBoard() {
         </div>
         <p>Coastal Mediterranean planting for hot sun, winter rain, sea air and long summer evenings. Structure first, scent and pollinators close to the house.</p>
       </header>
+      <figure className="plants-hero">
+        <Image src="/references/plants-beit-hananiah-hero.webp" alt="Warm coastal Mediterranean garden around Villa Nehama with olive, carob, mastic, rosemary, lavender and bougainvillea" fill sizes="(max-width: 800px) 100vw, 1480px" priority />
+        <figcaption>Planting atmosphere · coastal Mediterranean palette</figcaption>
+      </figure>
       <section className="plants-brief" aria-label="Planting principles">
         <div><strong>01 · Canopy</strong><span>Carob, olive and mastic create shade without turning the house into a park.</span></div>
         <div><strong>02 · Courtyard</strong><span>Rosemary, Israeli sage and sea lavender keep the mineral palette fragrant and alive.</span></div>

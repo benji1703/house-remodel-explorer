@@ -2538,9 +2538,9 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-dots { gap: 2px; max-width: 44vw; overflow-x: auto; scrollbar-width: none; }
   .mood-lightbox-dots::-webkit-scrollbar { display: none; }
   .mood-lightbox-dots button {
-    flex: 0 0 44px;
-    width: 44px;
-    height: 44px;
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
     position: relative;
     background: transparent;
     border-radius: 50%;
@@ -2549,12 +2549,12 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-dots button::after {
     content: "";
     position: absolute;
-    inset: 18px;
+    inset: 12px;
     border-radius: 50%;
     background: rgba(244, 241, 234, 0.4);
   }
   .mood-lightbox-dots button.is-active { background: transparent; transform: none; }
-  .mood-lightbox-dots button.is-active::after { inset: 15px; background: #f4f1ea; }
+  .mood-lightbox-dots button.is-active::after { inset: 9px; background: #f4f1ea; }
   .mood-hero-open-label { opacity: 1; }
 }
 

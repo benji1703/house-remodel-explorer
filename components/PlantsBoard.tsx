@@ -39,7 +39,7 @@ export function PlantsBoard() {
           </article>
         ))}
       </section>
-      <footer className="materials-footer">Planting brief only · confirm soil, salt exposure, wind, mature root spread and local nursery stock with a landscape architect before ordering.</footer>
+      <footer className="materials-footer">Planting brief only · confirm soil, salt exposure, wind, mature root spread and local nursery stock with a landscape architect before ordering. Species photographs are documentary references from Wikimedia Commons.</footer>
     </div>
   );
 }

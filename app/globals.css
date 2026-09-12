@@ -2859,8 +2859,11 @@ body.has-lightbox { overflow: hidden; }
 .comparison-stage.is-proof .source-proof-grid.is-side-by-side { grid-template-columns: 1fr 1fr; grid-template-rows: none; }
 .source-proof-grid.is-overlay { position: relative; display: block; overflow: hidden; }
 .source-proof-grid.is-overlay figure { position: absolute; inset: 0; display: block; }
+.source-proof-grid.is-overlay figure:first-child { z-index: 0; }
 .source-proof-grid.is-overlay figure:nth-child(2) { z-index: 2; }
 .source-proof-grid.is-overlay .proof-pane-wrap { position: absolute; inset: 0; }
+.source-proof-grid.is-overlay figure:first-child .proof-pane { background: #d9d5ca; }
+.source-proof-grid.is-overlay figure:nth-child(2) .proof-pane { background: transparent; }
 .source-proof-grid.is-overlay figure figcaption { position: absolute; right: 0; bottom: 0; left: 0; height: 44px; background: rgba(248, 245, 237, .86); }
 .source-proof-grid.is-overlay figure:nth-child(2) .proof-pane-wrap { padding-top: 36px; }
 .source-proof-grid figure { min-width: 0; margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) 44px; background: #f8f5ed; }

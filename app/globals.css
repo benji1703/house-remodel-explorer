@@ -1700,6 +1700,9 @@ body.has-lightbox { overflow: hidden; }
 .product-reference h3 { margin: 0; font-family: var(--font-display), Georgia, serif; font-size: 23px; font-weight: 500; }
 .product-reference strong { color: var(--muted); font-size: 11px; font-weight: 600; }
 .product-reference span { flex: 1; color: var(--muted); font-size: 11px; line-height: 1.45; }
+.product-reference-meta, .product-reference-match { color: var(--faint); font-size: 9px; line-height: 1.4; }
+.product-reference-meta b { color: var(--timber); margin-right: 4px; letter-spacing: .06em; text-transform: uppercase; }
+.product-reference-match { font-style: italic; }
 .product-reference a { color: var(--ink); font-size: 10px; text-underline-offset: 3px; }
 .sourcebook-playbook { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1480px; margin: 0 auto 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .sourcebook-playbook article { display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; border-right: 1px solid var(--line); }

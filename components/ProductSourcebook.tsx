@@ -57,6 +57,8 @@ export function ProductSourcebook() {
               <h3>{product.name}</h3>
               <strong>{product.maker}</strong>
               <span>{product.rationale}</span>
+              {product.budgetRole && <small className="product-reference-meta"><b>{product.budgetRole}</b>{product.fitNote ? ` · ${product.fitNote}` : ""}</small>}
+              {product.moodMatch && <small className="product-reference-match">{product.moodMatch}</small>}
               <a href={product.url} target="_blank" rel="noreferrer">View product reference ↗</a>
             </div>
           </article>

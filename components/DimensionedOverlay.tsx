@@ -8,7 +8,7 @@ import { ArchitecturalPlan } from "./ArchitecturalPlan";
 type OverlayMode = "vector" | "measured" | "proof";
 type ProofLayout = "side-by-side" | "overlay";
 
-function ProofPane({ children, label, initialOpacity = 1 }: { children: ReactNode; label: string; initialOpacity?: number }) {
+function ProofPane({ children, label, initialOpacity = 1, active = true }: { children: ReactNode; label: string; initialOpacity?: number; active?: boolean }) {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -55,7 +55,7 @@ function ProofPane({ children, label, initialOpacity = 1 }: { children: ReactNod
     }
   };
   return (
-    <div className="proof-pane-wrap">
+    <div className={`proof-pane-wrap${active ? "" : " is-inactive"}`} inert={!active ? true : undefined}>
       <div className="proof-pane-tools" role="group" aria-label={`${label} alignment controls`}>
         <button type="button" disabled={zoom <= 0.55} onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))} aria-label={`Zoom out ${label}`}>−</button>
         <span aria-live="polite" aria-atomic="true">{Math.round(zoom * 100)}%</span>
@@ -77,6 +77,7 @@ function ProofPane({ children, label, initialOpacity = 1 }: { children: ReactNod
 export function DimensionedOverlay() {
   const [mode, setMode] = useState<OverlayMode>("vector");
   const [proofLayout, setProofLayout] = useState<ProofLayout>("side-by-side");
+  const [activeLayer, setActiveLayer] = useState<"scan" | "svg">("svg");
   const tabsId = useId();
   const modes: { id: OverlayMode; label: string }[] = [{ id: "vector", label: "Architect SVG" }, { id: "measured", label: "Original scan" }, { id: "proof", label: "Source proof" }];
   const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -119,7 +120,7 @@ export function DimensionedOverlay() {
           <p className="plan-mode-note">
             {mode === "vector" && "Editable vector reconstruction · dimensions in centimetres"}
             {mode === "measured" && "Authoritative photographed field drawing"}
-            {mode === "proof" && "Side-by-side audit · no false survey registration"}
+            {mode === "proof" && (proofLayout === "overlay" ? "Align the drawing over the original scan" : "Compare the original scan with the drawing")}
           </p>
           {mode === "proof" && (
             <div className="proof-layout-switch" role="group" aria-label="Source proof layout">
@@ -129,6 +130,13 @@ export function DimensionedOverlay() {
           )}
         </div>
 
+        {mode === "proof" && proofLayout === "overlay" && (
+          <div className="proof-layer-switch" role="group" aria-label="Layer to adjust">
+            <span>Adjust layer</span>
+            <button type="button" aria-pressed={activeLayer === "scan"} onClick={() => setActiveLayer("scan")}>Original scan</button>
+            <button type="button" aria-pressed={activeLayer === "svg"} onClick={() => setActiveLayer("svg")}>Drawing on top</button>
+          </div>
+        )}
         <div className={`comparison-stage is-${mode}`} role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${mode}`} tabIndex={0}>
           {mode === "vector" && <ArchitecturalPlan idPrefix="audit" />}
           {mode === "measured" && (
@@ -138,9 +146,9 @@ export function DimensionedOverlay() {
             </figure>
           )}
           {mode === "proof" && (
-            <div className={`source-proof-grid is-${proofLayout}`}>
+            <div key={proofLayout} className={`source-proof-grid is-${proofLayout}`}>
               <figure>
-                <ProofPane label="Original field drawing">
+                <ProofPane label="Original field drawing" active={proofLayout !== "overlay" || activeLayer === "scan"}>
                 <div className="source-proof-media source-scan">
                   <Image src="/references/measured-plan.jpeg" alt="Original photographed measured plan" fill sizes="(max-width: 800px) 100vw, 42vw" unoptimized />
                 </div>
@@ -148,7 +156,7 @@ export function DimensionedOverlay() {
                 <figcaption><b>01</b> Original field drawing</figcaption>
               </figure>
               <figure>
-                <ProofPane label="AI-assisted SVG reconstruction" initialOpacity={proofLayout === "overlay" ? 0.5 : 1}>
+                <ProofPane label="AI-assisted SVG reconstruction" active={proofLayout !== "overlay" || activeLayer === "svg"} initialOpacity={proofLayout === "overlay" ? 0.65 : 1}>
                 <div className="source-proof-media source-svg"><ArchitecturalPlan idPrefix="proof" /></div>
                 </ProofPane>
                 <figcaption><b>02</b> AI-assisted SVG reconstruction</figcaption>
@@ -158,7 +166,7 @@ export function DimensionedOverlay() {
         </div>
       </div>
 
-      <aside className="approval-checklist">
+      <aside className="approval-checklist" aria-label="Geometry ledger">
         <div className="checklist-header">
           <h3>{unresolved.length === 0 ? "Geometry ledger" : "Open survey questions"}</h3>
           <span className={unresolved.length === 0 ? "resolved-count" : "unresolved-count"}>

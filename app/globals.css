@@ -3007,3 +3007,58 @@ body.has-lightbox { overflow: hidden; }
   .plan-provenance div > span { display: none; }
   .plan-provenance p { margin: 0; line-height: 1.25; }
 }
+
+/* Both proof layers share one viewport; only the selected layer receives input. */
+.proof-layer-switch { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+.proof-layer-switch > span { color: var(--muted); margin-right: 4px; }
+.proof-layer-switch button { min-height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 9px; background: transparent; cursor: pointer; }
+.proof-layer-switch button[aria-pressed="true"] { color: var(--panel); background: #40362c; }
+.source-proof-grid.is-overlay { background: #ddcfbb; }
+.source-proof-grid.is-overlay > figure { display: block; background: transparent; pointer-events: none; }
+.source-proof-grid.is-overlay .proof-pane-wrap { padding-top: 0; bottom: 44px; pointer-events: auto; }
+.source-proof-grid.is-overlay .proof-pane-wrap.is-inactive { pointer-events: none; }
+.source-proof-grid.is-overlay .proof-pane-wrap.is-inactive .proof-pane-tools { visibility: hidden; }
+.source-proof-grid.is-overlay .source-svg .architect-paper { fill: transparent; }
+.source-proof-grid.is-overlay .source-svg .architect-grid-minor { stroke: transparent; }
+.source-proof-grid.is-overlay .source-svg .architect-zone rect { fill: transparent; }
+.source-proof-grid.is-overlay .source-proof-media { overflow: hidden; }
+.source-proof-grid.is-overlay .source-svg .architect-plan { min-width: 0; }
+.proof-pane { touch-action: pan-y pinch-zoom; }
+.proof-pane.is-panning { touch-action: none; }
+
+@media (max-width: 800px) {
+  /* Let Safari tint its chrome and carry the house palette into safe areas. */
+  html { background-color: #171411; }
+  .shell { background-color: #171411; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  .plan-view { height: auto; min-height: 100%; overflow: visible; }
+  .plan-view .view-intro { position: static; background: transparent; }
+  .dimensioned-overlay-container { grid-template-columns: minmax(0, 1fr); }
+  .approval-checklist { order: 0; margin: 0; max-height: none; overflow: visible; background: #eee6d9; border-radius: 14px; }
+  .checklist-closed p { font-size: 13px; line-height: 1.6; }
+  .checklist-footnote { overflow-wrap: anywhere; }
+  .comparison-stage .architect-plan { min-width: 0; }
+  .comparison-stage.is-vector { height: min(68dvh, 620px); min-height: 380px; }
+  .comparison-stage.is-proof { height: min(76dvh, 680px); min-height: 490px; }
+  .comparison-stage.is-proof .source-proof-grid.is-side-by-side { overflow-x: auto; grid-template-columns: repeat(2, minmax(280px, 1fr)); }
+  .source-proof-media.source-svg .architect-plan { min-width: 0; }
+  .proof-pane-wrap { grid-template-rows: 104px minmax(0, 1fr); }
+  .proof-pane-tools { align-content: center; flex-wrap: wrap; gap: 4px; padding: 4px 6px; }
+  .proof-pane-tools button { min-width: 40px; height: 44px; padding: 0 8px; font-size: 12px; }
+  .proof-pane-tools > span { min-width: 36px; }
+  .proof-opacity { min-height: 44px; margin-left: 0; }
+  .proof-opacity input { height: 44px; width: 80px; }
+  .source-proof-grid.is-overlay .proof-pane-wrap { bottom: 34px; }
+  .source-proof-grid.is-overlay figure figcaption { height: 34px; }
+  .source-proof-grid.is-overlay .source-proof-media.source-scan img { padding: 6px; }
+  .mode-selector button, .proof-layout-switch button { min-height: 44px; font-size: 12px; }
+  .proof-layout-switch { margin-left: 0; align-self: flex-start; }
+  .proof-layer-switch { gap: 6px; }
+  .proof-layer-switch > span { flex-basis: 100%; }
+  .mood-board-stage > figure.mood-hero { height: auto; min-height: 0; aspect-ratio: 4 / 3; max-height: 46dvh; border: 0; border-radius: 14px; background: #d8c8b0; }
+  .mood-hero-open-label { font-size: 10px; }
+  .mood-board-stage figcaption small { display: none; }
+  .mood-backdrop-toggle { min-height: 36px; font-size: 10px; bottom: 40px; }
+  .mood-masthead-row > p { max-width: 29ch; font-size: 12px; }
+  .mood-index-link { min-height: 44px; }
+  .mood-gallery { min-height: 84px; }
+}

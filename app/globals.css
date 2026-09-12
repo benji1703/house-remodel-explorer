@@ -1449,7 +1449,7 @@ body.has-lightbox { overflow: hidden; }
   z-index: 30;
   display: grid;
   place-items: center;
-  padding: clamp(12px, 3vw, 42px);
+  padding: 0;
   color: #f4f1ea;
 }
 
@@ -1466,11 +1466,11 @@ body.has-lightbox { overflow: hidden; }
   z-index: 1;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  width: min(1480px, 100%);
-  height: min(940px, 100%);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
-  border: 1px solid rgba(244, 241, 234, 0.18);
-  border-radius: 18px;
+  border: 0;
+  border-radius: 0;
   background: #27221d;
   box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
 }
@@ -1510,7 +1510,7 @@ body.has-lightbox { overflow: hidden; }
 
 .mood-lightbox-stage .mood-skeleton,
 .mood-lightbox-stage .mood-media { object-fit: contain; }
-.mood-lightbox-stage .mood-media { padding: 18px 72px; }
+.mood-lightbox-stage .mood-media { padding: 0 24px; }
 
 .mood-lightbox-arrow {
   position: absolute;
@@ -2530,7 +2530,7 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-head,
   .mood-lightbox-foot { padding: 14px 16px; }
   .mood-lightbox-stage { display: flex; align-items: center; justify-content: center; }
-  .mood-lightbox-stage .mood-media { width: 100% !important; height: 100% !important; padding: 0 12px; object-fit: contain; }
+  .mood-lightbox-stage .mood-media { width: 100% !important; height: 100% !important; padding: 0; object-fit: contain; }
   .mood-lightbox-arrow { width: 44px; height: 44px; margin-top: -22px; }
   .mood-lightbox-arrow.is-prev { left: 10px; }
   .mood-lightbox-arrow.is-next { right: 10px; }
@@ -2557,7 +2557,7 @@ body.has-lightbox { overflow: hidden; }
 @media (max-width: 800px) and (orientation: portrait) {
   .mood-lightbox-head { padding-top: max(14px, env(safe-area-inset-top)); }
   .mood-lightbox-foot { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
-  .mood-lightbox-stage .mood-media { padding: 0 8px; }
+  .mood-lightbox-stage .mood-media { padding: 0; }
 }
 
 /* iPhone landscape keeps the same left-side image rail as the desktop mood view. */
@@ -2604,7 +2604,7 @@ body.has-lightbox { overflow: hidden; }
 
 @media (max-width: 800px) and (orientation: landscape) {
   .mood-lightbox-panel { height: 100dvh; }
-  .mood-lightbox-stage .mood-media { padding: 0 52px; }
+  .mood-lightbox-stage .mood-media { padding: 0 42px; }
   .mood-lightbox-foot { padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
 }
 

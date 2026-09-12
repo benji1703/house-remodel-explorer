@@ -1491,13 +1491,13 @@ body.has-lightbox { overflow: hidden; }
 .mood-lightbox-head span { display: block; margin-top: 4px; color: rgba(244, 241, 234, 0.6); font-size: 11px; }
 
 .mood-lightbox-close {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: 1px solid rgba(244, 241, 234, 0.3);
   border-radius: 999px;
   background: transparent;
   color: #f4f1ea;
-  font-size: 26px;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
 }
@@ -2538,9 +2538,9 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-dots { gap: 2px; max-width: 44vw; overflow-x: auto; scrollbar-width: none; }
   .mood-lightbox-dots::-webkit-scrollbar { display: none; }
   .mood-lightbox-dots button {
-    flex: 0 0 32px;
-    width: 32px;
-    height: 32px;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
     position: relative;
     background: transparent;
     border-radius: 50%;
@@ -2549,12 +2549,12 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-dots button::after {
     content: "";
     position: absolute;
-    inset: 12px;
+    inset: 9px;
     border-radius: 50%;
     background: rgba(244, 241, 234, 0.4);
   }
   .mood-lightbox-dots button.is-active { background: transparent; transform: none; }
-  .mood-lightbox-dots button.is-active::after { inset: 9px; background: #f4f1ea; }
+  .mood-lightbox-dots button.is-active::after { inset: 6px; background: #f4f1ea; }
   .mood-hero-open-label { opacity: 1; }
 }
 

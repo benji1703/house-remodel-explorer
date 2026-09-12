@@ -1090,7 +1090,6 @@ export function HouseExplorer() {
                     <header className="mood-lightbox-head">
                       <div>
                         <p>{activeMood.label}</p>
-                        <span>{moodIndexLabel} · swipe or use arrow keys</span>
                       </div>
                       <button type="button" className="mood-lightbox-close" onClick={() => setMoodLightboxOpen(false)} aria-label="Close image viewer">×</button>
                     </header>

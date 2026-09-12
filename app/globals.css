@@ -730,6 +730,10 @@ button { color: inherit; }
   flex-direction: column;
 }
 
+.plan-view { overflow: auto; background: linear-gradient(180deg, #f2eee5 0%, #ebe5da 100%); }
+.plan-view .view-intro { max-width: 1480px; width: 100%; margin: 0 auto; padding: 42px clamp(22px, 4vw, 64px) 20px; }
+.plan-view .view-intro h2 { font: italic 400 clamp(38px, 5vw, 68px)/.98 var(--font-display), Georgia, serif; letter-spacing: -.04em; }
+
 .view-intro {
   flex: 0 0 auto;
   padding: 28px 28px 8px;
@@ -807,6 +811,9 @@ button { color: inherit; }
   gap: 16px;
   padding: 12px 20px 20px;
   min-height: 610px;
+  max-width: 1480px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .overlay-comparison { display: flex; flex-direction: column; gap: 10px; }

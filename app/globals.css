@@ -1741,14 +1741,18 @@ body.has-lightbox { overflow: hidden; }
 .plants-brief div:last-child { border-right: 0; }
 .plants-brief strong { color: var(--timber); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .plants-brief span { color: var(--muted); font-size: 11px; line-height: 1.45; }
-.plants-grid { max-width: 1480px; margin: 0 auto; columns: 4 280px; column-gap: 16px; }
+.plants-palette-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; max-width: 1480px; margin: 38px auto 22px; }
+.plants-palette-heading h3 { margin: 8px 0 0; color: var(--ink); font: 500 clamp(26px, 3vw, 38px)/1.1 var(--font-display), Georgia, serif; }
+.plants-palette-heading > p { max-width: 400px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.plants-grid { max-width: 1480px; margin: 0 auto; columns: 3 320px; column-gap: 20px; }
 .plant-card { display: inline-flex; width: 100%; flex-direction: column; margin: 0 0 16px; overflow: hidden; break-inside: avoid; border: 1px solid rgba(74, 68, 57, 0.09); border-radius: 16px; background: rgba(250, 248, 242, 0.92); box-shadow: 0 12px 28px rgba(49, 43, 34, 0.09); }
-.plant-card figure { position: relative; height: 185px; margin: 0; overflow: hidden; background: var(--travertine); }
+.plant-card figure { position: relative; aspect-ratio: 4 / 3; margin: 0; overflow: hidden; background: var(--travertine); }
 .plant-card figure img { object-fit: cover; transition: transform .45s var(--ease); }
 .plant-card:hover figure img { transform: scale(1.035); }
 .plant-card figure span { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(246,243,235,.84); color: var(--muted); font-size: 9px; font-weight: 700; }
 .plant-card-copy { display: flex; flex-direction: column; gap: 7px; padding: 16px 17px 18px; }
 .plant-card-copy > p { margin: 0; color: var(--timber); font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.plant-card-copy > .plant-placement { color: var(--ink); font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; line-height: 1.55; margin: 4px 0; }
 .plant-card-copy h3 { margin: 0; font: 500 22px/1.08 var(--font-display), Georgia, serif; }
 .plant-card-copy em { color: var(--muted); font: italic 12px var(--font-display), Georgia, serif; }
 .plant-card-copy > span { color: var(--muted); font-size: 11px; line-height: 1.5; }
@@ -1773,6 +1777,8 @@ body.has-lightbox { overflow: hidden; }
   .plants-brief div:nth-child(2) { border-right: 0; }
   .plants-brief div:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
   .plants-grid { columns: 1; }
+  .plants-palette-heading { display: block; }
+  .plants-palette-heading > p { margin-top: 14px; }
   .plants-hero { aspect-ratio: 4 / 3; margin-bottom: 22px; border-radius: 12px; }
   .plants-in-situ { display: block; }
   .plants-in-situ figure { min-height: 0; aspect-ratio: 4 / 3; }

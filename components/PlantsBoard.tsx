@@ -24,8 +24,8 @@ export function PlantsBoard() {
         </figure>
         <div>
           <p className="materials-kicker">In the house · planting study</p>
-          <h3 id="plants-in-situ-title">Plant the rooms between the rooms.</h3>
-          <p>This is the same warm travertine and sage-frame language used across the explorer, shown with mature planting proportions. Canopy trees sit back from walls; aromatic layers hold the paths and pergola without blocking doors.</p>
+          <h3 id="plants-in-situ-title">A garden around the terrace.</h3>
+          <p>Olive shade, pale gravel and herbs beside the stone. The larger trees belong further out in the garden; around the terrace, planting stays low enough to leave the doors and paths open.</p>
           <ul>{["Olive + carob canopy", "Mastic boundary", "Rosemary + Israeli sage", "Sea lavender edge", "Bougainvillea pergola"].map((item) => <li key={item}>{item}</li>)}</ul>
         </div>
       </section>
@@ -35,14 +35,19 @@ export function PlantsBoard() {
         <div><strong>03 · Pergola</strong><span>One trained climber softens timber; leave door swings, drainage and maintenance clear.</span></div>
         <div><strong>04 · Water</strong><span>Drip irrigate establishment zones, mulch deeply, then reduce summer frequency as roots settle.</span></div>
       </section>
+      <header className="plants-palette-heading">
+        <div><p className="materials-kicker">Ten plants for the garden</p><h3>From the gate to the terrace.</h3></div>
+        <p>Each image shows a proposed setting at Villa Nehama. These are generated planting studies; the botanical names below identify the plants to source.</p>
+      </header>
       <section className="plants-grid" aria-label="Planting palette">
         {plantReferences.map((plant, index) => (
           <article className="plant-card" key={plant.botanical}>
-            <figure><Image src={plant.image} alt={plant.name} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 33vw, 24vw" unoptimized /><span>{String(index + 1).padStart(2, "0")}</span></figure>
+            <figure><Image src={plant.image} alt={`${plant.name} (${plant.botanical}) in a proposed Villa Nehama garden setting. ${plant.placement}`} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized /><span>{String(index + 1).padStart(2, "0")}</span></figure>
             <div className="plant-card-copy">
               <p>{plant.role}</p>
               <h3>{plant.name}</h3>
               <em>{plant.botanical}</em>
+              <p className="plant-placement">{plant.placement}</p>
               <span>{plant.ecology}</span>
               <dl><div><dt>Sun</dt><dd>{plant.sun}</dd></div><div><dt>Water</dt><dd>{plant.water}</dd></div><div><dt>Size</dt><dd>{plant.height}</dd></div></dl>
               <small>{plant.zones.join(" · ")}</small>
@@ -51,7 +56,7 @@ export function PlantsBoard() {
           </article>
         ))}
       </section>
-      <footer className="materials-footer">Planting brief only · confirm soil, salt exposure, wind, mature root spread and local nursery stock with a landscape architect before ordering. Species photographs are documentary references from Wikimedia Commons.</footer>
+      <footer className="materials-footer">Planting brief only · confirm soil, salt exposure, wind, mature root spread and local nursery stock with a landscape architect before ordering. Images are generated planting studies for Villa Nehama, not photographs of an installed garden.</footer>
     </div>
   );
 }

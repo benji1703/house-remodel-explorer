@@ -1032,7 +1032,6 @@ export function HouseExplorer() {
                   >›</button>
                   <figcaption>
                     <span>{heroMoodImage.caption}</span>
-                    <small>Open full image · ← →</small>
                   </figcaption>
                 </figure>
                 <div className="mood-side">

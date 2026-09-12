@@ -2560,6 +2560,54 @@ body.has-lightbox { overflow: hidden; }
   .mood-lightbox-stage .mood-media { padding: 0 8px; }
 }
 
+/* iPhone landscape keeps the same left-side image rail as the desktop mood view. */
+@media (max-width: 800px) and (orientation: landscape) {
+  .mood-board-stage {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 12px;
+    height: min(100%, 62dvh);
+    padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .mood-hero {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+    max-height: none;
+  }
+  .mood-side {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mood-gallery {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 54px;
+    gap: 7px;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 2px 3px 4px 0;
+  }
+  .mood-thumb { width: 100%; height: 54px; }
+  .mood-finishes-block { display: none; }
+  .mood-hero-open-label { top: 10px; right: 10px; }
+  .mood-board-stage figcaption { padding: 18px 12px 9px; font-size: 12px; }
+}
+
+@media (max-width: 800px) and (orientation: landscape) {
+  .mood-lightbox-panel { height: 100dvh; }
+  .mood-lightbox-stage .mood-media { padding: 0 52px; }
+  .mood-lightbox-foot { padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
+}
+
 @media (min-width: 801px) {
   .mobile-only { display: none !important; }
   .desktop-only { display: revert !important; }

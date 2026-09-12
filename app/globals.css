@@ -1694,6 +1694,11 @@ body.has-lightbox { overflow: hidden; }
 .product-reference strong { color: var(--muted); font-size: 11px; font-weight: 600; }
 .product-reference span { flex: 1; color: var(--muted); font-size: 11px; line-height: 1.45; }
 .product-reference a { color: var(--ink); font-size: 10px; text-underline-offset: 3px; }
+.sourcebook-playbook { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1480px; margin: 0 auto 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.sourcebook-playbook article { display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; border-right: 1px solid var(--line); }
+.sourcebook-playbook article:last-child { border-right: 0; }
+.sourcebook-playbook strong { color: var(--timber); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.sourcebook-playbook span { color: var(--muted); font-size: 11px; line-height: 1.45; }
 .plants-brief { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1480px; margin: 0 auto 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .plants-brief div { display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; border-right: 1px solid var(--line); }
 .plants-brief div:last-child { border-right: 0; }
@@ -1720,6 +1725,9 @@ body.has-lightbox { overflow: hidden; }
   .product-sourcebook-head { display: block; }
   .product-sourcebook-head > p:last-child { margin-top: 10px; }
   .product-sourcebook-grid { columns: 1; }
+  .sourcebook-playbook { grid-template-columns: 1fr 1fr; }
+  .sourcebook-playbook article:nth-child(2) { border-right: 0; }
+  .sourcebook-playbook article:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
   .plants-brief { grid-template-columns: 1fr 1fr; }
   .plants-brief div:nth-child(2) { border-right: 0; }
   .plants-brief div:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }

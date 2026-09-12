@@ -13,6 +13,12 @@ export function ProductSourcebook() {
         </div>
         <p>Sanitaryware, Grohe fittings, kitchen decisions and a warm mineral wall effect, selected against the measured rooms.</p>
       </header>
+      <section className="sourcebook-playbook" aria-label="Designer playbook">
+        <article><strong>Keep the bones</strong><span>Spend on the measured joinery, lighting positions and waterproofing. These are expensive to revisit.</span></article>
+        <article><strong>Save on the skin</strong><span>Use local oak veneer, standard GROHE chrome where it is hidden, and one hero finish instead of many competing surfaces.</span></article>
+        <article><strong>One quiet metal</strong><span>Repeat aged brass or bronze on handles, taps and lights. Mixing finishes makes a tight budget look accidental.</span></article>
+        <article><strong>Sample in the house</strong><span>Approve stone, wall effect and timber beside the sage frames in morning and evening light before ordering.</span></article>
+      </section>
       <section className="product-sourcebook-grid" aria-label="Product and finish references">
         {productReferences.map((product) => (
           <article key={product.name} className="product-reference">

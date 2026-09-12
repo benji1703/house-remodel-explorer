@@ -1706,9 +1706,33 @@ body.has-lightbox { overflow: hidden; }
 .sourcebook-playbook article:last-child { border-right: 0; }
 .sourcebook-playbook strong { color: var(--timber); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
 .sourcebook-playbook span { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.sourcebook-scenes { max-width: 1480px; margin: 0 auto 34px; }
+.sourcebook-scenes-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 420px); gap: 18px 32px; align-items: end; margin-bottom: 16px; }
+.sourcebook-scenes-heading h3 { margin: 4px 0 0; color: var(--ink); font: 500 clamp(25px, 3vw, 38px)/1.05 var(--font-display), Georgia, serif; letter-spacing: -.02em; }
+.sourcebook-scenes-heading > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.sourcebook-scenes-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.sourcebook-scene { overflow: hidden; border: 1px solid rgba(74, 68, 57, .12); border-radius: 16px; background: rgba(250, 248, 242, .9); box-shadow: 0 14px 32px rgba(49, 43, 34, .1); }
+.sourcebook-scene figure { position: relative; aspect-ratio: 4 / 3; margin: 0; overflow: hidden; background: var(--travertine); }
+.sourcebook-scene figure img { object-fit: cover; transition: transform .6s var(--ease); }
+.sourcebook-scene:hover figure img { transform: scale(1.025); }
+.sourcebook-scene figcaption { position: absolute; left: 12px; bottom: 12px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.38); border-radius: 999px; background: rgba(41, 37, 30, .54); color: #fffaf0; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(10px); }
+.sourcebook-scene-copy { padding: 17px 18px 18px; }
+.sourcebook-scene-copy h4 { margin: 0 0 8px; color: var(--ink); font: 500 24px/1.08 var(--font-display), Georgia, serif; }
+.sourcebook-scene-copy p { margin: 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.sourcebook-scene-copy ul { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 11px 0 0; border-top: 1px solid var(--line); list-style: none; }
+.sourcebook-scene-copy a { color: var(--ink); font-size: 10px; text-underline-offset: 3px; }
 .plants-hero { position: relative; max-width: 1480px; aspect-ratio: 16 / 7; margin: 0 auto 30px; overflow: hidden; border-radius: 16px; background: var(--travertine); box-shadow: 0 16px 36px rgba(49, 43, 34, 0.12); }
 .plants-hero img { object-fit: cover; }
 .plants-hero figcaption { position: absolute; right: 16px; bottom: 14px; padding: 7px 10px; border-radius: 999px; background: rgba(245, 240, 231, .78); color: var(--ink); font: italic 12px var(--font-display), Georgia, serif; backdrop-filter: blur(8px); }
+.plants-in-situ { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); max-width: 1480px; margin: 0 auto 30px; overflow: hidden; border: 1px solid rgba(74, 68, 57, .12); border-radius: 16px; background: rgba(250, 248, 242, .78); box-shadow: 0 14px 32px rgba(49, 43, 34, .09); }
+.plants-in-situ figure { position: relative; min-height: 420px; margin: 0; background: var(--travertine); }
+.plants-in-situ figure img { object-fit: cover; }
+.plants-in-situ figure figcaption { position: absolute; left: 14px; bottom: 14px; padding: 7px 10px; border-radius: 999px; background: rgba(41, 37, 30, .54); color: #fffaf0; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; backdrop-filter: blur(10px); }
+.plants-in-situ > div { display: flex; flex-direction: column; justify-content: center; padding: 28px 30px; }
+.plants-in-situ h3 { margin: 4px 0 12px; color: var(--ink); font: 500 clamp(25px, 3vw, 38px)/1.06 var(--font-display), Georgia, serif; letter-spacing: -.02em; }
+.plants-in-situ > div > p:not(.materials-kicker) { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.plants-in-situ ul { display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 0; padding: 0; list-style: none; }
+.plants-in-situ li { padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); font-size: 10px; }
 .plants-brief { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1480px; margin: 0 auto 30px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .plants-brief div { display: flex; flex-direction: column; gap: 7px; padding: 16px 18px; border-right: 1px solid var(--line); }
 .plants-brief div:last-child { border-right: 0; }
@@ -1735,6 +1759,10 @@ body.has-lightbox { overflow: hidden; }
   .product-sourcebook-head { display: block; }
   .product-sourcebook-head > p:last-child { margin-top: 10px; }
   .product-sourcebook-grid { columns: 1; }
+  .sourcebook-scenes-heading { display: block; }
+  .sourcebook-scenes-heading > p { margin-top: 10px; }
+  .sourcebook-scenes-grid { grid-template-columns: 1fr; }
+  .sourcebook-scene figure { aspect-ratio: 4 / 3; }
   .sourcebook-playbook { grid-template-columns: 1fr 1fr; }
   .sourcebook-playbook article:nth-child(2) { border-right: 0; }
   .sourcebook-playbook article:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
@@ -1743,6 +1771,9 @@ body.has-lightbox { overflow: hidden; }
   .plants-brief div:nth-child(-n + 2) { border-bottom: 1px solid var(--line); }
   .plants-grid { columns: 1; }
   .plants-hero { aspect-ratio: 4 / 3; margin-bottom: 22px; border-radius: 12px; }
+  .plants-in-situ { display: block; }
+  .plants-in-situ figure { min-height: 0; aspect-ratio: 4 / 3; }
+  .plants-in-situ > div { padding: 22px 20px 24px; }
 }
 
 .mobile-only { display: none !important; }

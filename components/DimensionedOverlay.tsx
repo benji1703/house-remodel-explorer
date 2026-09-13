@@ -109,18 +109,6 @@ export function DimensionedOverlay() {
   return (
     <div className="dimensioned-overlay-container">
       <div className="overlay-comparison">
-        <div className="plan-provenance">
-          <span className="plan-ai-mark" aria-hidden="true">AI</span>
-          <div>
-            <p>AI-assisted architectural reconstruction</p>
-            <span>
-              Native SVG paths derived from <strong>measured-plan.jpeg</strong>, then checked against the accepted
-              340 + 420 + 380 and 830 + 380 dimension chains.
-            </span>
-          </div>
-          <span className="plan-file-type">SVG · A-01</span>
-        </div>
-
         <div className="comparison-controls">
           <div className="mode-selector" role="tablist" aria-label="Plan source views" onKeyDown={onTabKeyDown}>
             {modes.map((item) => <button key={item.id} id={`${tabsId}-${item.id}`} type="button" role="tab" aria-selected={mode === item.id} aria-controls={`${tabsId}-panel`} tabIndex={mode === item.id ? 0 : -1} className={mode === item.id ? "is-active" : ""} onClick={() => setMode(item.id)}>{item.label}</button>)}
@@ -186,19 +174,7 @@ export function DimensionedOverlay() {
         <div className="plan-metric"><span>Working wall build-up</span><strong>20 / 10 cm</strong></div>
         <div className="plan-metric"><span>Drawing basis</span><strong>Plan north · one FFL</strong></div>
 
-        {unresolved.length === 0 ? (
-          <div className="checklist-closed">
-            <p>
-              The working model follows every readable measured chain, including the west jog
-              <strong> 830 + 380 = 1210</strong>. Standard single-storey assumptions fill only the items explicitly
-              closed in the geometry ledger.
-            </p>
-            <p>
-              This is a design-audit SVG, not a construction set. Elevations, site verification and a true-north
-              bearing remain required before build documents.
-            </p>
-          </div>
-        ) : (
+        {unresolved.length > 0 && (
           <div className="checklist-categories">
             {Object.entries(unresolvedByCategory).map(([category, items]) => (
               <div key={category} className="category-group">
@@ -221,8 +197,6 @@ export function DimensionedOverlay() {
             ))}
           </div>
         )}
-
-        <p className="checklist-footnote">Provenance and decisions live in <code>docs/GEOMETRY_AUDIT.md</code>.</p>
       </aside>
     </div>
   );

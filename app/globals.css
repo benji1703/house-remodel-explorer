@@ -1174,7 +1174,9 @@ button { color: inherit; }
   margin: 0;
   overflow: hidden;
   background: var(--stage);
-  border-radius: 0;
+  border-radius: 10px;
+  background: var(--travertine);
+  box-shadow: 0 1px 0 rgba(255, 252, 244, 0.7) inset;
 }
 
 .mood-board-stage figure {
@@ -1377,8 +1379,8 @@ button { color: inherit; }
 }
 
 .mood-thumb.is-active {
-  outline: 1px solid var(--ink);
-  outline-offset: 3px;
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .mood-thumb:focus-visible {

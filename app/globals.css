@@ -1168,8 +1168,7 @@ button { color: inherit; }
   padding: 12px 40px 28px;
 }
 
-.mood-board-stage figure,
-.mood-thumb {
+.mood-board-stage figure {
   position: relative;
   margin: 0;
   overflow: hidden;
@@ -1368,34 +1367,44 @@ button { color: inherit; }
 }
 
 .mood-thumb {
+  position: relative;
   flex: 0 0 70px;
   width: 70px;
   height: 70px;
   aspect-ratio: 1;
+  margin: 0;
   border: 0;
+  border-radius: 10px;
   padding: 0;
+  overflow: hidden;
+  background: var(--travertine);
   cursor: pointer;
-  flex-shrink: 0;
 }
 
-.mood-thumb.is-active {
-  outline: 0;
-  box-shadow: 0 2px 8px rgba(85, 63, 42, 0.14);
-}
-
-.mood-thumb.is-active::after {
+/* Inset rings stay visible in both the vertical and horizontal scrolling rails. */
+.mood-thumb::after {
   content: "";
   position: absolute;
   z-index: 2;
   inset: 0;
-  border: 2px solid var(--timber);
+  border: 2px solid transparent;
   border-radius: inherit;
   pointer-events: none;
 }
 
+.mood-thumb.is-active::after {
+  border-color: var(--timber);
+  box-shadow: inset 0 0 0 1px var(--panel);
+}
+
 .mood-thumb:focus-visible {
-  outline: 2px solid var(--timber);
-  outline-offset: 2px;
+  outline: 2px solid var(--ink);
+  outline-offset: -4px;
+}
+
+.mood-thumb:focus-visible::after {
+  border-color: var(--panel);
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
 
 .mood-finishes-block {

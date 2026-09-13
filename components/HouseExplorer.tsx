@@ -96,7 +96,10 @@ export function HouseExplorer() {
   const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan"
     ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
   const selectedZone: ZoneId = isZoneId(zoneParam) ? zoneParam : "north-extension";
-  const floorFinish: FloorFinish = searchParams.get("floor") === "sand-microtopping" ? "sand-microtopping" : "oak";
+  const floorParam = searchParams.get("floor");
+  const floorFinish: FloorFinish = floorParam === "sand-microtopping" || floorParam === "oak"
+    ? floorParam
+    : selectedZone === "north-extension" ? "sand-microtopping" : "oak";
   const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
     ? moodParam
     : isMoodBoardId(zoneParam)

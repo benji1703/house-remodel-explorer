@@ -148,7 +148,6 @@ export function HouseExplorer() {
   const [selectedFurnitureId, setSelectedFurnitureId] = useState<FurnitureId>("living-sofa");
   const [exportStatus, setExportStatus] = useState("");
   const [moodImageByBoard, setMoodImageByBoard] = useState<Partial<Record<MoodBoardId, number>>>({});
-  const [moodBackdropEnabled, setMoodBackdropEnabled] = useState(true);
   const [moodLightboxOpen, setMoodLightboxOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [experienceOpen, setExperienceOpen] = useState(false);
@@ -1006,17 +1005,9 @@ export function HouseExplorer() {
                       alt={heroMoodImage.alt}
                       sizes="(max-width: 800px) 100vw, 62vw"
                       priority
-                      backdrop={moodBackdropEnabled}
+                      backdrop
                     />
                     <span className="mood-hero-open-label">View full image <span aria-hidden="true">↗</span></span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`mood-backdrop-toggle${moodBackdropEnabled ? " is-active" : ""}`}
-                    aria-pressed={moodBackdropEnabled}
-                    onClick={(event) => { event.stopPropagation(); setMoodBackdropEnabled((enabled) => !enabled); }}
-                  >
-                    {moodBackdropEnabled ? "Ambient backdrop" : "Flat backdrop"}
                   </button>
                   <button
                     type="button"
@@ -1107,6 +1098,7 @@ export function HouseExplorer() {
                         sizes="100vw"
                         priority
                         className="mood-lightbox-media"
+                        backdrop
                       />
                       <button type="button" className="mood-lightbox-arrow is-next" onClick={() => stepMoodImage(1)} aria-label="Next image">›</button>
                     </div>

@@ -44,6 +44,7 @@ function ProofPane({ children, label, initialOpacity = 1, active = true }: { chi
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     const step = event.shiftKey ? 60 : 20;
+    const zoomStep = 0.01;
     const offset = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[event.key];
     if (offset) {
       event.preventDefault();
@@ -51,15 +52,15 @@ function ProofPane({ children, label, initialOpacity = 1, active = true }: { chi
     } else if (["+", "=", "-", "Home"].includes(event.key)) {
       event.preventDefault();
       if (event.key === "Home") reset();
-      else setZoom((value) => Math.max(0.55, Math.min(4, value + (event.key === "-" ? -0.15 : 0.15))));
+      else setZoom((value) => Math.max(0.55, Math.min(4, value + (event.key === "-" ? -zoomStep : zoomStep))));
     }
   };
   return (
     <div className={`proof-pane-wrap${active ? "" : " is-inactive"}`} inert={!active ? true : undefined}>
       <div className="proof-pane-tools" role="group" aria-label={`${label} alignment controls`}>
-        <button type="button" disabled={zoom <= 0.55} onClick={() => setZoom((value) => Math.max(0.55, value - 0.15))} aria-label={`Zoom out ${label}`}>−</button>
+        <button type="button" disabled={zoom <= 0.55} onClick={() => setZoom((value) => Math.max(0.55, value - 0.01))} aria-label={`Zoom out ${label} by 1 percent`}>−</button>
         <span aria-live="polite" aria-atomic="true">{Math.round(zoom * 100)}%</span>
-        <button type="button" disabled={zoom >= 4} onClick={() => setZoom((value) => Math.min(4, value + 0.15))} aria-label={`Zoom in ${label}`}>+</button>
+        <button type="button" disabled={zoom >= 4} onClick={() => setZoom((value) => Math.min(4, value + 0.01))} aria-label={`Zoom in ${label} by 1 percent`}>+</button>
         <button type="button" onClick={() => setRotation((value) => value - 1)} aria-label={`Rotate ${label} counterclockwise`}>↶</button>
         <button type="button" onClick={() => setRotation((value) => value + 1)} aria-label={`Rotate ${label} clockwise`}>↷</button>
         <button type="button" onClick={reset}>Reset</button>
@@ -78,6 +79,13 @@ export function DimensionedOverlay() {
   const [mode, setMode] = useState<OverlayMode>("vector");
   const [proofLayout, setProofLayout] = useState<ProofLayout>("side-by-side");
   const [activeLayer, setActiveLayer] = useState<"scan" | "svg">("svg");
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 800px)");
+    const syncLayout = () => { if (mobile.matches) setProofLayout("overlay"); };
+    syncLayout();
+    mobile.addEventListener("change", syncLayout);
+    return () => mobile.removeEventListener("change", syncLayout);
+  }, []);
   const tabsId = useId();
   const modes: { id: OverlayMode; label: string }[] = [{ id: "vector", label: "Architect SVG" }, { id: "measured", label: "Original scan" }, { id: "proof", label: "Source proof" }];
   const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {

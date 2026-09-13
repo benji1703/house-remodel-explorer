@@ -1296,25 +1296,6 @@ button { color: inherit; }
 
 .mood-hero .mood-media-backdrop.is-visible { z-index: 0; }
 
-.mood-backdrop-toggle {
-  position: absolute;
-  z-index: 4;
-  right: 14px;
-  bottom: 46px;
-  padding: 6px 9px;
-  border: 1px solid rgba(255, 250, 240, 0.38);
-  border-radius: 999px;
-  background: rgba(65, 53, 40, 0.42);
-  color: #fffaf0;
-  font: 500 9px/1 var(--font-sans), sans-serif;
-  letter-spacing: .05em;
-  cursor: pointer;
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
-}
-
-.mood-backdrop-toggle:hover { background: rgba(65, 53, 40, 0.62); }
-
 .mood-media.is-loaded {
   opacity: 1;
 }
@@ -2266,6 +2247,9 @@ body.has-lightbox { overflow: hidden; }
     gap: 10px;
   }
 
+  /* Phone proof view is always the single alignment overlay. */
+  .proof-layout-switch { display: none; }
+
   .opacity-control {
     margin-left: 0;
     justify-content: flex-start;
@@ -2320,19 +2304,18 @@ body.has-lightbox { overflow: hidden; }
   .mood-index-link,
   .mood-index-link + .mood-index-link {
     margin: 0;
-    padding: 10px 14px;
+    padding: 10px 14px 12px 0;
     min-height: 40px;
     border: 0;
-    border-radius: var(--control-radius);
-    border-bottom: 0;
-    background: rgba(151, 122, 86, 0.1);
+    border-bottom: 1.5px solid transparent;
+    border-radius: 0;
+    background: transparent;
     color: var(--muted);
     scroll-snap-align: start;
   }
 
-  .mood-index-link + .mood-index-link::before {
-    display: none;
-  }
+  .mood-index-link + .mood-index-link { margin-left: 2px; padding-left: 14px; }
+  .mood-index-link + .mood-index-link::before { display: block; }
 
   .mood-index-link.is-active {
     background: transparent;
@@ -3115,7 +3098,6 @@ body.has-lightbox { overflow: hidden; }
   .mood-board-stage > figure.mood-hero { height: auto; min-height: 0; aspect-ratio: 4 / 3; max-height: 46dvh; border: 0; border-radius: 14px; background: #d8c8b0; }
   .mood-hero-open-label { font-size: 10px; }
   .mood-board-stage figcaption small { display: none; }
-  .mood-backdrop-toggle { min-height: 36px; font-size: 10px; bottom: 40px; }
   .mood-masthead-row > p { max-width: 29ch; font-size: 12px; }
   .mood-index-link { min-height: 44px; }
   .mood-gallery { min-height: 84px; }

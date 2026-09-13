@@ -1379,13 +1379,23 @@ button { color: inherit; }
 }
 
 .mood-thumb.is-active {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: 0 2px 8px rgba(85, 63, 42, 0.14);
+}
+
+.mood-thumb.is-active::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: 2px solid var(--timber);
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 .mood-thumb:focus-visible {
-  outline: 1px solid var(--ink);
-  outline-offset: 3px;
+  outline: 2px solid var(--timber);
+  outline-offset: 2px;
 }
 
 .mood-finishes-block {

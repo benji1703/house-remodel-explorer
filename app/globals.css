@@ -3104,6 +3104,7 @@ body.has-lightbox { overflow: hidden; }
 }
 .source-proof-grid.is-overlay > figure:first-child > figcaption { visibility: hidden; }
 @media (max-width: 800px) {
+  .proof-layout-switch { display: none !important; }
   .approval-checklist .plan-metric > span,
   .approval-checklist .checklist-footnote,
   .plan-mode-note { color: var(--muted); }

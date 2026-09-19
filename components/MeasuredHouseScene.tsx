@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html, OrbitControls, useTexture } from "@react-three/drei";
+import { Html, OrbitControls, OrthographicCamera, useTexture } from "@react-three/drei";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
@@ -21,7 +21,10 @@ import { MainBathroom, EnsuiteBathroom } from "./rooms/Bathrooms";
 import { Terrace } from "./rooms/Terrace";
 import { OpeningOnWall } from "./rooms/Openings";
 import type { FurnitureEditingState } from "./rooms/EditableFurniture";
-import { MediterraneanLandscape } from "./rooms/LuxuryDetails";
+import { gardenViews, type GardenView } from "@/data/gardenViews";
+import { gardenCamera } from "@/data/landscape";
+import { MediterraneanLandscape } from "./landscape/MediterraneanLandscape";
+import { GardenDiagnostics } from "./scene/GardenDiagnostics";
 import { LightingRig } from "./scene/LightingRig";
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { lightingProfiles } from "@/data/lighting";
@@ -37,8 +40,9 @@ type Props = {
   allDoorsOpen?: boolean;
   doorStates?: Record<string, boolean>;
   onToggleDoor?: (id: string) => void;
-  cameraMode?: "overview" | "room" | "plan";
+  cameraMode?: "overview" | "room" | "plan" | "garden";
   cameraRevision?: number;
+  gardenView?: GardenView;
   kitchenView?: KitchenView;
   floorFinish?: FloorFinish;
   kitchenAppliances?: { fridge: boolean; dishwasher: boolean };
@@ -78,7 +82,7 @@ const ROOM_CAMERA_PRESETS: Record<ZoneId, { position: [number, number, number]; 
   "east-upper-room": { position: [1.2, 2.15, -0.7], target: [4.3, 0.86, 0.65] },
   "east-lower-room": { position: [1.23, 2.11, 1.98], target: [4.3, 0.82, 4.6] },
   "service-core": { position: [-2.1, 2.15, 3.15], target: [0.55, 0.95, 5.15] },
-  ensuite: { position: [-0.1, 2.2, 3.25], target: [-1.55, 0.95, 5.1] },
+  ensuite: { position: [-3.4, 2.8, 6.9], target: [-1.5, 1.14, 4.9] },
 };
 
 // Room views orbit only through the interior-facing quadrant. This keeps the
@@ -94,7 +98,7 @@ const ROOM_CAMERA_LIMITS: Record<
   "east-upper-room": { minAzimuth: -2.65, maxAzimuth: -0.42, maxDistance: 9.5 },
   "east-lower-room": { minAzimuth: -2.82, maxAzimuth: -1.72, maxDistance: 9.5 },
   "service-core": { minAzimuth: -2.85, maxAzimuth: -1.75, maxDistance: 6.5 },
-  ensuite: { minAzimuth: 2.05, maxAzimuth: 3.08, maxDistance: 5.5 },
+  ensuite: { minAzimuth: -1.55, maxAzimuth: 0.1, maxDistance: 5.5 },
 };
 
 /** Reports the camera's azimuth around ORBIT_TARGET, throttled to avoid excessive re-renders. */
@@ -133,6 +137,20 @@ function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<Orb
     const canvas = gl.domElement;
     const onKeyDown = (event: KeyboardEvent) => {
       if (document.activeElement !== canvas) return;
+      if (["+", "=", "-", "_"].includes(event.key)) {
+        event.preventDefault();
+        const factor = event.key === "-" || event.key === "_" ? 1.12 : 1 / 1.12;
+        if (camera instanceof THREE.OrthographicCamera) {
+          camera.zoom = THREE.MathUtils.clamp(camera.zoom / factor, 10, 200);
+          camera.updateProjectionMatrix();
+        } else {
+          const offset = camera.position.clone().sub(controls.target);
+          offset.setLength(THREE.MathUtils.clamp(offset.length() * factor, controls.minDistance, controls.maxDistance));
+          camera.position.copy(controls.target).add(offset);
+        }
+        controls.update();
+        return;
+      }
       const directions: Record<string, [number, number]> = {
         ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1],
       };
@@ -140,6 +158,13 @@ function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<Orb
       if (!direction) return;
       event.preventDefault();
       event.stopPropagation();
+      if (event.shiftKey && controls.enablePan) {
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(camera.matrix, 1);
+        const translation = right.multiplyScalar(-direction[0] * .18).add(up.multiplyScalar(direction[1] * .18));
+        camera.position.add(translation); controls.target.add(translation); controls.update();
+        return;
+      }
       const amount = event.shiftKey ? 0.22 : event.ctrlKey || event.metaKey ? 0.14 : 0.08;
       const offset = camera.position.clone().sub(controls.target);
       const spherical = new THREE.Spherical().setFromVector3(offset);
@@ -156,23 +181,31 @@ function KeyboardOrbitBridge({ controlsRef }: { controlsRef: React.RefObject<Orb
   return null;
 }
 
+function PlanCamera() {
+  const { size } = useThree();
+  return <OrthographicCamera makeDefault position={[0, 24, 0.001]} zoom={Math.min(size.width / 24, size.height / 21)} near={0.1} far={100} />;
+}
+
 function CameraDirector({
   zone,
   mode,
   controlsRef,
   revision,
   kitchenView,
+  gardenView,
 }: {
   zone: HouseZone;
-  mode: "overview" | "room" | "plan";
+  mode: "overview" | "room" | "plan" | "garden";
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
   revision: number;
   kitchenView: KitchenView;
+  gardenView: GardenView;
 }) {
-  const { camera, size, invalidate } = useThree();
+  const { camera, size, invalidate, controls: activeControls } = useThree();
   const flightRef = useRef<CameraFlight | null>(null);
   const interpolatedTarget = useRef(new THREE.Vector3());
   const lastRequest = useRef<string | null>(null);
+  const lastControls = useRef<OrbitControlsImpl | null>(null);
   const reducedMotion = useRef(false);
   const destination = useMemo(() => {
     if (mode === "overview") {
@@ -183,6 +216,11 @@ function CameraDirector({
         position: new THREE.Vector3(-13.8, 16.4, -10.4),
         target: new THREE.Vector3(-0.55, 0.32, 0.55),
       };
+    }
+    if (mode === "garden") {
+      const point = (p: readonly number[]) => new THREE.Vector3(p[0] / 100 - CX, p[1] / 100, p[2] / 100 - CZ);
+      const shot = gardenView === "hero" ? gardenCamera : gardenViews[gardenView];
+      return { position: point(shot.positionCm), target: point(shot.targetCm) };
     }
     if (mode === "plan") {
       return {
@@ -200,7 +238,7 @@ function CameraDirector({
       position: new THREE.Vector3(...preset.position),
       target: new THREE.Vector3(...preset.target),
     };
-  }, [mode, zone, kitchenView]);
+  }, [mode, zone, kitchenView, gardenView]);
 
   useLayoutEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -216,13 +254,18 @@ function CameraDirector({
   useLayoutEffect(() => {
     // A resize adjusts the lens without returning an already-orbited camera
     // to its preset. Repeated navigation retargets from the current frame.
-    const request = `${mode}-${zone.id}-${kitchenView}-${revision}`;
-    const firstPlacement = lastRequest.current === null;
-    const requestChanged = lastRequest.current !== request;
-    lastRequest.current = request;
     const controls = controlsRef.current;
+    // OrbitControls installs its initial target before becoming the default.
+    // Do not consume a camera request until both belong to the mounted camera;
+    // otherwise its default target overwrites a cold-loaded room's look-at.
+    if (!controls || controls.object !== camera || activeControls !== controls) return;
+    const request = `${camera.uuid}-${mode}-${zone.id}-${kitchenView}-${gardenView}-${revision}`;
+    const firstPlacement = lastRequest.current === null || lastControls.current !== controls;
+    const requestChanged = firstPlacement || lastRequest.current !== request;
+    lastRequest.current = request;
+    lastControls.current = controls;
     const aspect = Math.max(size.width, 1) / Math.max(size.height, 1);
-    const verticalFov = mode === "room" ? 50 : 36;
+    const verticalFov = mode === "garden" ? 50 : mode === "room" ? 50 : 36;
     const fov = aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(verticalFov) / 2) / aspect)) : verticalFov;
     const setFov = (value: number) => {
       if (camera instanceof THREE.PerspectiveCamera) {
@@ -281,7 +324,7 @@ function CameraDirector({
       if (flightRef.current === flight) flightRef.current = null;
       if (controls) controls.enabled = controlsEnabled;
     };
-  }, [camera, controlsRef, destination, revision, mode, zone.id, kitchenView, size.width, size.height, invalidate]);
+  }, [camera, controlsRef, destination, revision, mode, zone.id, kitchenView, gardenView, size.width, size.height, invalidate, activeControls]);
 
   // Run before OrbitControls (-1), so it resumes only after the final pose.
   // Wall-clock time keeps navigation bounded even when a slow frame occurs.
@@ -501,7 +544,13 @@ function buildPalette(
 
 // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
   const travertine = finish("#d7c9b5", 0.58, 0, 0.035, textures.stone, 0.008);
-  const microcement = finish("#c8beb1", 0.89, 0, 0.02, textures.stone, 0.004);
+  const microcement = new THREE.MeshPhysicalMaterial({
+    color: "#e1d5c2", map: textures.microtopping.albedo,
+    bumpMap: textures.microtopping.bump, bumpScale: 0.00055,
+    roughnessMap: textures.microtopping.roughness, roughness: 0.94,
+    envMapIntensity: 0.8,
+  });
+  microcement.userData.moduleMeters = 4;
   const oakFloor = new THREE.MeshPhysicalMaterial({
     color: "#e6d5b9",
     map: textures.herringbone.albedo,
@@ -972,6 +1021,7 @@ function SceneContent({
   doorStates = {},
   onToggleDoor,
   cameraMode = "overview",
+  gardenView = "hero",
   cameraRevision = 0,
   kitchenView = "entrance",
   floorFinish = "oak",
@@ -983,6 +1033,7 @@ function SceneContent({
   onSelectFurniture = () => undefined,
 }: Props) {
   const { gl } = useThree();
+  const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
     plasterSource,
@@ -1073,7 +1124,10 @@ function SceneContent({
       direction: new THREE.Vector3(...position).normalize(),
       color: new THREE.Color("#fff3d6").lerp(new THREE.Color("#ff9c55"), dawnDusk * 0.82),
       intensity: sunHour >= 6 && sunHour <= 20 ? 0.08 + altitude * 3.55 : 0,
-      sky: new THREE.Color("#28384e").lerp(new THREE.Color("#b7cce1"), altitude),
+      // Neutral limestone-colored atmospheric base; the hero reference has
+      // blue sky, but the architecture reads warm and must not inherit a cyan
+      // cast from the background/fog.
+      sky: new THREE.Color("#171b27").lerp(new THREE.Color("#d9c8b5"), altitude),
       practical: THREE.MathUtils.smoothstep(sunHour, 16, 19),
       daylight: altitude,
     };
@@ -1091,9 +1145,9 @@ function SceneContent({
 
   return (
     <>
-      <LightingRig designMode={designMode} quality={quality} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} sun={sun} />
+      <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} sun={sun} />
 
-      {designMode && <MediterraneanLandscape palette={palette} quality={quality} />}
+      {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={setLandscapeReady} />}
       <GroundSlab palette={palette} />
       {house.zones.map((zone) => (
         <ZoneFloor
@@ -1103,7 +1157,7 @@ function SceneContent({
           onSelect={() => onSelectZone(zone.id)}
           palette={palette}
           showMeasurements={showMeasurements}
-          showLabel={cameraMode !== "room"}
+          showLabel={cameraMode === "overview" || cameraMode === "plan"}
         />
       ))}
 
@@ -1113,7 +1167,7 @@ function SceneContent({
           a={wall.a}
           b={wall.b}
           thickness={EXT_THICKNESS}
-          height={cameraMode === "room" ? designAssumptions.finishedCeilingHeightCm / 100 + zoneById[selectedZone].level : SECTION}
+          height={cameraMode === "room" || cameraMode === "garden" ? designAssumptions.finishedCeilingHeightCm / 100 + zoneById[selectedZone].level : SECTION}
           openings={wall.openings}
           material={palette.exterior}
           focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}
@@ -1205,10 +1259,12 @@ function SceneContent({
       )}
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
+      {cameraMode === "plan" && <PlanCamera />}
       <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} />
       <CameraDirector
         zone={zoneById[selectedZone]}
         mode={cameraMode}
+        gardenView={gardenView}
         controlsRef={controlsRef}
         revision={cameraRevision}
         kitchenView={kitchenView}
@@ -1217,12 +1273,12 @@ function SceneContent({
         ref={controlsRef}
         makeDefault
         target={ORBIT_TARGET}
-        minDistance={cameraMode === "room" ? 0.65 : quality === "light" ? 5.5 : 8}
+        minDistance={cameraMode === "garden" ? 1.5 : cameraMode === "room" ? 0.65 : quality === "light" ? 5.5 : 8}
         maxDistance={kitchenRoom ? 7 : cameraMode === "room" ? roomCameraLimits.maxDistance : quality === "light" ? 20 : 28}
         minAzimuthAngle={cameraMode === "room" && !kitchenRoom ? roomCameraLimits.minAzimuth : -Infinity}
         maxAzimuthAngle={cameraMode === "room" && !kitchenRoom ? roomCameraLimits.maxAzimuth : Infinity}
-        minPolarAngle={cameraMode === "plan" ? 0.01 : 0.24}
-        maxPolarAngle={kitchenRoom ? Math.PI / 2 - 0.03 : Math.PI / 2.3}
+        minPolarAngle={cameraMode === "plan" ? 0 : 0.24}
+        maxPolarAngle={cameraMode === "plan" ? 0.001 : cameraMode === "garden" || kitchenRoom ? Math.PI / 2 - 0.03 : Math.PI / 2.3}
         enableDamping
         dampingFactor={quality === "light" ? 0.08 : 0.06}
         rotateSpeed={quality === "light" ? 0.7 : 1}
@@ -1247,12 +1303,19 @@ export function MeasuredHouseScene(props: Props) {
       // The initial camera matches CameraDirector's composed dollhouse view so
       // there is no low-angle flash while controls mount.
       camera={{ position: [-13.8, 16.4, -10.4], fov: 36, near: 0.1, far: 200 }}
-      gl={{ antialias: true, powerPreference: "high-performance", alpha: false }}
+      // ContactShadows renders against a temporarily empty background. An
+      // opaque clear alpha fills that offscreen map with a grey rectangle.
+      // The scene's explicit background keeps the visible canvas opaque.
+      gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
       performance={{ min: quality === "high" ? 0.7 : 0.5 }}
       onCreated={({ gl }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = designMode ? 0.98 : 0.95;
+        // AgX preserves highlight detail in the sunlit limestone and timber,
+        // giving the presentation the soft rolloff of a modern path-traced
+        // architectural still instead of the clipped game-render look.
+        gl.toneMapping = THREE.AgXToneMapping;
+        gl.toneMappingExposure = designMode ? 1.08 : 1;
         gl.outputColorSpace = THREE.SRGBColorSpace;
+        gl.getContext().enable(gl.getContext().DITHER);
         gl.shadowMap.type = THREE.PCFSoftShadowMap;
         const canvas = gl.domElement;
         canvas.tabIndex = 0;
@@ -1266,6 +1329,7 @@ export function MeasuredHouseScene(props: Props) {
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <SceneContent {...props} />
+      <GardenDiagnostics />
     </Canvas>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "@/data/furniture";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
 import { site } from "@/data/site";
+import type { GardenView } from "@/data/gardenViews";
 import { kitchenViews, type KitchenView, type FloorFinish } from "@/data/kitchen";
 import { FURNITURE_STORAGE_KEY, parseFurnitureLayout } from "@/lib/furnitureLayout";
 import { usePanelFocus } from "@/lib/usePanelFocus";
@@ -24,6 +25,7 @@ import { DimensionedOverlay } from "./DimensionedOverlay";
 import { MaterialsBoard, MoodTextureStrip } from "./MaterialsBoard";
 import { ProductSourcebook } from "./ProductSourcebook";
 import { PlantsBoard } from "./PlantsBoard";
+import { EnsuiteLayout } from "./EnsuiteLayout";
 import { MoodMedia, prefetchMoodSrcs } from "./MoodMedia";
 
 const MeasuredHouseScene = lazy(() =>
@@ -33,7 +35,7 @@ const MeasuredHouseScene = lazy(() =>
 );
 
 type View = "model" | "plan" | "references" | "materials" | "sourcebook" | "plants";
-type CameraMode = "overview" | "room" | "plan";
+type CameraMode = "overview" | "room" | "plan" | "garden";
 
 function supportsWebGL() {
   try {
@@ -93,13 +95,15 @@ export function HouseExplorer() {
   const moodParam = searchParams.get("mood");
   const view: View = isView(viewParam) ? viewParam : "model";
   const cameraParam = searchParams.get("camera");
-  const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan"
+  const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan" || cameraParam === "garden"
     ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
+  const gardenParam = searchParams.get("garden");
+  const gardenView: GardenView = gardenParam === "arrival" || gardenParam === "exterior" ? gardenParam : "hero";
   const selectedZone: ZoneId = isZoneId(zoneParam) ? zoneParam : "north-extension";
   const floorParam = searchParams.get("floor");
   const floorFinish: FloorFinish = floorParam === "sand-microtopping" || floorParam === "oak"
     ? floorParam
-    : selectedZone === "north-extension" ? "sand-microtopping" : "oak";
+    : "sand-microtopping";
   const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
     ? moodParam
     : isMoodBoardId(zoneParam)
@@ -107,11 +111,12 @@ export function HouseExplorer() {
       : "central-core";
 
   const navigate = (
-    next: { view?: View; zone?: ZoneId; mood?: MoodBoardId; floor?: FloorFinish; camera?: CameraMode },
+    next: { view?: View; zone?: ZoneId; mood?: MoodBoardId; floor?: FloorFinish; camera?: CameraMode; garden?: GardenView },
     mode: "push" | "replace" = "push",
   ) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (next.floor) params.set("floor", next.floor);
+    if (next.garden) params.set("garden", next.garden);
+    params.set("floor", next.floor ?? floorFinish);
     params.set("view", next.view ?? view);
     params.set("camera", next.camera ?? cameraMode);
     if (next.mood) {
@@ -496,6 +501,7 @@ export function HouseExplorer() {
       </div>
       <h2>{active.label}</h2>
       <p className="detail-copy">{active.description}</p>
+      {active.id === "ensuite" && <EnsuiteLayout />}
       <dl className="measure-list">
         <div>
           <dt>Width</dt>
@@ -595,6 +601,7 @@ export function HouseExplorer() {
         >
           {view === "model" && (
             <>
+              {designMode && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
               <div className="three-stage">
                 {webglSupport === true && (
                   <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
@@ -612,6 +619,7 @@ export function HouseExplorer() {
                       doorStates={doorStates}
                       onToggleDoor={toggleDoor}
                       cameraMode={cameraMode}
+                      gardenView={gardenView}
                       cameraRevision={cameraRevision}
                       kitchenView={kitchenView}
                       floorFinish={floorFinish}
@@ -634,7 +642,7 @@ export function HouseExplorer() {
               </div>
 
               <p id="model-keyboard-help" className="sr-only">3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
-              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : "Whole house overview"}</p>
+              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
               <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">
                 <div className="segmented">
                   <button
@@ -831,7 +839,7 @@ export function HouseExplorer() {
                   <div className="camera-control">
                     <span><b>Camera</b><small>Choose a viewpoint</small></span>
                     <div className="camera-control-buttons" role="group" aria-label="Camera view">
-                      {(["overview", "room", "plan"] as const).map((mode) => (
+                      {(["overview", "garden", "room", "plan"] as const).map((mode) => (
                         <button
                           key={mode}
                           type="button"
@@ -846,7 +854,7 @@ export function HouseExplorer() {
                             if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
                           }}
                         >
-                          {mode === "overview" ? "House" : mode === "room" ? "Room" : "Plan"}
+                          {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : "Plan"}
                         </button>
                       ))}
                     </div>
@@ -895,6 +903,14 @@ export function HouseExplorer() {
                   <span>Back to house</span>
                 </button>
               )}
+              {cameraMode === "garden" && webglSupport === true && (
+                <div className="kitchen-view-strip" role="group" aria-label="Garden viewpoints">
+                  <button type="button" aria-pressed={gardenView === "exterior"} onClick={() => { navigate({ garden: "exterior" }, "replace"); setCameraRevision(r => r + 1); }}>Full exterior</button>
+                  <button type="button" aria-pressed={gardenView === "hero"} onClick={() => { navigate({ garden: "hero" }, "replace"); setCameraRevision(r => r + 1); }}>Olive garden</button>
+                  <button type="button" aria-pressed={gardenView === "arrival"} onClick={() => { navigate({ garden: "arrival" }, "replace"); setCameraRevision(r => r + 1); }}>Terrace approach</button>
+                  <button type="button" onClick={() => navigate({ camera: "plan" })}>Top view</button>
+                </div>
+              )}
               {cameraMode === "room" && selectedZone === "north-extension" && webglSupport === true && (
                 <div className="kitchen-view-strip" role="group" aria-label="Kitchen viewpoints">
                   {kitchenViews.map((shot, index) => (
@@ -927,8 +943,8 @@ export function HouseExplorer() {
                 ) : (
                   <div className="hud-card">
                     <div className="hud-card-text">
-                      <p className="hud-kicker">{cameraMode === "overview" ? "House overview" : cameraMode === "plan" ? "Top view" : active.shortLabel}</p>
-                      <h2>{cameraMode !== "room" ? "Choose a room to explore" : active.label}</h2>
+                      <p className="hud-kicker">{cameraMode === "overview" ? "House overview" : cameraMode === "plan" ? "Top view" : cameraMode === "garden" ? "Mediterranean garden" : active.shortLabel}</p>
+                      <h2>{cameraMode === "garden" ? "Olive shade. Fragrant borders." : cameraMode !== "room" ? "Choose a room to explore" : active.label}</h2>
                       <p className="hud-hint">{webglSupport === false ? "Select a room to see its details" : "Drag to orbit · scroll to zoom · arrow keys when focused"}</p>
                     </div>
                   </div>
@@ -1121,7 +1137,7 @@ export function HouseExplorer() {
 
           {view === "materials" && <MaterialsBoard />}
           {view === "sourcebook" && <ProductSourcebook />}
-          {view === "plants" && <PlantsBoard />}
+          {view === "plants" && <PlantsBoard onExplore={() => { setDesignMode(true); navigate({ view: "model", camera: "garden", garden: "exterior", zone: "central-core" }); }} />}
         </section>
 
         {view === "model" && (

@@ -43,3 +43,5 @@ approvals.jsonl
 
 # Build artifacts
 *.tsbuildinfo
+__pycache__/
+*.py[cod]

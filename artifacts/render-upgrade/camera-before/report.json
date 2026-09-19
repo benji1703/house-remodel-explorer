@@ -1,0 +1,7 @@
+{
+  "browser": "153.0.8010.37",
+  "errors": [],
+  "cases": [],
+  "passed": false,
+  "failure": "Kitchen side target: expected [-0.2,1.2,-4.6], received [-1.2,0.7,0.4]"
+}

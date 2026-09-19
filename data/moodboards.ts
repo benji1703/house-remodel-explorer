@@ -165,7 +165,7 @@ export const roomMoodBoards: RoomMoodBoard[] = [
     id: "ensuite",
     label: "Ensuite",
     shortLabel: "EN",
-    atmosphere: "Master only: vanity, toilet, mirror — same materials, shorter run.",
+    atmosphere: "Private shower, compact washbasin and wall-hung toilet. Warm mineral surfaces, pale oak and brushed bronze; layout proposed within the existing room.",
     finishes: ["Oak", "Microcement", "Lime-wash plaster", "Mirror"],
     images: [
       img("/references/moods/mood-ensuite-03.jpeg", "WC and vanity", "Compact toilet and oak vanity beneath a small high window"),

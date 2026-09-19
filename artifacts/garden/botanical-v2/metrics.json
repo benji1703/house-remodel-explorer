@@ -1,0 +1,116 @@
+{
+  "browser": "153.0.8010.37",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "baseline": {
+    "renderer": "WebKit WebGL",
+    "cameraType": "PerspectiveCamera",
+    "calls": 2421,
+    "triangles": 14530366,
+    "geometries": 1334,
+    "textures": 47,
+    "dpr": 1,
+    "size": {
+      "width": 1098,
+      "height": 876,
+      "top": 73,
+      "left": 11
+    },
+    "camera": [
+      -12.450000000000001,
+      1.549999999999999,
+      -2.6999999999999997
+    ],
+    "target": [
+      -2.6,
+      1.18,
+      0.2999999999999998
+    ],
+    "direction": [
+      0.9559980421463923,
+      -0.035910586354737484,
+      0.2911669163897641
+    ],
+    "assets": [
+      {
+        "url": "http://localhost:3000/textures/landscape/gravel-color.ktx2",
+        "bytes": 1227226,
+        "duration": 6.699999988079071
+      },
+      {
+        "url": "http://localhost:3000/textures/landscape/gravel-normal.ktx2",
+        "bytes": 1364107,
+        "duration": 5.800000011920929
+      },
+      {
+        "url": "http://localhost:3000/textures/landscape/gravel-roughness.ktx2",
+        "bytes": 1095119,
+        "duration": 5.5
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/olea-europaea.glb?v=leaf-v2",
+        "bytes": 1483661,
+        "duration": 192.5
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/salvia-rosmarinus.glb?v=leaf-v2",
+        "bytes": 729295,
+        "duration": 34
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/salvia-fruticosa.glb?v=leaf-v2",
+        "bytes": 265392,
+        "duration": 16.900000005960464
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/myrtus-communis.glb?v=leaf-v2",
+        "bytes": 309764,
+        "duration": 19.69999998807907
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/limonium-perezii.glb?v=leaf-v2",
+        "bytes": 74074,
+        "duration": 13.700000017881393
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/leymus-arenarius.glb?v=leaf-v2",
+        "bytes": 20377,
+        "duration": 4.700000017881393
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/lomandra-longifolia.glb?v=leaf-v2",
+        "bytes": 20079,
+        "duration": 7.199999988079071
+      },
+      {
+        "url": "http://localhost:3000/models/landscape/bougainvillea-glabra.glb?v=leaf-v2",
+        "bytes": 62974,
+        "duration": 13.799999982118607
+      },
+      {
+        "url": "http://localhost:3000/textures/landscape/bark-color.ktx2",
+        "bytes": 1380187,
+        "duration": 6.5999999940395355
+      },
+      {
+        "url": "http://localhost:3000/textures/landscape/bark-normal.ktx2",
+        "bytes": 1363955,
+        "duration": 6.800000011920929
+      },
+      {
+        "url": "http://localhost:3000/textures/landscape/bark-roughness.ktx2",
+        "bytes": 1102013,
+        "duration": 6.800000011920929
+      }
+    ]
+  },
+  "perf": {
+    "frames": 45,
+    "medianMs": 8.799999982118607,
+    "p95Ms": 10.5,
+    "method": "Synchronous renderer + GPU finish; excludes UI and requestAnimationFrame cadence"
+  },
+  "errors": []
+}

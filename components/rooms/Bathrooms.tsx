@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
 import { WallMirror } from "./LuxuryDetails";
+import { ensuiteProposal } from "@/data/ensuite";
 
 /**
  * Built-to-measure sanitaryware. Geometry stays inside the surveyed room
@@ -127,12 +128,14 @@ function Toilet({
   z,
   against,
   wallHung = false,
+  projection,
 }: {
   base: number;
   x: number;
   z: number;
   against: Wall;
   wallHung?: boolean;
+  projection?: number;
 }) {
   return (
     <group position={[x - CX, base, z - CZ]} rotation-y={wallRotation(against)}>
@@ -170,13 +173,21 @@ function Toilet({
           ))}
         </WallAttachment>
       )}
-      <ToiletBowl wallHung={wallHung} />
+      <group scale-z={projection ? projection / 0.704 : 1}>
+        <ToiletBowl wallHung={wallHung} />
+      </group>
     </group>
   );
 }
 
 function ShowerProfile({ x, z, y, h }: { x: number; z: number; y: number; h: number }) {
   return <Cyl x={x} z={z} y={y} r={0.008} h={h} segments={18} material={CHROME} />;
+}
+
+function ShowerGlass({ x, z, y, w, d, h }: { x: number; z: number; y: number; w: number; d: number; h: number }) {
+  return <mesh position={[x - CX, y + h / 2, z - CZ]} material={SHOWER_GLASS}>
+    <boxGeometry args={[w, h, d]} />
+  </mesh>;
 }
 
 /** 90 × 90 shower with low tray, framed glass, drain and complete brassware. */
@@ -186,15 +197,19 @@ function Shower({
   x,
   z,
   screens,
+  size = 0.9,
+  cornerEntry = false,
 }: {
   base: number;
   palette: Palette;
   x: number;
   z: number;
   screens: { west?: boolean; east?: boolean; north?: boolean; south?: boolean };
+  size?: number;
+  cornerEntry?: boolean;
 }) {
   const glassH = 1.95;
-  const tray = 0.9;
+  const tray = size;
   const half = tray / 2;
   const glassT = 0.008;
   const glassY = base + 0.055;
@@ -204,17 +219,26 @@ function Shower({
       <SoftBox x={x} z={z} y={base + 0.044} w={tray - 0.055} d={tray - 0.055} h={0.012} radius={0.035} material={palette.stone} />
       <SoftBox x={x} z={z + 0.31} y={base + 0.057} w={0.54} d={0.025} h={0.009} radius={0.009} material={CHROME} />
 
-      {screens.west && <Blk x={x - half + 0.012} z={z} y={glassY} w={glassT} d={tray - 0.045} h={glassH} material={SHOWER_GLASS} />}
-      {screens.east && <Blk x={x + half - 0.012} z={z} y={glassY} w={glassT} d={tray - 0.045} h={glassH} material={SHOWER_GLASS} />}
-      {screens.north && <Blk x={x} z={z - half + 0.012} y={glassY} w={tray - 0.045} d={glassT} h={glassH} material={SHOWER_GLASS} />}
-      {screens.south && <Blk x={x} z={z + half - 0.012} y={glassY} w={tray - 0.045} d={glassT} h={glassH} material={SHOWER_GLASS} />}
+      {screens.west && <ShowerGlass x={x - half + 0.012} z={z} y={glassY} w={glassT} d={tray - 0.045} h={glassH} />}
+      {screens.east && <ShowerGlass x={x + half - 0.012} z={z} y={glassY} w={glassT} d={tray - 0.045} h={glassH} />}
+      {screens.north && <ShowerGlass x={x} z={z - half + 0.012} y={glassY} w={tray - 0.045} d={glassT} h={glassH} />}
+      {screens.south && <ShowerGlass x={x} z={z + half - 0.012} y={glassY} w={tray - 0.045} d={glassT} h={glassH} />}
+
+      {/* Two fixed return panels leave the southwest corner open. The sliding
+          leaves are shown retracted; no door swings into the toilet or entry. */}
+      {cornerEntry && <>
+        <ShowerGlass x={x - half + 0.012} z={z - tray * 0.25} y={glassY} w={glassT} d={tray * 0.48} h={glassH} />
+        <ShowerGlass x={x + tray * 0.25} z={z + half - 0.012} y={glassY} w={tray * 0.48} d={glassT} h={glassH} />
+        <Blk x={x} z={z + half - 0.012} y={glassY + glassH} w={tray} d={0.015} h={0.015} material={CHROME} />
+        <Blk x={x - half + 0.012} z={z} y={glassY + glassH} w={0.015} d={tray} h={0.015} material={CHROME} />
+      </>}
 
       {[
         [x - half + 0.012, z - half + 0.012],
         [x - half + 0.012, z + half - 0.012],
         [x + half - 0.012, z - half + 0.012],
         [x + half - 0.012, z + half - 0.012],
-      ].map(([profileX, profileZ]) => (
+      ].filter((_, index) => !cornerEntry || index !== 1).map(([profileX, profileZ]) => (
         <ShowerProfile key={`${profileX}-${profileZ}`} x={profileX} z={profileZ} y={glassY} h={glassH} />
       ))}
 
@@ -246,15 +270,15 @@ function Shower({
         <cylinderGeometry args={[0.135, 0.145, 0.025, 40]} />
       </mesh>
 
-      <Cyl x={x - half + 0.025} z={z + 0.31} y={base + 0.92} r={0.012} h={0.28} segments={18} material={CHROME} />
+      <Cyl x={cornerEntry ? x + 0.025 : x - half + 0.025} z={cornerEntry ? z + half - 0.025 : z + 0.31} y={base + 0.92} r={0.012} h={0.28} segments={18} material={CHROME} />
     </group>
   );
 }
 
-function Basin({ base, x, z }: { base: number; x: number; z: number }) {
+function Basin({ base, x, z, compact = false }: { base: number; x: number; z: number; compact?: boolean }) {
   return (
     <group position={[x - CX, base, z - CZ]}>
-      <mesh scale={[1.3, 1, 0.82]} material={CERAMIC} castShadow receiveShadow>
+      <mesh scale={compact ? [1.06, 0.8, 0.63] : [1.3, 1, 0.82]} material={CERAMIC} castShadow receiveShadow>
         <latheGeometry args={[BASIN_PROFILE, 64]} />
       </mesh>
       <mesh position={[0, 0.024, 0]} material={CHROME}>
@@ -343,14 +367,40 @@ export function MainBathroom({ base, palette, reflections = false }: { base: num
   );
 }
 
-/** Ensuite — compact close-coupled WC and a proportioned floating vanity. */
+/** Proposed three-fixture ensuite. The accepted 150 × 190 shell is unchanged. */
 export function EnsuiteBathroom({ base, palette, reflections = false }: { base: number; palette: Palette; reflections?: boolean }) {
+  const { shower, vanity, wc, cistern } = ensuiteProposal;
+  const sx = shower.x / 100, sz = shower.z / 100;
+  const vx = vanity.x / 100, vz = vanity.z / 100;
   return (
-    <group>
-      <Toilet base={base} x={4.15} z={10.29} against="n" />
-      <Vanity base={base} palette={palette} x={4.15} z={11.72} w={0.95} mirror={false} />
-      <WallMirror base={base} x={4.845} z={11.34} wall="east" width={0.62} height={0.76} reflect={reflections} />
-      <pointLight position={[4.55 - CX, base + 1.58, 11.34 - CZ]} intensity={0.72} distance={1.55} decay={2} color="#ffd3a0" />
+    <group name="Proposed ensuite fit-out" userData={{ status: ensuiteProposal.status }}>
+      <group name={shower.id} userData={{ fixtureId: shower.id }}>
+        <WallAttachment x={sx} z={10.26} wall="north">
+          <Blk x={sx} z={10.26} y={base} w={0.84} d={0.02} h={2.2} material={palette.stone} />
+        </WallAttachment>
+        <WallAttachment x={4.84} z={sz} wall="east">
+          <Blk x={4.84} z={sz} y={base} w={0.02} d={0.8} h={2.2} material={palette.stone} />
+        </WallAttachment>
+        <Shower base={base} palette={palette} x={sx} z={sz} size={shower.width / 100} screens={{}} cornerEntry />
+      </group>
+      <group name={wc.id} userData={{ fixtureId: wc.id }}>
+        <WallAttachment x={4.84} z={wc.z / 100} wall="east">
+          <SoftBox x={cistern.x / 100} z={cistern.z / 100} y={base} w={cistern.width / 100} d={cistern.depth / 100} h={cistern.height / 100} radius={0.01} material={palette.interior} />
+          <SoftBox x={cistern.x / 100} z={cistern.z / 100} y={base + cistern.height / 100} w={cistern.width / 100} d={cistern.depth / 100} h={0.018} radius={0.005} material={palette.stone} />
+        </WallAttachment>
+        <Toilet base={base} x={wc.wallX / 100} z={wc.z / 100} against="e" wallHung projection={wc.projection / 100} />
+      </group>
+      <group name={vanity.id} userData={{ fixtureId: vanity.id }}>
+        <SoftBox x={vx} z={vz} y={base + 0.31} w={vanity.width / 100} d={vanity.depth / 100} h={0.44} radius={0.015} material={palette.oak} />
+        <Blk x={vx} z={vz + 0.163} y={base + 0.51} w={0.44} d={0.006} h={0.008} material={DARK_GAP} />
+        <SoftBox x={vx} z={vz} y={base + 0.75} w={vanity.width / 100} d={vanity.depth / 100} h={0.025} radius={0.008} material={palette.stone} />
+        <Basin base={base + 0.775} x={vx} z={vz + 0.03} compact />
+        <group position={[vx - CX, 0, vz - CZ]} rotation-y={Math.PI}>
+          <MixerTap base={base + 0.775} x={CX} z={CZ + 0.11} />
+        </group>
+        <WallMirror base={base} x={vx} z={10.275} wall="north" width={0.44} height={0.78} reflect={reflections} />
+      </group>
+      <pointLight position={[vx - CX, base + 1.8, 10.58 - CZ]} intensity={0.9} distance={2.4} decay={2} color="#ffe0b5" />
     </group>
   );
 }

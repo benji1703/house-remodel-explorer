@@ -21,3 +21,24 @@ export const lightingProfiles = {
     transmission: false, localLights: false,
   },
 } satisfies Record<"high" | "light", LightingProfile>;
+
+/** Proposed garden presentation: neutral sky bounce with a warm directional key.
+ * This does not change the architectural room lighting or the modeled sun path.
+ */
+export const gardenLighting = {
+  environmentIntensity: 0.55,
+  directMultiplier: 1.07,
+  hemisphereBase: 0.10,
+  hemisphereDaylight: 0.58,
+  ambientBase: 0.025,
+  ambientDaylight: 0.04,
+  fillBase: 0.045,
+  fillDaylight: 0.14,
+  gravelDatumCm: -3.5,
+  contactElevationCm: -3.3, // 2 mm above the proposed gravel datum
+  contactSpanCm: 2800,
+  contactFarCm: 135,
+  contactOpacity: 0.30,
+  highContactResolution: 768,
+  lightContactResolution: 256,
+} as const;

@@ -1,0 +1,38 @@
+{
+  "status": "passed",
+  "units": "cm",
+  "fixtures": {
+    "shower": {
+      "minX": 403,
+      "maxX": 483,
+      "minZ": 1027,
+      "maxZ": 1107
+    },
+    "washbasin": {
+      "minX": 349,
+      "maxX": 397,
+      "minZ": 1029,
+      "maxZ": 1061
+    },
+    "cistern": {
+      "minX": 469,
+      "maxX": 485,
+      "minZ": 1124,
+      "maxZ": 1188
+    },
+    "toilet": {
+      "minX": 421,
+      "maxX": 469,
+      "minZ": 1138,
+      "maxZ": 1174
+    }
+  },
+  "wcFrontClearance": 76,
+  "entryAisle": {
+    "minX": 345,
+    "maxX": 403,
+    "minZ": 1090,
+    "maxZ": 1170
+  },
+  "note": "Geometric fit only; installation and site survey still required."
+}

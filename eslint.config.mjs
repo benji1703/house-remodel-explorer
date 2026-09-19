@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Third-party Basis Universal transcoder is distributed as generated JS.
+    "public/decoders/**",
   ]),
 ]);
 

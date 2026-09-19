@@ -1,0 +1,33 @@
+// Run with PLAYWRIGHT_MODULE pointing to an installed Playwright package.
+import { createRequire } from 'node:module';
+import fs from 'node:fs';
+const loadModule = createRequire(import.meta.url);
+const { chromium } = loadModule(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const phase = process.argv[2] || 'after';
+(async () => {
+ const browser = await chromium.launch({channel:'chrome',headless:true});
+ const context = await browser.newContext({viewport:{width:1440,height:960},deviceScaleFactor:1,reducedMotion:'reduce'});
+ const page = await context.newPage(); const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://localhost:3000/?view=model&camera=garden&zone=central-core&gardenQA=1');
+ await page.waitForFunction(()=>window.__gardenQA); await page.waitForTimeout(6500);
+ const dir=`artifacts/garden/${phase}`; fs.mkdirSync(dir,{recursive:true});
+ const canvas=page.locator('canvas').first();
+ const cleanStyle='.stage-toolbar,.garden-view-button,.stage-hud,.return-house-button,.kitchen-view-strip,.zone-label,nextjs-portal{visibility:hidden!important}';
+ await page.screenshot({path:`${dir}/hero-ui.png`});
+ await canvas.screenshot({style:cleanStyle,path:`${dir}/hero.png`});
+ const baseline=await page.evaluate(()=>window.__gardenQA.snapshot());
+ const perf=await page.evaluate(()=>window.__gardenQA.renderSample(45));
+ await page.evaluate(()=>window.__gardenQA.camera([-12.2,1.65,-2.45],[-4.1,1.25,.15]));
+ await page.waitForTimeout(400); await canvas.screenshot({style:cleanStyle,path:`${dir}/comparison.png`});
+ await page.evaluate(()=>window.__gardenQA.camera([-10.8,1.65,2.7],[-3.4,1.3,-.4]));
+ await page.waitForTimeout(400); await canvas.screenshot({style:cleanStyle,path:`${dir}/alternate.png`});
+ await page.goto('http://localhost:3000/?view=model&camera=plan&zone=central-core&gardenQA=1'); await page.waitForFunction(()=>window.__gardenQA); await page.waitForTimeout(2500);
+ await page.waitForTimeout(600); await canvas.screenshot({style:cleanStyle,path:`${dir}/top.png`});
+ await page.goto('http://localhost:3000/?view=model&camera=garden&zone=central-core&gardenQA=1');
+ await page.waitForFunction(()=>window.__gardenQA); await page.waitForTimeout(2000);
+ await page.addStyleTag({content:'.three-stage{position:fixed!important;inset:0!important;width:1440px!important;height:810px!important;z-index:999!important}'});
+ await page.waitForTimeout(500); await canvas.screenshot({style:cleanStyle,path:`${dir}/hero-wide.png`});
+ fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify({browser:await browser.version(),viewport:{width:1440,height:960},baseline,perf,errors},null,2));
+ console.log(JSON.stringify({phase,calls:baseline.calls,triangles:baseline.triangles,perf,errors}));
+ await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

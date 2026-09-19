@@ -203,8 +203,8 @@ export const house = {
     {
       id: "ensuite",
       shortLabel: "EN",
-      label: "Ensuite WC",
-      description: "Compact private WC and vanity to the master; 80 cm door. Not modeled as a shower room.",
+      label: "Ensuite",
+      description: "Proposed compact shower room: 80 × 80 cm corner shower, shallow oak washbasin and wall-hung WC. Existing 80 cm sliding entry retained.",
       status: "traced",
       x: 3.4,
       z: 10.2,

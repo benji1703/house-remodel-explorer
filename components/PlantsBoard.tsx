@@ -3,29 +3,29 @@
 import Image from "next/image";
 import { plantReferences } from "@/data/plants";
 
-export function PlantsBoard() {
+export function PlantsBoard({ onExplore }: { onExplore: () => void }) {
   return (
     <div className="materials-view plants-view">
       <header className="materials-header">
         <div>
-          <p className="materials-kicker">Beit Hananiah · 1,000 m² lot</p>
+          <p className="materials-kicker">Villa Nehama · proposed garden</p>
           <h2>A garden that belongs here.</h2>
         </div>
         <p>Coastal Mediterranean planting for hot sun, winter rain, sea air and long summer evenings. Structure first, scent and pollinators close to the house.</p>
       </header>
       <figure className="plants-hero">
-        <Image src="/references/plants-beit-hananiah-hero.webp" alt="Warm coastal Mediterranean garden around Villa Nehama with olive, carob, mastic, rosemary, lavender and bougainvillea" fill sizes="(max-width: 800px) 100vw, 1480px" priority />
-        <figcaption>Planting atmosphere · coastal Mediterranean palette</figcaption>
+        <Image src="/references/villa-garden-hero.jpeg" alt="3D render of the Villa Nehama model with its timber pergola, olive trees, silver herbs and pale gravel garden" fill sizes="(max-width: 800px) 100vw, 1480px" priority />
+        <figcaption><span>The house in its garden · 3D design study</span><button type="button" onClick={onExplore}>Explore the full exterior ↗</button><a href="/references/villa-garden-hero.jpeg" download>Download JPEG ↓</a></figcaption>
       </figure>
       <section className="plants-in-situ" aria-labelledby="plants-in-situ-title">
         <figure>
-          <Image src="/references/sourcebook/terrace-iron.webp" alt="Villa Nehama courtyard planting at house scale with olive, mastic, rosemary and sea lavender" fill sizes="(max-width: 800px) 100vw, 58vw" />
-          <figcaption>House scale · courtyard and pergola edge</figcaption>
+          <Image src="/references/plants-beit-hananiah-hero.webp" alt="Generated Mediterranean garden inspiration with mature olive trees, layered silver planting and a timber pergola" fill sizes="(max-width: 800px) 100vw, 58vw" />
+          <figcaption>Planting inspiration · atmosphere reference</figcaption>
         </figure>
         <div>
-          <p className="materials-kicker">In the house · planting study</p>
+          <p className="materials-kicker">The planting direction</p>
           <h3 id="plants-in-situ-title">A garden around the terrace.</h3>
-          <p>Olive shade, pale gravel and herbs beside the stone. The larger trees belong further out in the garden; around the terrace, planting stays low enough to leave the doors and paths open.</p>
+          <p>Olive shade, pale gravel and overlapping drifts of silver herbs. Use this image for planting character and materials. Explore the 3D view above for the house layout, terrace and proposed planting positions.</p>
           <ul>{["Olive + carob canopy", "Mastic boundary", "Rosemary + Israeli sage", "Sea lavender edge", "Bougainvillea pergola"].map((item) => <li key={item}>{item}</li>)}</ul>
         </div>
       </section>
@@ -41,7 +41,7 @@ export function PlantsBoard() {
       </header>
       <section className="plants-grid" aria-label="Planting palette">
         {plantReferences.map((plant, index) => (
-          <article className="plant-card" key={plant.botanical}>
+          <article className="plant-card" id={`plant-${index}`} key={plant.botanical}>
             <figure><Image src={plant.image} alt={`${plant.name} (${plant.botanical}) in a proposed Villa Nehama garden setting. ${plant.placement}`} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized /><span>{String(index + 1).padStart(2, "0")}</span></figure>
             <div className="plant-card-copy">
               <p>{plant.role}</p>
@@ -56,7 +56,7 @@ export function PlantsBoard() {
           </article>
         ))}
       </section>
-      <footer className="materials-footer">Planting brief only · confirm soil, salt exposure, wind, mature root spread and local nursery stock with a landscape architect before ordering. Images are generated planting studies for Villa Nehama, not photographs of an installed garden.</footer>
+      <footer className="materials-footer">Proposed planting · the hero is a render of the interactive house model. Reference and palette images are generated studies. Confirm soil, exposure, mature root spread and nursery stock before ordering.</footer>
     </div>
   );
 }

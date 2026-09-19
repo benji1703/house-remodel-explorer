@@ -3130,3 +3130,32 @@ body.has-lightbox { overflow: hidden; }
   .approval-checklist .checklist-footnote,
   .plan-mode-note { color: var(--muted); }
 }
+.garden-view-button {
+  position: absolute; left: 24px; top: 24px; z-index: 12;
+  padding: 12px 18px; border: 1px solid #b2ad98; border-radius: 28px;
+  background: #f4f0e5; color: #383e30; font: inherit; font-size: 13px;
+  box-shadow: 0 3px 15px #25291d12; cursor: pointer;
+}
+.garden-plant-label {
+  width: 220px; padding: 18px; color: #30382c; background: #f8f5eb;
+  border: 1px solid #b5baa3; border-radius: 12px; box-shadow: 0 8px 30px #0002;
+  font-size: 13px;
+}
+.garden-plant-label small, .garden-plant-label strong, .garden-plant-label em { display: block; }
+.garden-plant-label small { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+.garden-plant-label strong { font-family: Georgia, serif; font-size: 23px; }
+.garden-plant-label em { margin: 4px 0 10px; font-size: 12px; }
+.garden-plant-label button { float: right; background: none; border: 0; font-size: 22px; cursor: pointer; color: inherit; }
+.garden-plant-label a { display: inline-block; margin-top: 10px; color: inherit; text-underline-offset: 3px; }
+.plants-hero figcaption button { margin-left: 16px; padding: 10px 16px; border: 1px solid #ddd6c2; border-radius: 24px; color: #343c2d; background: #f7f2e7; cursor: pointer; }
+.plants-hero figcaption { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; left: 16px; right: auto; max-width: calc(100% - 32px); border-radius: 18px; }
+.plants-hero figcaption a { padding: 10px 12px; color: #343c2d; font: 12px var(--font-sans), sans-serif; text-underline-offset: 3px; }
+.ensuite-layout { margin: 20px 0; border: 1px solid var(--line); border-radius: 12px; background: #faf7ef; padding: 12px; }
+.ensuite-layout summary { cursor: pointer; font-size: 12px; font-weight: 600; }
+.ensuite-layout svg { display: block; width: 100%; height: auto; margin-top: 8px; }
+.ensuite-layout p { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.ensuite-layout a { color: var(--ink); font-size: 11px; text-underline-offset: 3px; }
+@media (max-width: 700px) {
+  .garden-view-button { top: 70px; left: 12px; padding: 9px 13px; font-size: 12px; }
+  .plants-hero figcaption button { margin: 8px 0 0; display: block; }
+}

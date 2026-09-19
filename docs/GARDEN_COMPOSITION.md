@@ -7,3 +7,12 @@ Reference inspected from the original local WebP at 1672 × 941, plus original o
 All new landscape positions, widths and ground presentation extents are proposals in centimetres. They do not assert surveyed site boundaries or grade. Existing terrace, entry route and private-patio access remain exclusions. Selected IDs and plant-reference links remain stable.
 
 Implementation and final checks will be added after integration.
+
+## Dense Mediterranean planting pass — 2026-09-19
+
+The proposed palette now uses five olive canopy specimens and expanded,
+overlapping drifts of myrtle, rosemary, Israeli sage, sea lavender, lomandra and
+dune grass around the house. Counts are intentionally generous for a Tuscan /
+coastal Mediterranean feeling; the existing clearance predicate and runtime GLB
+height checks still reject plants that enter the measured shell, access routes or
+terrace sleeves. Planting remains design intent rather than a surveyed site plan.

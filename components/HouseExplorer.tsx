@@ -143,6 +143,7 @@ export function HouseExplorer() {
   // Open on a curated late-afternoon presentation light; the controls still
   // offer local time for daylight studies.
   const [sunHour, setSunHour] = useState(16.75);
+  const [houseLightsOn, setHouseLightsOn] = useState(true);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
   const [kitchenView, setKitchenView] = useState<KitchenView>("entrance");
@@ -615,6 +616,7 @@ export function HouseExplorer() {
                       showMeasurements={showMeasurements}
                       onCameraAzimuth={updateCompass}
                       sunHour={sunHour}
+                      houseLightsOn={houseLightsOn}
                       allDoorsOpen={allDoorsOpen}
                       doorStates={doorStates}
                       onToggleDoor={toggleDoor}
@@ -815,6 +817,13 @@ export function HouseExplorer() {
                     />
                     <span className="sun-ticks"><i>00</i><i>06</i><i>12</i><i>18</i><i>24</i></span>
                   </label>
+                  <div className="door-control light-control">
+                    <span><b>House lights</b><small>Interior and exterior practicals</small></span>
+                    <div className="door-control-buttons light-control-buttons" role="group" aria-label="House lights">
+                      <button type="button" className={houseLightsOn ? "is-active" : ""} aria-pressed={houseLightsOn} onClick={() => setHouseLightsOn(true)}>On</button>
+                      <button type="button" className={!houseLightsOn ? "is-active" : ""} aria-pressed={!houseLightsOn} onClick={() => setHouseLightsOn(false)}>Off</button>
+                    </div>
+                  </div>
                   <div className="door-control">
                     <span><b>Doors</b><small>Tap any leaf in the model</small></span>
                     <div className="door-control-buttons" role="group" aria-label="Set all doors">

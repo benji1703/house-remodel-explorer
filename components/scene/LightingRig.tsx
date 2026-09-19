@@ -16,6 +16,7 @@ export type LightingRigProps = {
   removedFurniture: string[];
   furnitureSignature: string;
   sunHour: number;
+  houseLightsOn: boolean;
   sun: {
     position: [number, number, number];
     direction: THREE.Vector3;
@@ -57,7 +58,7 @@ function SkyDome({ sunDirection, hour, garden }: { sunDirection: THREE.Vector3; 
 }
 
 /** One lighting boundary: quality policy, daylight probe and shadow budget live together. */
-export const LightingRig = memo(function LightingRig({ designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, sun }: LightingRigProps) {
+export const LightingRig = memo(function LightingRig({ designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
   const profile = lightingProfiles[quality];
   const garden = cameraMode === "garden";
   // Overview and garden are both exterior presentations. Keeping this policy
@@ -74,7 +75,7 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
   // debug aid. Keep a low daytime contribution so windows and pergola remain
   // natural, then let the warm interior and exterior luminaires carry the
   // composition after sunset.
-  const practicalLevel = designMode ? 0.34 + (1 - sun.daylight) * 1.55 : 0;
+  const practicalLevel = designMode && houseLightsOn ? 0.34 + (1 - sun.daylight) * 1.55 : 0;
   const housePracticals = designMode && profile.localLights;
   return (
     <>
@@ -98,17 +99,17 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
       </>}
       <directionalLight position={designMode ? sun.position : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow={quality === "high"} shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-13} shadow-camera-right={13} shadow-camera-top={13} shadow-camera-bottom={-13} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />
       <directionalLight position={designMode ? [9, 6, 7] : [-8, 6, -6]} intensity={designMode ? exterior ? gardenLighting.fillBase + sun.daylight * gardenLighting.fillDaylight : 0.04 + sun.daylight * 0.14 : 0.55} color={designMode ? "#d0c5b5" : "#d8d1c5"} />
-      {housePracticals && <>
+      {housePracticals && houseLightsOn && <>
         <pointLight position={[0, 2.1, 0.2]} intensity={practicalLevel * 1.6} distance={6} decay={2} color="#ffd1a0" />
         <pointLight position={[-0.1, 2.1, -4.2]} intensity={practicalLevel * 1.35} distance={5.5} decay={2} color="#ffd1a0" />
         <pointLight position={[-3.9, 2.4, -0.15]} intensity={practicalLevel * 1.2} distance={5.5} decay={2} color="#ffc58a" />
       </>}
-      {housePracticals && <>
+      {housePracticals && houseLightsOn && <>
         <pointLight position={[-4.0, 1.05, 5.05]} intensity={practicalLevel * 1.1} distance={3.7} decay={2} color="#ffc27f" />
         <pointLight position={[4.55, 1.05, 0.4]} intensity={practicalLevel} distance={3.5} decay={2} color="#ffc786" />
         <pointLight position={[4.55, 1.05, 4.8]} intensity={practicalLevel} distance={3.5} decay={2} color="#ffc786" />
       </>}
-      {housePracticals && <>
+      {housePracticals && houseLightsOn && <>
         {/* Exterior path and pergola pools: broad, low-energy pools keep the
          * limestone readable and make the house visibly inhabited at night. */}
         <pointLight position={[-4.8, 2.35, 1.15]} intensity={practicalLevel * 0.5} distance={5.2} decay={2} color="#ffbd78" />

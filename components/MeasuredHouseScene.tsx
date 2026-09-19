@@ -26,6 +26,7 @@ import { gardenCamera } from "@/data/landscape";
 import { MediterraneanLandscape } from "./landscape/MediterraneanLandscape";
 import { GardenDiagnostics } from "./scene/GardenDiagnostics";
 import { LightingRig } from "./scene/LightingRig";
+import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { lightingProfiles } from "@/data/lighting";
 
@@ -37,6 +38,7 @@ type Props = {
   showMeasurements?: boolean;
   onCameraAzimuth?: (radians: number) => void;
   sunHour?: number;
+  houseLightsOn?: boolean;
   allDoorsOpen?: boolean;
   doorStates?: Record<string, boolean>;
   onToggleDoor?: (id: string) => void;
@@ -1017,6 +1019,7 @@ function SceneContent({
   showMeasurements = false,
   onCameraAzimuth,
   sunHour = 16.5,
+  houseLightsOn = true,
   allDoorsOpen = true,
   doorStates = {},
   onToggleDoor,
@@ -1145,7 +1148,7 @@ function SceneContent({
 
   return (
     <>
-      <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} sun={sun} />
+      <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={setLandscapeReady} />}
       <GroundSlab palette={palette} />
@@ -1235,31 +1238,32 @@ function SceneContent({
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core")}><Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}><MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core")}>
-            <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} appliances={kitchenAppliances} onToggleAppliance={onToggleKitchenAppliance} />
+            <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} appliances={kitchenAppliances} onToggleAppliance={onToggleKitchenAppliance} lightsOn={houseLightsOn} nightFactor={sun.practical} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension")}>
-            <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} />
+            <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} lightsOn={houseLightsOn} nightFactor={sun.practical} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}>
-            <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+            <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-upper-room")}>
-            <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+            <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-lower-room")}>
-            <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={sun.practical} />
+            <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "service-core")}>
-            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} />
+            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} lightsOn={houseLightsOn} />
           </ResidentRoom>
           <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
-            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} />
+            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} lightsOn={houseLightsOn} />
           </ResidentRoom>
         </>
       )}
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
       {cameraMode === "plan" && <PlanCamera />}
+      <LightingPlanMarkers visible={cameraMode === "plan"} lightsOn={houseLightsOn} nightFactor={sun.practical} />
       <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} />
       <CameraDirector
         zone={zoneById[selectedZone]}

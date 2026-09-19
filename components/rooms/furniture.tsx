@@ -266,7 +266,7 @@ export function BedsideLamp({
         <meshStandardMaterial
           color="#fff2d5"
           emissive="#ff9f45"
-          emissiveIntensity={0.35 + nightFactor * 2.8}
+          emissiveIntensity={nightFactor * 2.8}
           toneMapped={false}
         />
       </mesh>
@@ -525,12 +525,16 @@ export function Pendant({
   x,
   z,
   y = 2.05,
+  lightsOn = true,
+  nightFactor = 1,
 }: {
   base: number;
   palette: Palette;
   x: number;
   z: number;
   y?: number;
+  lightsOn?: boolean;
+  nightFactor?: number;
 }) {
   const { r, h } = FURN.pendant;
   const cordLength = Math.max(0.03, designAssumptions.finishedCeilingHeightCm / 100 - y);
@@ -547,7 +551,7 @@ export function Pendant({
       </mesh>
       <mesh position={[x - CX, base + y - h + 0.025, z - CZ]}>
         <sphereGeometry args={[r * 0.22, 24, 16]} />
-        <meshStandardMaterial color="#fff0ce" emissive="#ffad55" emissiveIntensity={1.1} toneMapped={false} />
+        <meshStandardMaterial color="#fff0ce" emissive="#ffad55" emissiveIntensity={lightsOn ? 1.1 * (0.25 + nightFactor * 0.75) : 0} toneMapped={false} />
       </mesh>
     </group>
   );

@@ -366,7 +366,7 @@ function IntegratedFridge({ base, palette, x, z, open, onToggle }: { base: numbe
  * East wall: window north (~z 0.25–1.45), main entry further south (~z 2.65–3.65).
  * Cabinetry clears both openings.
  */
-export function Kitchen({ base, palette: sharedPalette, furnitureEditing, appliances, onToggleAppliance }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState; appliances?: { fridge: boolean; dishwasher: boolean }; onToggleAppliance?: (id: "fridge" | "dishwasher") => void }) {
+export function Kitchen({ base, palette: sharedPalette, furnitureEditing, appliances, onToggleAppliance, lightsOn = true, nightFactor = 1 }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState; appliances?: { fridge: boolean; dishwasher: boolean }; onToggleAppliance?: (id: "fridge" | "dishwasher") => void; lightsOn?: boolean; nightFactor?: number }) {
   const oak = useMemo(() => {
     const material = sharedPalette.oak.clone() as THREE.MeshPhysicalMaterial;
     material.color.set("#bd986a");
@@ -440,8 +440,8 @@ export function Kitchen({ base, palette: sharedPalette, furnitureEditing, applia
       </EditableFurniture>
 
       <IslandBowl base={base + 0.993} palette={palette} x={5.25} z={2.42} />
-      <Pendant base={base} palette={palette} x={4.95} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} />
-      <Pendant base={base} palette={palette} x={5.75} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} />
+      <Pendant base={base} palette={palette} x={4.95} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />
+      <Pendant base={base} palette={palette} x={5.75} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />
     </group>
   );
 }

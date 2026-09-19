@@ -60,6 +60,11 @@ const plant = (id: string, species: LandscapeSpeciesId, x: number, z: number, sc
 const anchors: LandscapePlant[] = [
   plant("olive-west-specimen", "olea-europaea", -320, 275, 0.97, 0.6),
   plant("olive-east-specimen", "olea-europaea", 1470, 995, 0.68, 2.1),
+  // A loose Tuscan grove at the outer edge: canopy stays outside the shell,
+  // while the lower planting knits the house into the wider garden.
+  plant("olive-north-west-specimen", "olea-europaea", -760, 170, 0.72, 1.8),
+  plant("olive-south-west-specimen", "olea-europaea", -700, 1260, 0.78, 4.8),
+  plant("olive-east-boundary-specimen", "olea-europaea", 1530, 620, 0.62, 3.4),
   plant("bougainvillea-outer-south", "bougainvillea-glabra", 44, 782, 1, 0, 8),
   plant("bougainvillea-outer-north", "bougainvillea-glabra", 44, 400, 1, Math.PI, 8),
 ];
@@ -68,16 +73,18 @@ const anchors: LandscapePlant[] = [
 // The dimensions describe proposed planting drifts; they are not edged beds.
 type Drift = { id: string; x: number; z: number; species: LandscapeSpeciesId[]; count: number; widthCm: number; depthCm: number; angle: number; scale?: number };
 const drifts: Drift[] = [
-  { id: "olive-understory", x: -420, z: 245, species: ["salvia-fruticosa", "salvia-fruticosa", "lomandra-longifolia", "limonium-perezii"], count: 16, widthCm: 380, depthCm: 300, angle: 0.2 },
-  { id: "north-courtyard", x: 50, z: 175, species: ["myrtus-communis", "myrtus-communis", "salvia-fruticosa", "salvia-rosmarinus"], count: 12, widthCm: 360, depthCm: 230, angle: 0.15, scale: 1.06 },
-  { id: "terrace-north", x: -180, z: 425, species: ["salvia-rosmarinus", "salvia-rosmarinus", "limonium-perezii", "salvia-fruticosa", "lomandra-longifolia"], count: 16, widthCm: 310, depthCm: 140, angle: -0.08 },
-  { id: "terrace-south", x: -210, z: 755, species: ["myrtus-communis", "myrtus-communis", "salvia-fruticosa", "salvia-rosmarinus"], count: 15, widthCm: 400, depthCm: 115, angle: 0.03 },
-  { id: "east-upper", x: 1340, z: 650, species: ["salvia-rosmarinus", "leymus-arenarius", "limonium-perezii"], count: 10, widthCm: 320, depthCm: 170, angle: Math.PI / 2 },
-  { id: "east-olive", x: 1415, z: 1120, species: ["myrtus-communis", "salvia-fruticosa", "lomandra-longifolia"], count: 10, widthCm: 300, depthCm: 220, angle: Math.PI / 2 },
-  { id: "south-edge", x: 615, z: 1425, species: ["salvia-rosmarinus", "salvia-fruticosa", "limonium-perezii", "lomandra-longifolia"], count: 20, widthCm: 970, depthCm: 175, angle: 0 },
-  { id: "front-foreground", x: 590, z: 1310, species: ["salvia-rosmarinus", "salvia-fruticosa", "limonium-perezii", "lomandra-longifolia", "leymus-arenarius"], count: 18, widthCm: 970, depthCm: 100, angle: 0.02 },
-  { id: "west-foreground", x: -550, z: 795, species: ["myrtus-communis", "salvia-fruticosa", "salvia-fruticosa", "salvia-rosmarinus", "limonium-perezii"], count: 15, widthCm: 370, depthCm: 180, angle: Math.PI / 2, scale: 1.05 },
-  { id: "north-west-layer", x: -535, z: 435, species: ["myrtus-communis", "salvia-fruticosa", "lomandra-longifolia", "limonium-perezii"], count: 12, widthCm: 320, depthCm: 120, angle: -0.12 },
+  { id: "olive-understory", x: -420, z: 245, species: ["salvia-fruticosa", "salvia-fruticosa", "lomandra-longifolia", "limonium-perezii"], count: 32, widthCm: 460, depthCm: 350, angle: 0.2 },
+  { id: "north-courtyard", x: 50, z: 175, species: ["myrtus-communis", "myrtus-communis", "salvia-fruticosa", "salvia-rosmarinus"], count: 24, widthCm: 430, depthCm: 280, angle: 0.15, scale: 1.06 },
+  { id: "terrace-north", x: -180, z: 425, species: ["salvia-rosmarinus", "salvia-rosmarinus", "limonium-perezii", "salvia-fruticosa", "lomandra-longifolia"], count: 30, widthCm: 360, depthCm: 170, angle: -0.08 },
+  { id: "terrace-south", x: -210, z: 755, species: ["myrtus-communis", "myrtus-communis", "salvia-fruticosa", "salvia-rosmarinus"], count: 28, widthCm: 450, depthCm: 145, angle: 0.03 },
+  { id: "east-upper", x: 1340, z: 650, species: ["salvia-rosmarinus", "leymus-arenarius", "limonium-perezii"], count: 22, widthCm: 390, depthCm: 210, angle: Math.PI / 2 },
+  { id: "east-olive", x: 1415, z: 1120, species: ["myrtus-communis", "salvia-fruticosa", "lomandra-longifolia"], count: 22, widthCm: 360, depthCm: 270, angle: Math.PI / 2 },
+  { id: "south-edge", x: 615, z: 1425, species: ["salvia-rosmarinus", "salvia-fruticosa", "limonium-perezii", "lomandra-longifolia"], count: 38, widthCm: 1080, depthCm: 220, angle: 0 },
+  { id: "front-foreground", x: 590, z: 1310, species: ["salvia-rosmarinus", "salvia-fruticosa", "limonium-perezii", "lomandra-longifolia", "leymus-arenarius"], count: 34, widthCm: 1080, depthCm: 145, angle: 0.02 },
+  { id: "west-foreground", x: -550, z: 795, species: ["myrtus-communis", "salvia-fruticosa", "salvia-fruticosa", "salvia-rosmarinus", "limonium-perezii"], count: 28, widthCm: 450, depthCm: 230, angle: Math.PI / 2, scale: 1.05 },
+  { id: "north-west-layer", x: -535, z: 435, species: ["myrtus-communis", "salvia-fruticosa", "lomandra-longifolia", "limonium-perezii"], count: 24, widthCm: 400, depthCm: 160, angle: -0.12 },
+  { id: "east-boundary-layer", x: 1430, z: 820, species: ["myrtus-communis", "salvia-rosmarinus", "salvia-fruticosa", "leymus-arenarius"], count: 26, widthCm: 520, depthCm: 230, angle: Math.PI / 2 },
+  { id: "south-west-grove-edge", x: -610, z: 1160, species: ["myrtus-communis", "salvia-fruticosa", "limonium-perezii", "lomandra-longifolia"], count: 26, widthCm: 420, depthCm: 250, angle: 0.2 },
 ];
 export const landscapeRandom = (n: number) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 export function isPlantClear(p: LandscapePlant) {

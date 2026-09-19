@@ -348,7 +348,7 @@ function Vanity({
 }
 
 /** Main bathroom — wall-hung WC, full shower and wide floating vanity. */
-export function MainBathroom({ base, palette, reflections = false }: { base: number; palette: Palette; reflections?: boolean }) {
+export function MainBathroom({ base, palette, reflections = false, lightsOn = true }: { base: number; palette: Palette; reflections?: boolean; lightsOn?: boolean }) {
   return (
     <group>
       {/* Thin stone liners sit entirely inside the wet corner and give the
@@ -362,13 +362,13 @@ export function MainBathroom({ base, palette, reflections = false }: { base: num
       <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
       <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
       <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} reflect={reflections} />
-      <pointLight position={[5.25 - CX, base + 1.58, 11.42 - CZ]} intensity={0.8} distance={1.8} decay={2} color="#ffd3a0" />
+      {lightsOn && <pointLight position={[5.25 - CX, base + 1.58, 11.42 - CZ]} intensity={0.8} distance={1.8} decay={2} color="#ffd3a0" />}
     </group>
   );
 }
 
 /** Proposed three-fixture ensuite. The accepted 150 × 190 shell is unchanged. */
-export function EnsuiteBathroom({ base, palette, reflections = false }: { base: number; palette: Palette; reflections?: boolean }) {
+export function EnsuiteBathroom({ base, palette, reflections = false, lightsOn = true }: { base: number; palette: Palette; reflections?: boolean; lightsOn?: boolean }) {
   const { shower, vanity, wc, cistern } = ensuiteProposal;
   const sx = shower.x / 100, sz = shower.z / 100;
   const vx = vanity.x / 100, vz = vanity.z / 100;
@@ -400,7 +400,7 @@ export function EnsuiteBathroom({ base, palette, reflections = false }: { base: 
         </group>
         <WallMirror base={base} x={vx} z={10.275} wall="north" width={0.44} height={0.78} reflect={reflections} />
       </group>
-      <pointLight position={[vx - CX, base + 1.8, 10.58 - CZ]} intensity={0.9} distance={2.4} decay={2} color="#ffe0b5" />
+      {lightsOn && <pointLight position={[vx - CX, base + 1.8, 10.58 - CZ]} intensity={0.9} distance={2.4} decay={2} color="#ffe0b5" />}
     </group>
   );
 }

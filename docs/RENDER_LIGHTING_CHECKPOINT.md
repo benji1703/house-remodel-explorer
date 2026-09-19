@@ -39,6 +39,17 @@ lightmap UV2 channel; coordinator integration would load the lightmap texture on
 those shell materials and keep dynamic sun/practicals for time-of-day. Materials
 and lighting alone cannot supply missing botanical/terrace silhouettes.
 
+## House practical toggle — 2026-09-19
+
+The Controls panel now exposes `House lights` with an accessible On/Off state.
+The switch gates the warm interior and exterior practical pools, bathroom vanity
+lights, bedroom bedside lamps and kitchen/living pendants. Move the daylight
+slider to Night (for example 23:00) to compare the lighting proposal clearly.
+The orthographic plan view also shows a shared set of warm fixture markers from
+`data/lighting.ts`, so the 3D plan communicates where the proposed practicals
+are located. Markers remain faint when the lights are off; they are proposal
+graphics rather than surveyed electrical points.
+
 ## Asset provenance
 
 No acquired third-party assets. Procedural material/light code is original project work. Existing compressed scan assets and their inherited attribution remain unchanged.

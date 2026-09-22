@@ -10,14 +10,13 @@ export type LightingProfile = {
 /** Rendering budgets are architectural presentation policy, separate from JSX. */
 export const lightingProfiles = {
   high: {
-    dpr: [1, 1.5], shadowMap: 2048, environmentResolution: 128, contactResolution: 512,
+    dpr: [1, 2], shadowMap: 2048, environmentResolution: 128, contactResolution: 512,
     transmission: false, localLights: true,
   },
   light: {
-    // Keep the mobile canvas at one device pixel per CSS pixel. A sub-1 DPR
-    // made iPhone text and furniture visibly soft without buying enough frame
-    // time once the expensive effects were already disabled.
-    dpr: [1, 1], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
+    // Mobile uses fewer effects and a capped framebuffer. RenderBudget restores
+    // up to 1.5x after interaction for readable edges on Retina displays.
+    dpr: [1, 1.5], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
     transmission: false, localLights: false,
   },
 } satisfies Record<"high" | "light", LightingProfile>;

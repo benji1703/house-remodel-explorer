@@ -3,6 +3,8 @@
 import { ContactShadows, Environment, Lightformer } from "@react-three/drei";
 import { memo, useMemo } from "react";
 import * as THREE from "three";
+import { house } from "@/data/house";
+import { CX, CZ } from "../rooms/shared";
 import { gardenLighting, lightingProfiles } from "@/data/lighting";
 
 export type LightingRigProps = {
@@ -61,6 +63,16 @@ function SkyDome({ sunDirection, hour, garden }: { sunDirection: THREE.Vector3; 
 export const LightingRig = memo(function LightingRig({ designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
   const profile = lightingProfiles[quality];
   const garden = cameraMode === "garden";
+  // Focus the same 2048 map on the room being inspected: finer contact edges
+  // without allocating a 4096/8192 framebuffer on Safari.
+  const shadowTarget = useMemo(() => {
+    const target = new THREE.Object3D();
+    const zone = house.zones.find((entry) => entry.id === selectedZone);
+    if (cameraMode === "room" && zone) target.position.set(zone.x + zone.width / 2 - CX, 0, zone.z + zone.depth / 2 - CZ);
+    return target;
+  }, [cameraMode, selectedZone]);
+  const shadowSpan = cameraMode === "room" ? 5 : 13;
+
   // Overview and garden are both exterior presentations. Keeping this policy
   // separate from the route name prevents overview from falling back to the
   // interior fill recipe while preserving room/plan lighting.
@@ -97,7 +109,8 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
         <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 3.2} color="#f1f4f6" />
         <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 4} color="#fff1db" />
       </>}
-      <directionalLight position={designMode ? sun.position : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow={quality === "high"} shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-13} shadow-camera-right={13} shadow-camera-top={13} shadow-camera-bottom={-13} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />
+      <primitive object={shadowTarget} />
+      <directionalLight target={shadowTarget} position={designMode ? [sun.position[0] + shadowTarget.position.x, sun.position[1], sun.position[2] + shadowTarget.position.z] : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow={quality === "high"} shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-shadowSpan} shadow-camera-right={shadowSpan} shadow-camera-top={shadowSpan} shadow-camera-bottom={-shadowSpan} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />
       <directionalLight position={designMode ? [9, 6, 7] : [-8, 6, -6]} intensity={designMode ? exterior ? gardenLighting.fillBase + sun.daylight * gardenLighting.fillDaylight : 0.04 + sun.daylight * 0.14 : 0.55} color={designMode ? "#d0c5b5" : "#d8d1c5"} />
       {housePracticals && houseLightsOn && <>
         <pointLight position={[0, 2.1, 0.2]} intensity={practicalLevel * 1.6} distance={6} decay={2} color="#ffd1a0" />

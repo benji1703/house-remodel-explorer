@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
+import { useSceneDetail } from "../scene/SceneDetail";
 import { createTextileBump } from "@/lib/textileTexture";
 
 const BRUSHED_BRASS = new THREE.MeshPhysicalMaterial({
@@ -236,6 +237,7 @@ export function SideTable({ base, palette, x, z }: { base: number; palette: Pale
 }
 
 export function DecorTray({ base, x, z, palette }: { base: number; x: number; z: number; palette: Palette }) {
+  if (!useSceneDetail()) return null;
   return (
     <group>
       <Cyl x={x} z={z} y={base} r={0.2} h={0.018} segments={44} material={BRUSHED_BRASS} />
@@ -246,10 +248,11 @@ export function DecorTray({ base, x, z, palette }: { base: number; x: number; z:
 }
 
 export function DraperyPair({ base, x, z, wall, span = 1.5 }: { base: number; x: number; z: number; wall: Wall; span?: number }) {
+  const detail = useSceneDetail();
   const alongX = wall === "north" || wall === "south";
   const inward = wall === "north" || wall === "west" ? 1 : -1;
   const geometry = useMemo(() => {
-    const cloth = new THREE.PlaneGeometry(0.28, 2.3, 36, 28);
+    const cloth = new THREE.PlaneGeometry(0.28, 2.3, detail ? 36 : 12, detail ? 28 : 2);
     const positions = cloth.attributes.position;
     for (let i = 0; i < positions.count; i++) {
       const u = positions.getX(i) / 0.28 + 0.5;
@@ -259,7 +262,7 @@ export function DraperyPair({ base, x, z, wall, span = 1.5 }: { base: number; x:
     }
     cloth.computeVertexNormals();
     return cloth;
-  }, []);
+  }, [detail]);
   useEffect(() => () => geometry.dispose(), [geometry]);
   return (
     <WallAttachment x={x} z={z} wall={wall}>

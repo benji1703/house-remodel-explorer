@@ -16,11 +16,23 @@ export function GardenDiagnostics() {
         calls: state.gl.info.render.calls, triangles: state.gl.info.render.triangles,
         geometries: state.gl.info.memory.geometries, textures: state.gl.info.memory.textures,
         dpr: state.gl.getPixelRatio(), size: state.size,
+        drawingBuffer: state.gl.getDrawingBufferSize(new THREE.Vector2()).toArray(),
+        frames: state.gl.info.render.frame,
+        lod: (() => {
+          const counts: Record<string, number> = {};
+          state.scene.traverseVisible((object) => {
+            if (object instanceof THREE.InstancedMesh && object.userData.detail) {
+              const detail = object.userData.detail;
+              counts[detail] = (counts[detail] ?? 0) + object.count;
+            }
+          });
+          return counts;
+        })(),
         clearAlpha: state.gl.getClearAlpha(),
         camera: state.get().camera.position.toArray(),
         target: (state.get().controls as unknown as { target?: THREE.Vector3 } | null)?.target?.toArray() ?? null,
         direction: state.get().camera.getWorldDirection(new THREE.Vector3()).toArray(),
-        assets: performance.getEntriesByType("resource").filter((r) => /\.(glb|ktx2)/.test(r.name)).map((r) => ({url:r.name, bytes:(r as PerformanceResourceTiming).encodedBodySize,duration:r.duration})),
+        assets: performance.getEntriesByType("resource").filter((r) => /\.(glb|gltf|bin|ktx2)/.test(r.name)).map((r) => ({url:r.name, bytes:(r as PerformanceResourceTiming).encodedBodySize,duration:r.duration})),
       }),
       plants: () => {
         const report: object[] = [];

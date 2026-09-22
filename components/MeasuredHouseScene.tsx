@@ -28,6 +28,8 @@ import { GardenDiagnostics } from "./scene/GardenDiagnostics";
 import { LightingRig } from "./scene/LightingRig";
 import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
+import { RoomDetail } from "./scene/SceneDetail";
+import { RenderBudget } from "./scene/RenderBudget";
 import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
@@ -1003,14 +1005,6 @@ function GroundSlab({ palette }: { palette: Palette }) {
   );
 }
 
-/** Mount on first visit, then retain GPU resources during camera navigation. */
-function ResidentRoom({ visible, children }: { visible: boolean; children: ReactNode }) {
-  const [visited, setVisited] = useState(visible);
-  if (visible && !visited) setVisited(true);
-  if (!visible && !visited) return null;
-  return <group visible={visible}>{children}</group>;
-}
-
 function SceneContent({
   selectedZone,
   onSelectZone,
@@ -1232,32 +1226,32 @@ function SceneContent({
         }),
       )}
 
-      {/* Retain room GPU resources between views; hidden groups submit no draws. */}
+      {/* Room silhouettes stay legible; close details follow projected size as you zoom. */}
       {designMode && (
         <>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core")}><Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}><MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core")}>
+          <RoomDetail center={[-3.9, 0.8, -0.15]} visible={(cameraMode !== "room" || selectedZone === "central-core")}><Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></RoomDetail>
+          <RoomDetail center={[-7, 0.8, 4.2]} visible={(cameraMode !== "room" || selectedZone === "southwest-room")}><MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></RoomDetail>
+          <RoomDetail center={[-0.3, 0.8, -4.3]} visible={(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core")}>
             <Kitchen base={zoneById["north-extension"].level} palette={palette} furnitureEditing={furnitureEditing} appliances={kitchenAppliances} onToggleAppliance={onToggleKitchenAppliance} lightsOn={houseLightsOn} nightFactor={sun.practical} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension")}>
+          </RoomDetail>
+          <RoomDetail center={[-0.3, 0.8, 0.05]} visible={(cameraMode !== "room" || selectedZone === "central-core" || selectedZone === "north-extension")}>
             <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} lightsOn={houseLightsOn} nightFactor={sun.practical} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "southwest-room")}>
+          </RoomDetail>
+          <RoomDetail center={[-4, 0.8, 4.9]} visible={(cameraMode !== "room" || selectedZone === "southwest-room")}>
             <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-upper-room")}>
+          </RoomDetail>
+          <RoomDetail center={[4.3, 0.8, 0.5]} visible={(cameraMode !== "room" || selectedZone === "east-upper-room")}>
             <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "east-lower-room")}>
+          </RoomDetail>
+          <RoomDetail center={[4.3, 0.8, 4.65]} visible={(cameraMode !== "room" || selectedZone === "east-lower-room")}>
             <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "service-core")}>
+          </RoomDetail>
+          <RoomDetail center={[0, 0.8, 4.9]} visible={(cameraMode !== "room" || selectedZone === "service-core")}>
             <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} lightsOn={houseLightsOn} />
-          </ResidentRoom>
-          <ResidentRoom visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
+          </RoomDetail>
+          <RoomDetail center={[-1.5, 0.8, 4.7]} visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
             <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} lightsOn={houseLightsOn} />
-          </ResidentRoom>
+          </RoomDetail>
         </>
       )}
 
@@ -1277,7 +1271,7 @@ function SceneContent({
         ref={controlsRef}
         makeDefault
         target={ORBIT_TARGET}
-        minDistance={cameraMode === "garden" ? 1.5 : cameraMode === "room" ? 0.65 : quality === "light" ? 5.5 : 8}
+        minDistance={cameraMode === "garden" ? 1.5 : cameraMode === "room" ? 0.65 : 3}
         maxDistance={kitchenRoom ? 7 : cameraMode === "room" ? roomCameraLimits.maxDistance : quality === "light" ? 20 : 28}
         minAzimuthAngle={cameraMode === "room" && !kitchenRoom ? roomCameraLimits.minAzimuth : -Infinity}
         maxAzimuthAngle={cameraMode === "room" && !kitchenRoom ? roomCameraLimits.maxAzimuth : Infinity}
@@ -1333,6 +1327,7 @@ export function MeasuredHouseScene(props: Props) {
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <SceneContent {...props} />
+      <RenderBudget quality={quality} />
       <GardenDiagnostics />
     </Canvas>
   );

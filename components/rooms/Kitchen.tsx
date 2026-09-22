@@ -25,6 +25,7 @@ function KitchenWorktop({ base, palette }: { base: number; palette: Palette }) {
     shape.holes.push(rectangle(kitchenPresentation.sinkCutoutCm, true), rectangle(kitchenPresentation.hobCutoutCm, true));
     return new THREE.ExtrudeGeometry(shape, { depth: kitchenPresentation.counterThicknessCm / 100 - 0.004, bevelEnabled: true, bevelSize: 0.002, bevelThickness: 0.002, bevelSegments: 2, steps: 1 });
   }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   return <mesh name="kitchen-continuous-worktop" position-y={base + (kitchenPresentation.counterHeightCm + kitchenPresentation.counterThicknessCm) / 100 - 0.002} rotation-x={Math.PI / 2} geometry={geometry} material={palette.stone} castShadow receiveShadow />;
 }
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useGLTF, useTexture } from "@react-three/drei";
-import { useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
+import { useSceneDetail } from "../scene/SceneDetail";
 import { designAssumptions } from "@/data/house";
 import { createTextileBump } from "@/lib/textileTexture";
 
@@ -653,6 +654,15 @@ function ScannedPlant({
     return clone;
   }, [scene]);
 
+  useEffect(() => () => {
+    instance.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach((material) => material.dispose());
+      }
+    });
+  }, [instance]);
+
   return (
     <primitive
       object={instance}
@@ -692,6 +702,7 @@ export function FoliageCluster({
       depthWrite: true,
     });
   }, [source]);
+  useEffect(() => () => { material.map?.dispose(); material.dispose(); }, [material]);
   return (
     <group position={[x - CX, y, z - CZ]} scale={scale} rotation-y={(x * 5.7 + z * 2.9) % (Math.PI * 2)}>
       {[0, Math.PI / 2, Math.PI / 4].map((rotation, index) => (
@@ -715,16 +726,12 @@ export function PotPlant({
   z: number;
   scale?: number;
 }) {
-  return (
-    <ScannedPlant
-      src={POTTED_PLANT_MODEL}
-      x={x}
-      y={base}
-      z={z}
-      scale={scale}
-      rotation={[0, (x * 3.1 + z * 7.3) % (Math.PI * 2), 0]}
-    />
-  );
+  const detail = useSceneDetail();
+  const placement = { x, y: base, z, scale, rotation: [0, (x * 3.1 + z * 7.3) % (Math.PI * 2), 0] as [number, number, number] };
+  const preview = <ScannedPlant src="/models/previews/potted-plant.glb" {...placement} />;
+  return <Suspense fallback={null}>{detail
+    ? <Suspense fallback={preview}><ScannedPlant src={POTTED_PLANT_MODEL} {...placement} /></Suspense>
+    : preview}</Suspense>;
 }
 
 export function PlanterBox({
@@ -738,26 +745,25 @@ export function PlanterBox({
   x: number;
   z: number;
 }) {
+  const detail = useSceneDetail();
   const { w, d, h } = FURN.planter;
   return (
     <group>
       <SoftBox x={x} z={z} y={base} w={w} d={d} h={h} radius={0.035} material={palette.terracotta} />
       <Blk x={x} z={z} y={base + h - 0.02} w={w - 0.07} d={d - 0.07} h={0.025} material={palette.charcoal} />
-      <ScannedPlant
-        src={FLOWERING_PLANT_MODEL}
+      <Suspense fallback={null}><ScannedPlant
+        src={detail ? FLOWERING_PLANT_MODEL : "/models/previews/periwinkle.glb"}
         x={x}
         y={base + h - 0.015}
         z={z}
         scale={0.5}
         rotation={[0, (x * 4.3 + z * 8.1) % (Math.PI * 2), 0]}
-      />
+      /></Suspense>
     </group>
   );
 }
 
-useGLTF.preload(POTTED_PLANT_MODEL);
-useGLTF.preload(FLOWERING_PLANT_MODEL);
-useTexture.preload(JASMINE_FOLIAGE);
+
 
 export function DiningSet({
   base,

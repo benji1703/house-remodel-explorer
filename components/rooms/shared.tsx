@@ -1,5 +1,6 @@
 "use client";
 
+import { useSceneDetail } from "../scene/SceneDetail";
 import { RoundedBox } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef, type ReactNode } from "react";
@@ -71,13 +72,15 @@ export function SoftBox({
   material: THREE.Material;
   radius?: number;
 }) {
+  const detail = useSceneDetail();
   const safeRadius = Math.min(radius, w / 4, d / 4, h / 4);
   return (
     <RoundedBox
       args={[w, h, d]}
       position={[x - CX, y + h / 2, z - CZ]}
       radius={safeRadius}
-      smoothness={4}
+      smoothness={detail ? 4 : 2}
+      bevelSegments={detail ? 3 : 1}
       material={material}
       castShadow
       receiveShadow
@@ -102,9 +105,10 @@ export function Cyl({
   material: THREE.Material;
   segments?: number;
 }) {
+  const detail = useSceneDetail();
   return (
     <mesh position={[x - CX, y + h / 2, z - CZ]} material={material} castShadow receiveShadow>
-      <cylinderGeometry args={[r, r, h, segments]} />
+      <cylinderGeometry args={[r, r, h, detail ? segments : Math.min(segments, 10)]} />
     </mesh>
   );
 }

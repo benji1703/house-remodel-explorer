@@ -1,5 +1,7 @@
 "use client";
 
+import { useThree } from "@react-three/fiber";
+import { useProjectedDetail } from "../scene/SceneDetail";
 import { Html, useGLTF, useKTX2 } from "@react-three/drei";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -9,29 +11,31 @@ import { createGravelMaterial, createLimestoneMaterial } from "@/lib/landscapeMa
 import { assetHeightBounds, plantAssetIsClear, transformLandscapeBounds } from "./landscapeGeometry";
 
 type Quality = "high" | "light";
+type PlantDetail = Quality | "far";
 const speciesIds = Object.keys(landscapeSpecies) as LandscapeSpeciesId[];
 /** One instanced draw per species/material, with stable placement IDs for picking.
  * Blender geometry and decoded buffers are shared by every specimen of a species.
  */
 function PlantBatch({ species, plants, quality, onSelect }: {
-  species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: Quality; onSelect: (plant: LandscapePlant) => void;
+  species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: PlantDetail; onSelect: (plant: LandscapePlant) => void;
 }) {
-  const { scene } = useGLTF(`/models/landscape/${species}${quality === "light" ? "-light" : ""}.glb?v=leaf-v2`);
-  const suffix = quality === "light" ? "-light" : "";
-  const barkMaps = useKTX2(["color", "normal", "roughness"].map((map) => `/textures/landscape/bark-${map}${suffix}.ktx2`), "/decoders/basis/");
+  const { get, invalidate } = useThree();
+  const { scene } = useGLTF(`/models/landscape/${species}${quality === "high" ? "" : `-${quality}`}.glb?v=leaf-v2`);
+  const suffix = quality === "high" ? "" : "-light";
+  const barkMaps = useKTX2((species === "olea-europaea" ? ["color", "normal", "roughness"] : []).map((map) => `/textures/landscape/bark-${map}${suffix}.ktx2`), "/decoders/basis/");
   const barkTextures = useMemo(() => barkMaps.map((source) => {
-    const texture = source.clone();
+    // Loader-owned maps are shared across cells of the same LOD.
+    const texture = source;
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.needsUpdate = true;
     return texture;
   }), [barkMaps]);
-  useEffect(() => () => barkTextures.forEach((texture) => texture.dispose()), [barkTextures]);
   const parts = useMemo(() => {
     const result: { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial; matrix: THREE.Matrix4 }[] = [];
     scene.updateMatrixWorld(true);
     scene.traverse((node) => {
       if (!(node instanceof THREE.Mesh)) return;
-      const material = (node.material as THREE.MeshStandardMaterial).clone();
+      const material = node.material as THREE.MeshStandardMaterial;
       const foliage = /Leaf|foliage|Flower/i.test(material.name);
       material.side = foliage ? THREE.DoubleSide : THREE.FrontSide;
       // Defensive safeguard for fallback GLBs: glTF defaults omitted metallic
@@ -51,12 +55,12 @@ function PlantBatch({ species, plants, quality, onSelect }: {
     });
     return result;
   }, [scene, barkTextures, species]);
-  useEffect(() => () => parts.forEach((p) => p.material.dispose()), [parts]);
   const checked = useMemo(() => {
     const bands = assetHeightBounds(parts);
     return { accepted: plants.filter((p) => plantAssetIsClear(p, bands)), rejected: plants.filter((p) => !plantAssetIsClear(p, bands)).map((p) => p.id), bands };
   }, [parts, plants]);
-  return <group name={`Landscape ${species}`} userData={{ landscapeSpecies: species, acceptedIds: checked.accepted.map((p) => p.id), rejectedIds: checked.rejected, assetHeightBoundsCm: checked.bands }}>
+  useLayoutEffect(() => { get().gl.shadowMap.needsUpdate = true; invalidate(); }, [get, invalidate, parts]);
+  return <group name={`Landscape ${species} ${quality}`} userData={{ detail: quality, landscapeSpecies: species, acceptedIds: checked.accepted.map((p) => p.id), rejectedIds: checked.rejected, assetHeightBoundsCm: checked.bands }}>
     {parts.map((part, index) => checked.accepted.length > 0 && <Specimens key={index} {...part} species={species} plants={checked.accepted} quality={quality} onSelect={onSelect} />)}
   </group>;
 }
@@ -64,7 +68,7 @@ function PlantBatch({ species, plants, quality, onSelect }: {
 function Specimens({ geometry, material, matrix, plants, quality, onSelect, species }: {
   species: LandscapeSpeciesId;
   geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4;
-  plants: LandscapePlant[]; quality: Quality; onSelect: (plant: LandscapePlant) => void;
+  plants: LandscapePlant[]; quality: PlantDetail; onSelect: (plant: LandscapePlant) => void;
 }) {
   const ref = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {
@@ -82,7 +86,7 @@ function Specimens({ geometry, material, matrix, plants, quality, onSelect, spec
     ref.current.computeBoundingSphere();
   }, [plants, matrix]);
   return <instancedMesh ref={ref} args={[geometry, material, plants.length]} dispose={null}
-    castShadow={quality === "high"} receiveShadow userData={{ landscapeSpecies: species, plantIds: plants.map((p) => p.id) }}
+    castShadow receiveShadow userData={{ landscapeSpecies: species, detail: quality, plantIds: plants.map((p) => p.id) }}
     onClick={(event) => {
       if (event.instanceId === undefined || event.delta > 5) return;
       event.stopPropagation();
@@ -207,6 +211,23 @@ function GravelGrain({ quality }: { quality: Quality }) {
   return <instancedMesh ref={ref} name="Limestone surface grain" args={[undefined, material, count]} receiveShadow><icosahedronGeometry args={[1, 0]} /></instancedMesh>;
 }
 
+/** Cells cull independently; a far olive never keeps the entire grove drawing. */
+function PlantCell({ species, plants, quality, onSelect }: {
+  species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: Quality; onSelect: (plant: LandscapePlant) => void;
+}) {
+  const center = useMemo(() => {
+    const sum = plants.reduce((total, plant) => [total[0] + plant.positionCm[0], total[1] + plant.positionCm[2]], [0, 0]);
+    return [sum[0] / plants.length / 100 - CX, landscapeSpecies[species].heightCm / 200, sum[1] / plants.length / 100 - CZ];
+  }, [plants, species]);
+  const diameter = landscapeSpecies[species].heightCm / 100;
+  const tree = species === "olea-europaea" || species === "bougainvillea-glabra";
+  const near = useProjectedDetail(center, diameter, tree ? 360 : 160, quality === "high");
+  const medium = useProjectedDetail(center, diameter, tree ? 200 : 65);
+  const detail: PlantDetail = near ? "high" : medium ? "light" : "far";
+  const fallback = <PlantBatch species={species} plants={plants} quality="far" onSelect={onSelect} />;
+  return <Suspense fallback={fallback}><PlantBatch species={species} plants={plants} quality={detail} onSelect={onSelect} /></Suspense>;
+}
+
 function LandscapeCommitted({ quality, onReady }: { quality: Quality; onReady: (quality: Quality) => void }) {
   useEffect(() => { onReady(quality); }, [onReady, quality]);
   return null;
@@ -214,15 +235,24 @@ function LandscapeCommitted({ quality, onReady }: { quality: Quality; onReady: (
 
 export function MediterraneanLandscape({ palette, quality, onReady }: { palette: Palette; quality: Quality; onReady: (quality: Quality) => void }) {
   const [selected, setSelected] = useState<LandscapePlant | null>(null);
-  const batches = useMemo(() => speciesIds.map((species) => ({ species, plants: landscapePlants.filter((p) => p.species === species) })), []);
+  const batches = useMemo(() => speciesIds.flatMap((species) => {
+    const cells = new Map<string, LandscapePlant[]>();
+    for (const plant of landscapePlants.filter((p) => p.species === species)) {
+      const key = `${Math.floor(plant.positionCm[0] / 400)}-${Math.floor(plant.positionCm[2] / 400)}`;
+      const cell = cells.get(key) ?? [];
+      cell.push(plant); cells.set(key, cell);
+    }
+    return [...cells].map(([cell, plants]) => ({ key: `${species}-${cell}`, species, plants }));
+  }), []);
+  const groundDetail = useProjectedDetail([-9, 0, -1], 2, 170, quality === "high");
   const info = selected ? landscapeSpecies[selected.species] : null;
   return <group name="Proposed Mediterranean garden">
     <Suspense fallback={null}>
-      <Gravel quality={quality} />
+      <Suspense fallback={<Gravel quality="light" />}><Gravel quality={groundDetail ? "high" : "light"} /></Suspense>
       <PlantingBeds />
       <Limestone quality={quality} />
-      <GravelGrain quality={quality} />
-      {batches.map(({ species, plants }) => plants.length > 0 && <PlantBatch key={`${species}-${quality}`} species={species} plants={plants} quality={quality} onSelect={setSelected} />)}
+      {groundDetail && <GravelGrain quality={quality} />}
+      {batches.map(({ key, species, plants }) => <PlantCell key={key} species={species} plants={plants} quality={quality} onSelect={setSelected} />)}
       <LandscapeCommitted quality={quality} onReady={onReady} />
     </Suspense>
     {Array.from({ length: 6 }, (_, index) => <SoftBox key={index} x={8.25 + index * 0.82} z={3.18} y={-0.035} w={0.64} d={0.88} h={0.055} radius={0.025} material={palette.stone} />)}

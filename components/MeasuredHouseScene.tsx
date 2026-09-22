@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls, OrthographicCamera, useTexture } from "@react-three/drei";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
@@ -29,6 +29,7 @@ import { LightingRig } from "./scene/LightingRig";
 import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { RoomDetail } from "./scene/SceneDetail";
+import { SceneFirstFrame, SceneLoading, ScenePending } from "./scene/SceneLoading";
 import { RenderBudget } from "./scene/RenderBudget";
 import { getDaylight } from "@/lib/daylight";
 import { lightingProfiles } from "@/data/lighting";
@@ -57,6 +58,7 @@ type Props = {
   selectedFurnitureId?: FurnitureId;
   onSelectFurniture?: (id: FurnitureId) => void;
   onUnavailable?: () => void;
+  onShowPlan?: () => void;
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -1026,7 +1028,8 @@ function SceneContent({
   removedFurniture = [],
   selectedFurnitureId,
   onSelectFurniture = () => undefined,
-}: Props) {
+  onReady,
+}: Props & { onReady: () => void }) {
   const { gl } = useThree();
   const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);
   const floorResolution = quality === "high" ? "2k" : "1k";
@@ -1261,6 +1264,7 @@ function SceneContent({
         enablePan={quality === "high" && (cameraMode !== "room" || kitchenRoom)}
       />
       <KeyboardOrbitBridge controlsRef={controlsRef} />
+      <SceneFirstFrame onReady={onReady} />
     </>
   );
 }
@@ -1269,7 +1273,12 @@ export function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
   const profile = lightingProfiles[quality];
 
+  const [ready, setReady] = useState(false);
+  const handleReady = useCallback(() => setReady(true), []);
+  const handlePending = useCallback(() => setReady(false), []);
+
   return (
+    <>
     <Canvas
       frameloop="demand"
       dpr={profile.dpr}
@@ -1302,9 +1311,13 @@ export function MeasuredHouseScene(props: Props) {
       }}
       style={{ width: "100%", height: "100%", display: "block" }}
     >
-      <SceneContent {...props} />
+      <Suspense fallback={<ScenePending onPending={handlePending} />}>
+        <SceneContent {...props} onReady={handleReady} />
+      </Suspense>
       <RenderBudget quality={quality} />
       <GardenDiagnostics />
     </Canvas>
+    <SceneLoading ready={ready} onShowPlan={props.onShowPlan} />
+    </>
   );
 }

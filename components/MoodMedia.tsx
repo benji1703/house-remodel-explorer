@@ -26,7 +26,8 @@ type MoodMediaProps = {
   backdrop?: boolean;
 };
 
-export function MoodMedia({ src, alt, sizes, priority = false, className, backdrop = false }: MoodMediaProps) {
+function MoodMediaContent({ src, alt, sizes, priority = false, className, backdrop = false }: MoodMediaProps) {
+  const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(() => loadedSrcs.has(src));
   const mediaRef = useRef<HTMLImageElement | null>(null);
 
@@ -48,7 +49,9 @@ export function MoodMedia({ src, alt, sizes, priority = false, className, backdr
         className={loaded ? "mood-skeleton is-done" : "mood-skeleton"}
         aria-hidden="true"
       />
+      {failed && <span className="image-load-error" role="status">Image unavailable</span>}
       <Image
+        onError={() => { setFailed(true); setLoaded(true); }}
         key={src}
         ref={mediaRef}
         src={src}
@@ -66,4 +69,9 @@ export function MoodMedia({ src, alt, sizes, priority = false, className, backdr
       />
     </>
   );
+}
+
+/** Reset loading state when a gallery reuses its image slot. */
+export function MoodMedia(props: MoodMediaProps) {
+  return <MoodMediaContent key={props.src} {...props} />;
 }

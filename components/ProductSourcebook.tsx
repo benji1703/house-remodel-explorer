@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { LoadingImage as Image } from "./loading/LoadingImage";
 import { productReferences } from "@/data/productReferences";
 import { sourcebookScenes } from "@/data/sourcebookScenes";
 

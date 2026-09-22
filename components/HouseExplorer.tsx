@@ -18,6 +18,7 @@ import { kitchenViews, type KitchenView, type FloorFinish } from "@/data/kitchen
 import { FURNITURE_STORAGE_KEY, parseFurnitureLayout } from "@/lib/furnitureLayout";
 import { usePanelFocus } from "@/lib/usePanelFocus";
 import { RoomDirectory } from "./RoomDirectory";
+import { LoadingState } from "./loading/LoadingState";
 import { SceneBoundary } from "./SceneBoundary";
 import { Compass, type CompassHandle } from "./Compass";
 import { ArchitecturalPlan } from "./ArchitecturalPlan";
@@ -606,10 +607,11 @@ export function HouseExplorer() {
               <div className="three-stage">
                 {webglSupport === true && (
                   <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
-                  <Suspense fallback={<div className="model-loading" role="status">Opening your house…</div>}>
+                  <Suspense fallback={<LoadingState />}>
                     <MeasuredHouseScene
                       selectedZone={selectedZone}
                       onSelectZone={selectRoom}
+                      onShowPlan={() => goToView("plan")}
                       onUnavailable={handleSceneUnavailable}
                       designMode={designMode}
                       quality={quality}
@@ -640,7 +642,7 @@ export function HouseExplorer() {
                   </SceneBoundary>
                 )}
                 {webglSupport === false && planFallback}
-                {webglSupport === null && <div className="model-loading" role="status">Opening your house…</div>}
+                {webglSupport === null && <LoadingState />}
               </div>
 
               <p id="model-keyboard-help" className="sr-only">3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
@@ -976,6 +978,7 @@ export function HouseExplorer() {
 
           {view === "references" && (
             <div className={refsPending ? "references-view is-pending" : "references-view"}>
+              {refsPending && <LoadingState compact title="Opening the mood board" detail="Gathering your references." />}
               <header className="mood-masthead">
                 <div className="mood-masthead-row">
                   <p className="mood-masthead-kicker">{site.tagline}</p>

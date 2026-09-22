@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { LoadingImage as Image } from "./loading/LoadingImage";
 import { materialCards, materialsForMood } from "@/data/materials";
 import type { MoodBoardId } from "@/data/moodboards";
 

@@ -56,3 +56,11 @@ export const gardenLighting = {
   highContactResolution: 768,
   lightContactResolution: 256,
 } as const;
+
+/** Proposed ceiling fill for the wet rooms and their living-side approach.
+ * Short ranges keep the extra light local without additional shadow maps. */
+export const wetAreaLighting = [
+  { id: "bathroom-ceiling", room: "Bathroom", positionCm: [625, 1115] as const, heightCm: 235, rangeCm: 340, intensity: 2.5, color: "#ffe0b5" },
+  { id: "ensuite-ceiling", room: "Ensuite", positionCm: [415, 1115] as const, heightCm: 225, rangeCm: 280, intensity: 1.8, color: "#ffe0b5" },
+  { id: "wet-area-entry", room: "Bathroom approach", positionCm: [545, 945] as const, heightCm: 235, rangeCm: 360, intensity: 2.4, color: "#ffddb0" },
+] as const;

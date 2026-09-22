@@ -7,7 +7,7 @@ import type { Daylight } from "@/lib/daylight";
 import { SkyDome } from "./SkyDome";
 import { house } from "@/data/house";
 import { CX, CZ } from "../rooms/shared";
-import { gardenLighting, lightingProfiles } from "@/data/lighting";
+import { gardenLighting, lightingProfiles, wetAreaLighting } from "@/data/lighting";
 
 export type LightingRigProps = {
   designMode: boolean;
@@ -82,6 +82,17 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
         <pointLight position={[-0.1, 2.1, -4.2]} intensity={practicalLevel * 1.35} distance={5.5} decay={2} color="#ffd1a0" />
         <pointLight position={[-3.9, 2.4, -0.15]} intensity={practicalLevel * 1.2} distance={5.5} decay={2} color="#ffc58a" />
       </>}
+      {designMode && houseLightsOn && wetAreaLighting.map((fixture) => (
+        <pointLight
+          key={fixture.id}
+          name={fixture.id}
+          position={[fixture.positionCm[0] / 100 - CX, fixture.heightCm / 100, fixture.positionCm[1] / 100 - CZ]}
+          intensity={practicalLevel * fixture.intensity}
+          distance={fixture.rangeCm / 100}
+          decay={2}
+          color={fixture.color}
+        />
+      ))}
       {housePracticals && houseLightsOn && <>
         <pointLight position={[-4.0, 1.05, 5.05]} intensity={practicalLevel * 1.1} distance={3.7} decay={2} color="#ffc27f" />
         <pointLight position={[4.55, 1.05, 0.4]} intensity={practicalLevel} distance={3.5} decay={2} color="#ffc786" />

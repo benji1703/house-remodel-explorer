@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { houseLightingFixtures } from "@/data/lighting";
+import { houseLightingFixtures, wetAreaLighting } from "@/data/lighting";
 import { CX, CZ } from "../rooms/shared";
 
 /** A restrained overhead layer that makes the proposed lighting strategy legible
@@ -10,7 +10,7 @@ export function LightingPlanMarkers({ visible, lightsOn, nightFactor }: { visibl
   if (!visible) return null;
   const opacity = lightsOn ? 0.22 + nightFactor * 0.5 : 0.06;
   return <group name="Proposed lighting plan markers" userData={{ lightingProposal: true }}>
-    {houseLightingFixtures.map((fixture) => {
+    {[...houseLightingFixtures, ...wetAreaLighting].map((fixture) => {
       const [x, z] = fixture.positionCm;
       return <group key={fixture.id} position={[x / 100 - CX, 2.56, z / 100 - CZ]}>
         <mesh rotation-x={-Math.PI / 2}>

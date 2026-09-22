@@ -30,6 +30,7 @@ import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { RoomDetail } from "./scene/SceneDetail";
 import { RenderBudget } from "./scene/RenderBudget";
+import { getDaylight } from "@/lib/daylight";
 import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
@@ -578,9 +579,6 @@ function buildPalette(
     bumpMap: textures.microtopping.bump, bumpScale: 0.00065,
     roughness: 1, roughnessMap: textures.microtopping.roughness,
     clearcoat: 0.06, clearcoatRoughness: 0.65, envMapIntensity: 1,
-    // Restrained diffuse bounce compensates for the real-time renderer's
-    // missing indirect illumination; direct and contact shadows remain visible.
-    emissive: "#e8ddc9", emissiveIntensity: 0.12,
   });
   sandFloor.userData.moduleMeters = 4;
   oakFloor.userData.moduleMeters = HERRINGBONE_MODULE_METERS;
@@ -1106,29 +1104,7 @@ function SceneContent({
     b: house.footprint[(index + 1) % house.footprint.length],
     openings: exteriorOpenings[index] ?? [],
   }));
-  const sun = useMemo(() => {
-    const progress = THREE.MathUtils.clamp((sunHour - 6) / 14, 0, 1);
-    const angle = progress * Math.PI;
-    const altitude = Math.max(0, Math.sin(angle));
-    const position: [number, number, number] = [
-      Math.cos(angle) * 18,
-      (sunHour >= 6 && sunHour <= 20 ? 0.35 : -3) + altitude * 15,
-      Math.sin(angle) * 17,
-    ];
-    const dawnDusk = 1 - altitude;
-    return {
-      position,
-      direction: new THREE.Vector3(...position).normalize(),
-      color: new THREE.Color("#fff3d6").lerp(new THREE.Color("#ff9c55"), dawnDusk * 0.82),
-      intensity: sunHour >= 6 && sunHour <= 20 ? 0.08 + altitude * 3.55 : 0,
-      // Neutral limestone-colored atmospheric base; the hero reference has
-      // blue sky, but the architecture reads warm and must not inherit a cyan
-      // cast from the background/fog.
-      sky: new THREE.Color("#171b27").lerp(new THREE.Color("#d9c8b5"), altitude),
-      practical: THREE.MathUtils.smoothstep(sunHour, 16, 19),
-      daylight: altitude,
-    };
-  }, [sunHour]);
+  const sun = useMemo(() => getDaylight(sunHour), [sunHour]);
   const isDoorOpen = (id: string) => doorStates[id] ?? allDoorsOpen;
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const roomCameraLimits = ROOM_CAMERA_LIMITS[selectedZone];

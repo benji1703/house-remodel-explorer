@@ -3,6 +3,8 @@ export type LightingProfile = {
   shadowMap: number;
   environmentResolution: number;
   contactResolution: number;
+  idlePixelBudget: number;
+  movingDpr: number;
   transmission: boolean;
   localLights: boolean;
 };
@@ -11,12 +13,14 @@ export type LightingProfile = {
 export const lightingProfiles = {
   high: {
     dpr: [1, 2], shadowMap: 2048, environmentResolution: 128, contactResolution: 512,
+    idlePixelBudget: 4_000_000, movingDpr: 1.25,
     transmission: false, localLights: true,
   },
   light: {
     // Mobile uses fewer effects and a capped framebuffer. RenderBudget restores
     // up to 1.5x after interaction for readable edges on Retina displays.
     dpr: [1, 1.5], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
+    idlePixelBudget: 1_600_000, movingDpr: 1,
     transmission: false, localLights: false,
   },
 } satisfies Record<"high" | "light", LightingProfile>;

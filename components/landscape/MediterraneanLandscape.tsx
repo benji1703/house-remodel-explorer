@@ -235,15 +235,18 @@ function LandscapeCommitted({ quality, onReady }: { quality: Quality; onReady: (
 
 export function MediterraneanLandscape({ palette, quality, onReady }: { palette: Palette; quality: Quality; onReady: (quality: Quality) => void }) {
   const [selected, setSelected] = useState<LandscapePlant | null>(null);
+  // A phone's narrower view does not need four-metre planting cells. Larger
+  // cells keep the same specimens and picking IDs with far fewer draw calls.
+  const cellSizeCm = quality === "light" ? 600 : 400;
   const batches = useMemo(() => speciesIds.flatMap((species) => {
     const cells = new Map<string, LandscapePlant[]>();
     for (const plant of landscapePlants.filter((p) => p.species === species)) {
-      const key = `${Math.floor(plant.positionCm[0] / 400)}-${Math.floor(plant.positionCm[2] / 400)}`;
+      const key = `${Math.floor(plant.positionCm[0] / cellSizeCm)}-${Math.floor(plant.positionCm[2] / cellSizeCm)}`;
       const cell = cells.get(key) ?? [];
       cell.push(plant); cells.set(key, cell);
     }
     return [...cells].map(([cell, plants]) => ({ key: `${species}-${cell}`, species, plants }));
-  }), []);
+  }), [cellSizeCm]);
   const groundDetail = useProjectedDetail([-9, 0, -1], 2, 170, quality === "high");
   const info = selected ? landscapeSpecies[selected.species] : null;
   return <group name="Proposed Mediterranean garden">

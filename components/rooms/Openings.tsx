@@ -2,7 +2,7 @@
 
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import type { Palette } from "./shared";
 import { CX, CZ } from "./shared";
@@ -85,21 +85,25 @@ function LouvreShutterLeaf({
   const innerH = h - FRAME * 2;
   const start = -innerH / 2 + SLAT / 2;
   const depth = 0.036;
+  const slats = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    if (!slats.current) return;
+    const transform = new THREE.Object3D();
+    transform.rotation.x = 0.32;
+    for (let i = 0; i < count; i++) {
+      transform.position.set(0, start + i * pitch, depth * 0.15);
+      transform.updateMatrix();
+      slats.current.setMatrixAt(i, transform.matrix);
+    }
+    slats.current.instanceMatrix.needsUpdate = true;
+    slats.current.computeBoundingSphere();
+  }, [count, depth, pitch, start]);
   return (
     <group>
       <FrameRect w={w} h={h} depth={depth} material={material} />
-      {Array.from({ length: count }, (_, i) => (
-        <mesh
-          key={i}
-          position={[0, start + i * pitch, depth * 0.15]}
-          rotation={[0.32, 0, 0]}
-          material={material}
-          castShadow
-          receiveShadow
-        >
-          <boxGeometry args={[w - FRAME * 2 - 0.01, SLAT * 0.62, 0.012]} />
-        </mesh>
-      ))}
+      <instancedMesh ref={slats} args={[undefined, material, count]} castShadow receiveShadow>
+        <boxGeometry args={[w - FRAME * 2 - 0.01, SLAT * 0.62, 0.012]} />
+      </instancedMesh>
     </group>
   );
 }

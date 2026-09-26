@@ -39,6 +39,7 @@ try {
   assert.deepEqual(await revealState, { loading: true, notes: true }, 'model details must wait for the cover transition');
   await page.locator('.scene-loading-cover.is-revealed').waitFor({ state: 'attached', timeout: 60000 });
   await page.locator('.app-body:not(.is-model-loading)').waitFor();
+  assert.equal(await page.locator('.scene-loading-cover').evaluate(element => getComputedStyle(element).visibility), 'hidden');
   assert.equal(await page.locator('.detail-loading').count(), 0);
   assert.equal(await page.locator('.stage-hud').evaluate(element => getComputedStyle(element).visibility), 'visible');
   await page.waitForTimeout(1800);
@@ -72,5 +73,25 @@ try {
   await escape.getByRole('heading', { name: 'The measured plan', exact: true }).waitFor();
   unblock();
   await escape.close();
-  console.log('Loading reveal, hidden labels and notes, cached revisit, reduced motion, idle rendering: passed');
+  const progressive = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  let releaseGarden;
+  const gardenHeld = new Promise(resolve => { releaseGarden = resolve; });
+  await progressive.route(/\/(models|textures)\/landscape\//, async route => { await gardenHeld; await route.continue().catch(() => {}); });
+  await progressive.goto(`${base}/?view=model&camera=overview`, { waitUntil: 'domcontentloaded' });
+  await progressive.locator('.app-body:not(.is-model-loading)').waitFor({ timeout: 60000 });
+  assert.equal(await progressive.locator('.scene-loading-cover.is-revealed').count(), 1, 'garden assets must not block the house');
+  releaseGarden();
+  await progressive.close();
+  const directGarden = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  let releaseDirectGarden;
+  const directGardenHeld = new Promise(resolve => { releaseDirectGarden = resolve; });
+  await directGarden.route(/\/(models|textures)\/landscape\//, async route => { await directGardenHeld; await route.continue().catch(() => {}); });
+  await directGarden.goto(`${base}/?view=model&camera=garden`, { waitUntil: 'domcontentloaded' });
+  await directGarden.locator('.scene-loading-cover:not(.is-revealed)').waitFor({ timeout: 60000 });
+  await directGarden.waitForTimeout(1200);
+  assert.equal(await directGarden.locator('.app-body.is-model-loading').count(), 1, 'the garden must wait for its planting');
+  releaseDirectGarden();
+  await directGarden.locator('.app-body:not(.is-model-loading)').waitFor({ timeout: 60000 });
+  await directGarden.close();
+  console.log('Loading reveal, hidden labels and notes, progressive garden, cached revisit, reduced motion, idle rendering: passed');
 } finally { await browser.close(); }

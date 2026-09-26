@@ -6,11 +6,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LoadingState } from "../loading/LoadingState";
 
 /** Signal after an actual scene frame, rather than when the WebGL context exists. */
-export function SceneFirstFrame({ onReady }: { onReady: () => void }) {
+export function SceneFirstFrame({ onReady, enabled = true }: { onReady: () => void; enabled?: boolean }) {
   const frame = useRef<number | null>(null);
   const sent = useRef(false);
   useFrame(() => {
-    if (sent.current) return;
+    if (sent.current || !enabled) return;
     sent.current = true;
     frame.current = requestAnimationFrame(onReady);
   });
@@ -30,6 +30,7 @@ export function ScenePending({ onPending }: { onPending: () => void }) {
 }
 
 export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boolean; onShowPlan?: () => void; onRevealChange?: (revealed: boolean) => void }) {
+  const coverRef = useRef<HTMLDivElement>(null);
   const [assets, setAssets] = useState(() => useProgress.getState());
   const [revealed, setRevealed] = useState(false);
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -49,11 +50,12 @@ export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boo
   }, []);
 
   useEffect(() => {
-    if (!ready || assets.active) return;
-    // Allow progressive LOD requests and the first lighting captures to settle.
-    const timer = setTimeout(() => setRevealed(true), 450);
+    if (!ready) return;
+    // The core scene has produced a real frame. Garden LODs and decorative
+    // assets may continue streaming without holding the whole house hostage.
+    const timer = setTimeout(() => setRevealed(true), 150);
     return () => clearTimeout(timer);
-  }, [ready, assets.active]);
+  }, [ready]);
 
   useEffect(() => {
     const timer = setTimeout(() => setDetailsVisible(assets.active), assets.active ? 350 : 250);
@@ -72,17 +74,25 @@ export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boo
       onRevealChange?.(false);
       return;
     }
-    // The scene fades through the cover before its labels and notes appear.
-    const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520;
-    const timer = window.setTimeout(() => onRevealChange?.(true), delay);
-    return () => window.clearTimeout(timer);
+    // Safari can delay a CSS transition under WebGL load. Reveal the HTML
+    // controls only when the cover has actually become invisible.
+    let frame: number;
+    const finish = () => {
+      if (coverRef.current && getComputedStyle(coverRef.current).visibility === "hidden") {
+        onRevealChange?.(true);
+      } else {
+        frame = requestAnimationFrame(finish);
+      }
+    };
+    frame = requestAnimationFrame(finish);
+    return () => cancelAnimationFrame(frame);
   }, [covered, onRevealChange]);
 
   useEffect(() => () => onRevealChange?.(false), [onRevealChange]);
 
   const progress = assets.active && assets.total > 0 && assets.progress < 100 ? assets.progress : undefined;
   return <>
-    <div className={`scene-loading-cover${covered ? "" : " is-revealed"}`} aria-hidden={!covered} inert={!covered}>
+    <div ref={coverRef} className={`scene-loading-cover${covered ? "" : " is-revealed"}`} aria-hidden={!covered} inert={!covered}>
       <LoadingState
         title={assets.active ? "Bringing the house into view" : ready ? "Setting the scene" : "Opening your house"}
         detail={slow ? "Still preparing the view. You can explore the plan while you wait." : assets.active ? "Preparing materials, furnishings and planting." : "Finding the light. Making room for the details."}

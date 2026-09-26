@@ -1030,9 +1030,10 @@ function SceneContent({
   selectedFurnitureId,
   onSelectFurniture = () => undefined,
   onReady,
-}: Props & { onReady: () => void }) {
+  landscapeReady,
+  onLandscapeReady,
+}: Props & { onReady: () => void; landscapeReady: "high" | "light" | null; onLandscapeReady: (quality: "high" | "light") => void }) {
   const { gl } = useThree();
-  const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
     plasterSource,
@@ -1124,7 +1125,7 @@ function SceneContent({
     <>
       <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
-      {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={setLandscapeReady} />}
+      {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={onLandscapeReady} />}
       <GroundSlab palette={palette} />
       {house.zones.map((zone) => (
         <ZoneFloor
@@ -1265,7 +1266,7 @@ function SceneContent({
         enablePan={quality === "high" && (cameraMode !== "room" || kitchenRoom)}
       />
       <KeyboardOrbitBridge controlsRef={controlsRef} />
-      <SceneFirstFrame onReady={onReady} />
+      <SceneFirstFrame onReady={onReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
     </>
   );
 }
@@ -1275,8 +1276,10 @@ export function MeasuredHouseScene(props: Props) {
   const profile = lightingProfiles[quality];
 
   const [ready, setReady] = useState(false);
+  const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);
   const handleReady = useCallback(() => setReady(true), []);
   const handlePending = useCallback(() => setReady(false), []);
+  const presentable = ready && (!designMode || props.cameraMode !== "garden" || landscapeReady === quality);
 
   return (
     <>
@@ -1313,12 +1316,12 @@ export function MeasuredHouseScene(props: Props) {
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <Suspense fallback={<ScenePending onPending={handlePending} />}>
-        <SceneContent {...props} onReady={handleReady} />
+        <SceneContent {...props} onReady={handleReady} landscapeReady={landscapeReady} onLandscapeReady={setLandscapeReady} />
       </Suspense>
       <RenderBudget quality={quality} />
       <GardenDiagnostics />
     </Canvas>
-    <SceneLoading ready={ready} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />
+    <SceneLoading ready={presentable} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />
     </>
   );
 }

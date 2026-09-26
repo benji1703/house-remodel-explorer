@@ -35,6 +35,7 @@ import { getDaylight } from "@/lib/daylight";
 import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
+  active: boolean;
   selectedZone: ZoneId;
   onSelectZone: (id: ZoneId) => void;
   designMode: boolean;
@@ -1284,7 +1285,7 @@ export function MeasuredHouseScene(props: Props) {
   return (
     <>
     <Canvas
-      frameloop="demand"
+      frameloop={props.active ? "demand" : "never"}
       dpr={profile.dpr}
       shadows={quality === "high" ? "soft" : false}
       // The initial camera matches CameraDirector's composed dollhouse view so
@@ -1318,7 +1319,7 @@ export function MeasuredHouseScene(props: Props) {
       <Suspense fallback={<ScenePending onPending={handlePending} />}>
         <SceneContent {...props} onReady={handleReady} landscapeReady={landscapeReady} onLandscapeReady={setLandscapeReady} />
       </Suspense>
-      <RenderBudget quality={quality} />
+      <RenderBudget quality={quality} active={props.active} />
       <GardenDiagnostics />
     </Canvas>
     <SceneLoading ready={presentable} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />

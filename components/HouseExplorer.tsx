@@ -138,6 +138,9 @@ export function HouseExplorer() {
   const [designMode, setDesignMode] = useState(true);
   const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
+  // Keep the WebGL renderer after the first house visit. Recreating it on
+  // every Plan → House switch can exhaust Safari's context budget on iPhone.
+  const [modelVisited, setModelVisited] = useState(view === "model");
   const [modelReady, setModelReady] = useState(false);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
@@ -213,6 +216,7 @@ export function HouseExplorer() {
   }, [furnitureSizes, furnitureStorageReady, removedFurniture]);
 
   useEffect(() => {
+    if (!modelVisited) return;
     const timer = window.setTimeout(() => {
       const isSmall = window.matchMedia("(max-width: 800px)").matches
         || window.matchMedia("(pointer: coarse)").matches;
@@ -223,7 +227,7 @@ export function HouseExplorer() {
       setWebglSupport(supportsWebGL());
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [modelVisited]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 800px)");
@@ -232,6 +236,12 @@ export function HouseExplorer() {
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    if (view !== "model" || modelVisited) return;
+    const timer = window.setTimeout(() => setModelVisited(true), 0);
+    return () => window.clearTimeout(timer);
+  }, [view, modelVisited]);
 
   const active = house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0];
   const modelLoading = view === "model" && webglSupport !== false && !modelReady;
@@ -603,14 +613,14 @@ export function HouseExplorer() {
           className={`stage is-${view}`}
           aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : view === "sourcebook" ? "Product sourcebook" : "Plants"}
         >
-          {view === "model" && (
-            <>
-              {designMode && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
-              <div className="three-stage">
+          {view === "model" && designMode && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
+          {modelVisited && (
+            <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model"} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
                 {webglSupport === true && (
                   <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
                   <Suspense fallback={<LoadingState />}>
                     <MeasuredHouseScene
+                      active={view === "model"}
                       selectedZone={selectedZone}
                       onSelectZone={selectRoom}
                       onShowPlan={() => goToView("plan")}
@@ -646,8 +656,10 @@ export function HouseExplorer() {
                 )}
                 {webglSupport === false && planFallback}
                 {webglSupport === null && <LoadingState />}
-              </div>
-
+            </div>
+          )}
+          {view === "model" && (
+            <>
               <p id="model-keyboard-help" className="sr-only">3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
               <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
               <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">

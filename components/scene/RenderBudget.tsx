@@ -9,7 +9,7 @@ import * as THREE from "three";
  * Transmission is intentionally disabled by the presentation profile: even a
  * tiny wine bottle otherwise renders the entire house into another framebuffer.
  */
-export function RenderBudget({ quality }: { quality: "high" | "light" }) {
+export function RenderBudget({ quality, active }: { quality: "high" | "light"; active: boolean }) {
   const profile = lightingProfiles[quality];
   const { get, size, setDpr, invalidate, setFrameloop } = useThree();
   const previousCamera = useMemo(() => new THREE.Matrix4(), []);
@@ -29,16 +29,17 @@ export function RenderBudget({ quality }: { quality: "high" | "light" }) {
     gl.shadowMap.autoUpdate = false;
     gl.shadowMap.needsUpdate = true;
     const visibility = () => {
-      setFrameloop(document.hidden ? "never" : "demand");
-      if (!document.hidden) invalidate();
+      setFrameloop(document.hidden || !active ? "never" : "demand");
+      if (!document.hidden && active) invalidate();
     };
+    visibility();
     document.addEventListener("visibilitychange", visibility);
     return () => {
       if (timer.current) clearTimeout(timer.current);
       gl.shadowMap.autoUpdate = true;
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [get, idleDpr, setDpr, setFrameloop, invalidate]);
+  }, [active, get, idleDpr, setDpr, setFrameloop, invalidate]);
 
   useFrame(({ camera, gl, scene }) => {
     camera.updateMatrixWorld();

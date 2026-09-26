@@ -59,6 +59,7 @@ type Props = {
   onSelectFurniture?: (id: FurnitureId) => void;
   onUnavailable?: () => void;
   onShowPlan?: () => void;
+  onRevealChange?: (revealed: boolean) => void;
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -1317,7 +1318,7 @@ export function MeasuredHouseScene(props: Props) {
       <RenderBudget quality={quality} />
       <GardenDiagnostics />
     </Canvas>
-    <SceneLoading ready={ready} onShowPlan={props.onShowPlan} />
+    <SceneLoading ready={ready} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />
     </>
   );
 }

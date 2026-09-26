@@ -138,6 +138,7 @@ export function HouseExplorer() {
   const [designMode, setDesignMode] = useState(true);
   const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
+  const [modelReady, setModelReady] = useState(false);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
@@ -233,6 +234,7 @@ export function HouseExplorer() {
   }, []);
 
   const active = house.zones.find((zone) => zone.id === selectedZone) ?? house.zones[0];
+  const modelLoading = view === "model" && webglSupport !== false && !modelReady;
   const activeZoneIndex = Math.max(0, house.zones.findIndex((zone) => zone.id === active.id));
   const activeMood = roomMoodBoards.find((board) => board.id === selectedMood) ?? roomMoodBoards[1];
 
@@ -593,7 +595,7 @@ export function HouseExplorer() {
         </div>
       </header>
 
-      <div className={`app-body is-${view}`} id="top">
+      <div className={`app-body is-${view}${modelLoading ? " is-model-loading" : ""}`} id="top">
         <section
           ref={stageRef}
           id="explorer-content"
@@ -613,6 +615,7 @@ export function HouseExplorer() {
                       onSelectZone={selectRoom}
                       onShowPlan={() => goToView("plan")}
                       onUnavailable={handleSceneUnavailable}
+                      onRevealChange={setModelReady}
                       designMode={designMode}
                       quality={quality}
                       showMeasurements={showMeasurements}
@@ -1214,7 +1217,15 @@ export function HouseExplorer() {
                   <Icon name="close" />
                 </button>
               </div>
-              {detailPanel}
+              {modelLoading ? <div className="detail-loading" aria-hidden="true">
+                <span className="detail-loading-index">VILLA NEHAMA / HOUSE NOTES</span>
+                <span className="detail-loading-line is-heading" />
+                <span className="detail-loading-line" />
+                <span className="detail-loading-line is-short" />
+                <span className="detail-loading-rule" />
+                <span className="detail-loading-line" />
+                <span className="detail-loading-line is-short" />
+              </div> : detailPanel}
             </aside>
           </>
         )}

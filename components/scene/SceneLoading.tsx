@@ -29,7 +29,7 @@ export function ScenePending({ onPending }: { onPending: () => void }) {
   return null;
 }
 
-export function SceneLoading({ ready, onShowPlan }: { ready: boolean; onShowPlan?: () => void }) {
+export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boolean; onShowPlan?: () => void; onRevealChange?: (revealed: boolean) => void }) {
   const [assets, setAssets] = useState(() => useProgress.getState());
   const [revealed, setRevealed] = useState(false);
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -67,6 +67,19 @@ export function SceneLoading({ ready, onShowPlan }: { ready: boolean; onShowPlan
   }, [revealed]);
 
   const covered = !revealed || !ready;
+  useEffect(() => {
+    if (covered) {
+      onRevealChange?.(false);
+      return;
+    }
+    // The scene fades through the cover before its labels and notes appear.
+    const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520;
+    const timer = window.setTimeout(() => onRevealChange?.(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [covered, onRevealChange]);
+
+  useEffect(() => () => onRevealChange?.(false), [onRevealChange]);
+
   const progress = assets.active && assets.total > 0 && assets.progress < 100 ? assets.progress : undefined;
   return <>
     <div className={`scene-loading-cover${covered ? "" : " is-revealed"}`} aria-hidden={!covered} inert={!covered}>

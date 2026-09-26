@@ -8,7 +8,7 @@ const directory = process.env.RENDER_ARTIFACT_DIR || '/tmp/house-loading';
 fs.mkdirSync(directory, { recursive: true });
 const base = process.env.RENDER_BASE_URL || 'http://localhost:3000';
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, reducedMotion: 'reduce' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, reducedMotion: 'no-preference' });
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && /Cannot update|Maximum update/.test(message.text())) errors.push(message.text()); });
@@ -17,10 +17,30 @@ try {
   await page.route(/\.(glb|jpe?g|png|webp)(\?.*)?$/, async route => { await assetsHeld; await route.continue(); });
   await page.goto(`${base}/?view=model&camera=room&zone=central-core&gardenQA=1`, { waitUntil: 'domcontentloaded' });
   await page.locator('.scene-loading-cover:not(.is-revealed)').waitFor({ timeout: 60000 });
+  assert.equal(await page.locator('.app-body.is-model-loading').count(), 1);
+  assert.equal(await page.locator('.detail-loading').count(), 1);
+  assert.equal(await page.locator('.detail h2').count(), 0, 'room data must wait for the model');
+  assert.equal(await page.locator('.stage-hud').evaluate(element => getComputedStyle(element).visibility), 'hidden');
   await page.screenshot({ path: `${directory}/initial.png` });
   assert.equal(await page.getByRole('button', { name: 'Explore the 2D plan' }).count(), 1);
+  const revealState = page.evaluate(() => new Promise(resolve => {
+    const cover = document.querySelector('.scene-loading-cover');
+    const observer = new MutationObserver(() => {
+      if (!cover?.classList.contains('is-revealed')) return;
+      observer.disconnect();
+      resolve({
+        loading: document.querySelector('.app-body')?.classList.contains('is-model-loading'),
+        notes: Boolean(document.querySelector('.detail-loading')),
+      });
+    });
+    observer.observe(cover, { attributes: true, attributeFilter: ['class'] });
+  }));
   release();
+  assert.deepEqual(await revealState, { loading: true, notes: true }, 'model details must wait for the cover transition');
   await page.locator('.scene-loading-cover.is-revealed').waitFor({ state: 'attached', timeout: 60000 });
+  await page.locator('.app-body:not(.is-model-loading)').waitFor();
+  assert.equal(await page.locator('.detail-loading').count(), 0);
+  assert.equal(await page.locator('.stage-hud').evaluate(element => getComputedStyle(element).visibility), 'visible');
   await page.waitForTimeout(1800);
   await page.screenshot({ path: `${directory}/ready.png` });
   const frame = await page.evaluate(() => window.__gardenQA.snapshot().frames);
@@ -31,6 +51,11 @@ try {
   await page.getByRole('button', { name: 'Use lighter rendering' }).click();
   await page.waitForTimeout(500);
   await page.locator('.scene-loading-cover.is-revealed').waitFor({ state: 'attached', timeout: 60000 });
+  await page.goto(`${base}/?view=model&camera=overview`, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.querySelector('.scene-label') && document.querySelector('.scene-loading-cover:not(.is-revealed)'), undefined, { timeout: 60000 });
+  assert.equal(await page.locator('.scene-label').first().evaluate(element => getComputedStyle(element).visibility), 'hidden', 'room labels must stay hidden during loading');
+  await page.locator('.app-body:not(.is-model-loading)').waitFor({ timeout: 60000 });
+  assert.equal(await page.locator('.scene-label').first().evaluate(element => getComputedStyle(element).visibility), 'visible');
   assert.deepEqual(errors, []);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/?view=plants`);
@@ -47,5 +72,5 @@ try {
   await escape.getByRole('heading', { name: 'The measured plan', exact: true }).waitFor();
   unblock();
   await escape.close();
-  console.log('Initial loading, cached revisit, reduced motion, idle rendering: passed');
+  console.log('Loading reveal, hidden labels and notes, cached revisit, reduced motion, idle rendering: passed');
 } finally { await browser.close(); }

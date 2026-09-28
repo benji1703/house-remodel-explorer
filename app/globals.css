@@ -3236,3 +3236,27 @@ body.has-lightbox { overflow: hidden; }
 }
 .loading-image { transition: opacity .35s ease; }
 @media (prefers-reduced-motion: reduce) { .loading-image { transition: none; } }
+
+/* First-person controls remain usable without pointer lock or a keyboard. */
+.walk-controls { position: absolute; z-index: 6; left: 18px; bottom: 18px; display: flex; gap: 16px; align-items: flex-end; }
+.walk-help { display: grid; gap: 5px; padding: 14px 16px; border-radius: 14px; background: #f5f1e9ed; color: #344538; box-shadow: var(--shadow); font-size: 12px; }
+.walk-help strong { font-size: 15px; }
+.walk-help button { border: 0; background: transparent; text-align: left; text-decoration: underline; color: inherit; min-height: 32px; cursor: pointer; }
+.walk-pad { display: grid; grid-template-columns: repeat(3, 46px); gap: 5px; }
+.walk-pad button { min-height: 46px; border-radius: 12px; border: 1px solid #34453840; background: #f5f1e9ed; color: #344538; font-size: 24px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.walk-pad button:active { background: #344538; color: #fff; }
+.walk-controls button:focus-visible { outline: 3px solid #98754c; outline-offset: 2px; }
+.stage-hud.is-walking .hud-card { display: none; }
+@media (max-width: 700px) {
+  .walk-controls { left: 10px; bottom: 10px; gap: 8px; flex-direction: column; align-items: flex-start; }
+  .walk-help { padding: 8px 10px; font-size: 10px; gap: 2px; max-width: 210px; }
+  .walk-help strong { font-size: 12px; }
+  .walk-help button { min-height: 28px; }
+  .walk-pad { grid-template-columns: repeat(3, 44px); }
+  .walk-pad button { min-height: 44px; }
+}
+.toolbar-chip.walk-trigger { display: inline-flex; align-items: center; justify-content: center; }
+.camera-control-buttons { flex-wrap: wrap; }
+@media (max-width: 560px) {
+  .toolbar-chip.walk-trigger { font-size: 11px; padding: 8px 10px; min-height: 40px; }
+}

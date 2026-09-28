@@ -124,3 +124,11 @@ No detailed 3D asset, furniture plan, kitchen layout, opening, or appliance plac
 - Replaced exaggerated, joint-painted joinery grain with a seamless restrained oak texture. Kitchen cabinetry has its own warmer natural-oak material at the owner's request; pale worktops, walls and sand floors are unaffected by that colour change.
 - Patio furniture/plants now meet the existing 8 cm terrace and 6 cm master-deck tops. Replaced faceted tree crowns with instanced leaves and polygonal groundcover with existing foliage assets, without relocating landscaping. Exterior dressing remains non-surveyed design intent.
 - Planar bathroom reflections are limited to full-detail room views; the lighter profile and overview use environment reflections. This is a real-time visual improvement, not a claim of a photographic as-built match; exact existing finishes and exterior surroundings still need site photography.
+
+## First-person rendering review — 2026-09-28
+
+- Added an indoor Walk / FPS camera with a 165 cm eye height, 18 cm navigation radius and 145 cm/s movement. These are viewer settings, not survey dimensions.
+- Shared the renderer's existing wall runs and openings with collision detection, without changing any measured coordinates. Open internal doors admit passage; closed doors, fixed glazing and the measured floor perimeter block it. Editable furniture bounds and the kitchen island also block movement; small props and door swing arcs are not a physics simulation.
+- Walk mode displays full-height walls and a ceiling surface at the existing accepted 250 cm finished-height datum. The ceiling follows the exact existing footprint. Orbit/plan views retain their cutaway presentation.
+- Kept the original mood-image texture crops on oak, plaster, mineral floors, stone, linen and clay. These remain approximate visual finishes, not scanned PBR or surveyed material specifications.
+- Keyboard, drag-look, touch movement, room starting positions, door state, focus cleanup and transitions between perspective/orthographic cameras are covered by `scripts/verify-walkthrough.mjs`; pure collision checks are in `scripts/verify-walk-collision.mjs`.

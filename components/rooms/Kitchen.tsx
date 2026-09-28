@@ -401,9 +401,11 @@ export function Kitchen({ base, palette: sharedPalette, furnitureEditing, applia
       <KitchenWorktop base={base} palette={palette} />
 
       {/* The island sits 100+ cm off the north run and clears the east entry. */}
+      <group userData={{ walkObstacle: true }}>
       <Blk x={5.35} z={2.42} y={base + 0.02} w={1.72} d={0.8} h={0.08} material={palette.charcoal} />
       <SoftBox x={5.35} z={2.42} y={base + 0.09} w={1.9} d={0.95} h={0.83} radius={0.035} material={palette.oak} />
       <SoftBox x={5.35} z={2.42} y={base + 0.92} w={2.0} d={1.05} h={0.055} radius={0.025} material={palette.stone} />
+      </group>
       {[-0.46, 0, 0.46].map((offset) => (
         <Blk key={offset} x={5.35 + offset} z={1.936} y={base + 0.17} w={0.012} d={0.018} h={0.64} material={palette.charcoal} />
       ))}

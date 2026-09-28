@@ -34,6 +34,8 @@ import { RoomDetail } from "./scene/SceneDetail";
 import { SceneFirstFrame, SceneLoading, ScenePending } from "./scene/SceneLoading";
 import { RenderBudget } from "./scene/RenderBudget";
 import { getDaylight } from "@/lib/daylight";
+import { EXT_THICKNESS, INT_THICKNESS, exteriorOpenings, partitions, openingKind, type Opening } from "@/data/structuralWalls";
+import { FirstPersonController, WalkControls, createWalkInput, type WalkInput } from "./scene/FirstPersonControls";
 import { lightingProfiles } from "@/data/lighting";
 
 type Props = {
@@ -49,7 +51,7 @@ type Props = {
   allDoorsOpen?: boolean;
   doorStates?: Record<string, boolean>;
   onToggleDoor?: (id: string) => void;
-  cameraMode?: "overview" | "room" | "plan" | "garden";
+  cameraMode?: "overview" | "room" | "plan" | "garden" | "walk";
   cameraRevision?: number;
   gardenView?: GardenView;
   kitchenView?: KitchenView;
@@ -116,7 +118,9 @@ const ROOM_CAMERA_LIMITS: Record<
 function CameraAzimuthTracker({
   onCameraAzimuth,
   controlsRef,
+  walking,
 }: {
+  walking: boolean;
   onCameraAzimuth?: (radians: number) => void;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
@@ -128,7 +132,7 @@ function CameraAzimuthTracker({
     // up axis fixed to world Y, the needle's screen rotation equals this
     // azimuth directly (see MeasuredHouseScene report for the derivation).
     const target = controlsRef.current?.target;
-    const azimuth = Math.atan2(
+    const azimuth = walking ? new THREE.Euler().setFromQuaternion(camera.quaternion, "YXZ").y : Math.atan2(
       camera.position.x - (target?.x ?? ORBIT_TARGET[0]),
       camera.position.z - (target?.z ?? ORBIT_TARGET[2]),
     );
@@ -366,112 +370,6 @@ function CameraDirector({
 // Dollhouse cut: above window heads so punched openings read as true holes
 // (bedroom window head 2.20) while still allowing an overhead look into rooms.
 const SECTION = 2.35;
-const EXT_THICKNESS = designAssumptions.exteriorWallThicknessCm / 100;
-const INT_THICKNESS = designAssumptions.interiorWallThicknessCm / 100;
-const DOOR_HEAD = 2.1;
-const WINDOW_SILL = designAssumptions.bedroomWindow.sillHeightCm / 100;
-const WINDOW_HEAD = designAssumptions.bedroomWindow.headHeightCm / 100;
-const WEST_OPENING_WIDTH = designAssumptions.livingWestOpening.widthCm / 100;
-const WEST_OPENING_HEAD = designAssumptions.livingWestOpening.headHeightCm / 100;
-const MASTER_EXIT_WIDTH = designAssumptions.masterWestExit.widthCm / 100;
-const MASTER_EXIT_HEAD = designAssumptions.masterWestExit.headHeightCm / 100;
-const KITCHEN_ENTRY_WIDTH = designAssumptions.kitchenMainEntry.widthCm / 100;
-const KITCHEN_ENTRY_HEAD = designAssumptions.kitchenMainEntry.headHeightCm / 100;
-
-type Opening = {
-  at: number;
-  width: number;
-  sill: number;
-  head: number;
-  style?: "hinged" | "sliding";
-  /** Hinged: +1 opens toward local +Z, −1 toward local −Z. */
-  swing?: 1 | -1;
-  /** Sliding: +1 stacks toward local +X, −1 toward local −X. */
-  slide?: 1 | -1;
-  fixed?: boolean;
-  /** Sliding: +1 local +Z face, −1 local −Z face. */
-  face?: 1 | -1;
-};
-
-const door = (
-  at: number,
-  width = 0.9,
-  opts: { style?: "hinged" | "sliding"; swing?: 1 | -1; slide?: 1 | -1; face?: 1 | -1 } = {},
-): Opening => ({
-  at,
-  width,
-  sill: 0,
-  head: DOOR_HEAD,
-  style: opts.style ?? "hinged",
-  swing: opts.swing ?? 1,
-  slide: opts.slide ?? 1,
-  face: opts.face ?? 1,
-});
-const window_ = (at: number, width = 1.4): Opening => ({
-  at,
-  width,
-  sill: WINDOW_SILL,
-  head: WINDOW_HEAD,
-});
-
-// Approved sill/head dimensions are above finished floor. The floor slab's
-// world elevation must be included, otherwise the kitchen counter buries the
-// bottom 10 cm of the window frame.
-const kitchenWindow = (at: number, width: number): Opening => {
-  const floorLevel = house.zones.find((zone) => zone.id === "north-extension")!.level;
-  return { ...window_(at, width), sill: WINDOW_SILL + floorLevel, head: WINDOW_HEAD + floorLevel };
-};
-
-// Keyed by footprint edge index (edge n runs from point n to point n+1).
-const exteriorOpenings: Record<number, Opening[]> = {
-  // Kitchen north bay window.
-  0: [kitchenWindow(2.1, 1.6)],
-  // Kitchen east: window north; main entry further south (near living open).
-  1: [
-    kitchenWindow(0.85, 1.2),
-    // Hinge outward so the entry leaf never swings across the kitchen joinery.
-    { at: 3.15, width: KITCHEN_ENTRY_WIDTH, sill: 0, head: KITCHEN_ENTRY_HEAD, swing: -1 },
-  ],
-  2: [window_(1.9)],
-  3: [window_(1.8), window_(5.0)],
-  // South facade (east→west): E2, main bath, ensuite, master.
-  4: [window_(1.9), window_(5.2, 1.0), window_(7.25, 0.7), window_(9.7, 1.5)],
-  // Master west exit (remodel) — north of bed, clear of south nightstands.
-  5: [{ at: 2.9, width: MASTER_EXIT_WIDTH, sill: 0, head: MASTER_EXIT_HEAD, swing: 1 }],
-  6: [window_(1.7)],
-  7: [{ at: 2.2, width: WEST_OPENING_WIDTH, sill: 0, head: WEST_OPENING_HEAD, fixed: true }],
-};
-
-function openingKind(opening: Opening): "window" | "door" | "terrace" {
-  if (opening.fixed) return "window";
-  if (opening.sill <= 0 && opening.width >= 2.4) return "terrace";
-  if (opening.sill <= 0) return "door";
-  return "window";
-}
-
-// Proposed internal partitions, derived from the zone boxes in data/house.ts.
-// Owner request (2026-08-07): no wall between kitchen and living room — that
-// run (a=[3.4,3.8] b=[7.6,3.8]) is intentionally omitted, open-plan.
-//
-// Wall local frame (OpeningOnWall rot −atan2): for northbound runs, local +Z
-// is west (−X world), local −Z is east (+X world).
-const partitions: Array<{ a: [number, number]; b: [number, number]; openings: Opening[] }> = [
-  // Living↔E1/E2: bedrooms east → local −Z → swing −1.
-  { a: [7.6, 5.0], b: [7.6, 12.1], openings: [door(1.8, 0.9, { swing: -1 }), door(4.3, 0.9, { swing: -1 })] },
-  { a: [7.6, 8.55], b: [11.4, 8.55], openings: [] },
-  // Master (west, +Z) ↔ baths (east): BR hinged into master; ensuite slides on master face.
-  {
-    a: [3.4, 8.3],
-    b: [3.4, 12.1],
-    openings: [
-      door(1.0, 0.9, { swing: 1 }),
-      door(3.0, 0.8, { style: "sliding", slide: -1, face: 1 }),
-    ],
-  },
-  // Living↔main bath: bath south → local +Z on eastbound run → swing +1.
-  { a: [3.4, 10.2], b: [7.6, 10.2], openings: [door(2.4, 0.8, { swing: 1 })] },
-  { a: [4.9, 10.2], b: [4.9, 12.1], openings: [] },
-];
 
 function finish(
   color: string,
@@ -1004,7 +902,7 @@ function ZoneFloor({
   );
 }
 
-function GroundSlab({ palette }: { palette: Palette }) {
+function FootprintSurface({ material, elevation, ceiling = false }: { material: THREE.Material; elevation: number; ceiling?: boolean }) {
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
     house.footprint.forEach(([x, z], index) => {
@@ -1016,11 +914,13 @@ function GroundSlab({ palette }: { palette: Palette }) {
   }, []);
 
   return (
-    <mesh geometry={geometry} rotation-x={Math.PI / 2} position-y={0.002} material={palette.ground} receiveShadow />
+    <mesh geometry={geometry} rotation-x={Math.PI / 2} position-y={elevation} material={material} castShadow={ceiling} receiveShadow />
   );
 }
 
 function SceneContent({
+  active,
+  walkInput,
   selectedZone,
   onSelectZone,
   designMode,
@@ -1046,7 +946,7 @@ function SceneContent({
   onReady,
   landscapeReady,
   onLandscapeReady,
-}: Props & { onReady: () => void; landscapeReady: "high" | "light" | null; onLandscapeReady: (quality: "high" | "light") => void }) {
+}: Props & { walkInput: React.RefObject<WalkInput>; onReady: () => void; landscapeReady: "high" | "light" | null; onLandscapeReady: (quality: "high" | "light") => void }) {
   const { gl } = useThree();
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
@@ -1154,13 +1054,14 @@ function SceneContent({
       <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={onLandscapeReady} />}
-      <GroundSlab palette={palette} />
+      <FootprintSurface material={palette.ground} elevation={0.002} />
+      {cameraMode === "walk" && <FootprintSurface material={palette.interior} elevation={zoneById[selectedZone].level + designAssumptions.finishedCeilingHeightCm / 100} ceiling />}
       {house.zones.map((zone) => (
         <ZoneFloor
           key={zone.id}
           zone={zone}
           selected={selectedZone === zone.id}
-          onSelect={() => onSelectZone(zone.id)}
+          onSelect={() => { if (cameraMode !== "walk") onSelectZone(zone.id); }}
           palette={palette}
           showMeasurements={showMeasurements}
           showLabel={cameraMode === "overview" || cameraMode === "plan"}
@@ -1173,7 +1074,7 @@ function SceneContent({
           a={wall.a}
           b={wall.b}
           thickness={EXT_THICKNESS}
-          height={cameraMode === "room" || cameraMode === "garden" ? designAssumptions.finishedCeilingHeightCm / 100 + zoneById[selectedZone].level : SECTION}
+          height={cameraMode === "room" || cameraMode === "garden" || cameraMode === "walk" ? designAssumptions.finishedCeilingHeightCm / 100 + zoneById[selectedZone].level : SECTION}
           openings={wall.openings}
           material={palette.exterior}
           focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}
@@ -1185,7 +1086,7 @@ function SceneContent({
           a={wall.a}
           b={wall.b}
           thickness={INT_THICKNESS}
-          height={SECTION}
+          height={cameraMode === "walk" ? designAssumptions.finishedCeilingHeightCm / 100 + zoneById[selectedZone].level : SECTION}
           openings={wall.openings}
           material={palette.interior}
           focusZone={cameraMode === "room" ? zoneById[selectedZone] : undefined}
@@ -1267,7 +1168,8 @@ function SceneContent({
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}
       {cameraMode === "plan" && <PlanCamera />}
       <LightingPlanMarkers visible={cameraMode === "plan"} lightsOn={houseLightsOn} nightFactor={sun.practical} />
-      <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} />
+      <CameraAzimuthTracker onCameraAzimuth={onCameraAzimuth} controlsRef={controlsRef} walking={cameraMode === "walk"} />
+      {cameraMode === "walk" ? <FirstPersonController input={walkInput} active={active} zone={selectedZone} revision={cameraRevision} allDoorsOpen={allDoorsOpen} doorStates={doorStates} /> : <>
       <CameraDirector
         zone={zoneById[selectedZone]}
         mode={cameraMode}
@@ -1294,6 +1196,7 @@ function SceneContent({
         enablePan={quality === "high" && (cameraMode !== "room" || kitchenRoom)}
       />
       <KeyboardOrbitBridge controlsRef={controlsRef} />
+      </>}
       <SceneFirstFrame onReady={onReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
     </>
   );
@@ -1302,6 +1205,7 @@ function SceneContent({
 export function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
   const profile = lightingProfiles[quality];
+  const walkInput = useRef<WalkInput>(createWalkInput());
 
   const [ready, setReady] = useState(false);
   const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);
@@ -1344,11 +1248,12 @@ export function MeasuredHouseScene(props: Props) {
       style={{ width: "100%", height: "100%", display: "block" }}
     >
       <Suspense fallback={<ScenePending onPending={handlePending} />}>
-        <SceneContent {...props} onReady={handleReady} landscapeReady={landscapeReady} onLandscapeReady={setLandscapeReady} />
+        <SceneContent {...props} walkInput={walkInput} onReady={handleReady} landscapeReady={landscapeReady} onLandscapeReady={setLandscapeReady} />
       </Suspense>
       <RenderBudget quality={quality} active={props.active} />
       <GardenDiagnostics />
     </Canvas>
+    {props.cameraMode === "walk" && props.active && presentable && <WalkControls input={walkInput} onReset={() => { walkInput.current.reset?.(); }} />}
     <SceneLoading ready={presentable} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />
     </>
   );

@@ -70,3 +70,24 @@ AGENTS.md                    Durable Codex project instructions
 - Detailed rooms, GLB assets, PBR materials, product hotspots, and before/after models remain future milestones.
 
 See `docs/PROJECT_HANDOFF.md` for the continuation sequence and `docs/GEOMETRY_AUDIT.md` for approval rules.
+
+## First-person walkthrough
+
+Choose **Walk · FPS** in the House toolbar (also under Controls → Camera).
+Use **WASD** to move, **arrow keys** to walk/turn, and **drag** to look around.
+The on-screen pad supports touch and keyboard activation. Select a room to start
+there, use **Reset position** if needed, and **Back to house** to return to orbit.
+Escape releases keyboard focus. Movement stops when the viewer loses focus.
+
+Walk mode stays within the existing house floor, with full-height walls and a
+ceiling at the model's accepted height. Open doors permit passage; walls, closed
+doors and major furniture block movement. **With finishes** renders the existing
+mood-image materials; **Survey shell** shows the neutral model. The light quality
+profile and non-WebGL Plan fallback remain available.
+
+Walkthrough checks (browser check needs a running development server):
+
+```bash
+node scripts/verify-walk-collision.mjs
+PLAYWRIGHT_MODULE=/path/to/playwright node scripts/verify-walkthrough.mjs
+```

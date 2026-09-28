@@ -36,7 +36,7 @@ const MeasuredHouseScene = lazy(() =>
 );
 
 type View = "model" | "plan" | "references" | "materials" | "sourcebook" | "plants";
-type CameraMode = "overview" | "room" | "plan" | "garden";
+type CameraMode = "overview" | "room" | "plan" | "garden" | "walk";
 
 function supportsWebGL() {
   try {
@@ -96,7 +96,7 @@ export function HouseExplorer() {
   const moodParam = searchParams.get("mood");
   const view: View = isView(viewParam) ? viewParam : "model";
   const cameraParam = searchParams.get("camera");
-  const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan" || cameraParam === "garden"
+  const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan" || cameraParam === "garden" || cameraParam === "walk"
     ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
   const gardenParam = searchParams.get("garden");
   const gardenView: GardenView = gardenParam === "arrival" || gardenParam === "exterior" ? gardenParam : "hero";
@@ -453,8 +453,8 @@ export function HouseExplorer() {
     setSheetOpen(false);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
-    if (cameraMode === "room" && selectedZone === id) setCameraRevision((revision) => revision + 1);
-    navigate({ view: "model", zone: id, camera: "room" }, "replace");
+    if ((cameraMode === "room" || cameraMode === "walk") && selectedZone === id) setCameraRevision((revision) => revision + 1);
+    navigate({ view: "model", zone: id, camera: cameraMode === "walk" ? "walk" : "room" }, "replace");
   };
 
   const planFallback = (
@@ -613,7 +613,7 @@ export function HouseExplorer() {
           className={`stage is-${view}`}
           aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : view === "sourcebook" ? "Product sourcebook" : "Plants"}
         >
-          {view === "model" && designMode && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
+          {view === "model" && designMode && cameraMode !== "walk" && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
           {modelVisited && (
             <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model"} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
                 {webglSupport === true && (
@@ -646,6 +646,7 @@ export function HouseExplorer() {
                       removedFurniture={removedFurniture}
                       selectedFurnitureId={furnitureEditorOpen ? selectedFurnitureId : undefined}
                       onSelectFurniture={(id) => {
+                        if (cameraMode === "walk") return;
                         setSelectedFurnitureId(id);
                         if (!compact) setFurnitureEditorOpen(true);
                         setExportStatus("");
@@ -660,8 +661,8 @@ export function HouseExplorer() {
           )}
           {view === "model" && (
             <>
-              <p id="model-keyboard-help" className="sr-only">3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
-              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
+              <p id="model-keyboard-help" className="sr-only">Walk mode: W A S D move, arrow keys walk and turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
+              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "walk" ? `First-person walkthrough, starting in ${active.label}` : cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
               <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">
                 <div className="segmented">
                   <button
@@ -681,6 +682,10 @@ export function HouseExplorer() {
                     {compact ? "Finishes" : "With finishes"}
                   </button>
                 </div>
+                {webglSupport === true && <button type="button" className={cameraMode === "walk" ? "toolbar-chip walk-trigger is-active" : "toolbar-chip walk-trigger"} aria-pressed={cameraMode === "walk"} onClick={() => {
+                  setExperienceOpen(false); setFurnitureEditorOpen(false); setSheetOpen(false);
+                  navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace");
+                }}>Walk · FPS</button>}
                 {webglSupport === true && (
                   <>
                     <button
@@ -865,7 +870,7 @@ export function HouseExplorer() {
                   <div className="camera-control">
                     <span><b>Camera</b><small>Choose a viewpoint</small></span>
                     <div className="camera-control-buttons" role="group" aria-label="Camera view">
-                      {(["overview", "garden", "room", "plan"] as const).map((mode) => (
+                      {(["overview", "garden", "room", "plan", "walk"] as const).map((mode) => (
                         <button
                           key={mode}
                           type="button"
@@ -877,10 +882,11 @@ export function HouseExplorer() {
                               return;
                             }
                             navigate({ camera: mode }, "replace");
+                            if (mode === "walk") { setExperienceOpen(false); setFurnitureEditorOpen(false); }
                             if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
                           }}
                         >
-                          {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : "Plan"}
+                          {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : mode === "walk" ? "Walk · FPS" : "Plan"}
                         </button>
                       ))}
                     </div>
@@ -948,7 +954,7 @@ export function HouseExplorer() {
                 </div>
               )}
 
-              <div className="stage-hud">
+              <div className={cameraMode === "walk" ? "stage-hud is-walking" : "stage-hud"}>
                 {compact ? (
                   <button
                     type="button"
@@ -1173,8 +1179,8 @@ export function HouseExplorer() {
               <button
                 key={zone.id}
                 type="button"
-                className={cameraMode === "room" && selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
-                aria-pressed={cameraMode === "room" && selectedZone === zone.id}
+                className={(cameraMode === "room" || cameraMode === "walk") && selectedZone === zone.id ? "room-chip is-active" : "room-chip"}
+                aria-pressed={(cameraMode === "room" || cameraMode === "walk") && selectedZone === zone.id}
                 onClick={() => {
                   if (selectedZone === zone.id && cameraMode === "room") {
                     setSheetOpen(true);

@@ -14,7 +14,7 @@ export type LightingRigProps = {
   quality: "high" | "light";
   landscapeReady: "high" | "light" | null;
   kitchenRoom: boolean;
-  cameraMode: "overview" | "room" | "plan" | "garden";
+  cameraMode: "overview" | "room" | "plan" | "garden" | "walk";
   selectedZone: string;
   floorFinish: string;
   removedFurniture: string[];

@@ -1,13 +1,12 @@
 "use client";
 
-import { useGLTF, useTexture } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { useSceneDetail } from "../scene/SceneDetail";
 import { designAssumptions } from "@/data/house";
-import { createTextileBump } from "@/lib/textileTexture";
 
 /**
  * Furniture sizing — Israeli / European residential standards.
@@ -42,23 +41,6 @@ const BRONZE = new THREE.MeshPhysicalMaterial({
   envMapIntensity: 1.45,
 });
 
-const BOUCLE = new THREE.MeshPhysicalMaterial({
-  color: "#eee9df",
-  roughness: 0.98,
-  sheen: 0.7,
-  sheenColor: new THREE.Color("#fffaf1"),
-  sheenRoughness: 0.82,
-  envMapIntensity: 0.65,
-  bumpMap: createTextileBump(),
-  bumpScale: 0.0012,
-});
-
-const BED_LINEN = new THREE.MeshPhysicalMaterial({
-  color: "#f3ede2", roughness: 0.93, sheen: 0.55,
-  sheenColor: new THREE.Color("#fffaf0"), side: THREE.DoubleSide,
-  bumpMap: BOUCLE.bumpMap, bumpScale: 0.0007,
-});
-
 const duvetGeometry = new THREE.PlaneGeometry(1.66, 1.48, 64, 56);
 duvetGeometry.rotateX(-Math.PI / 2);
 const duvetPositions = duvetGeometry.attributes.position;
@@ -81,9 +63,9 @@ for (let i = 0; i < pillowPositions.count; i++) {
 }
 pillowGeometry.computeVertexNormals();
 
-function LinenPillow({ x, z, y, rotated = false }: { x: number; z: number; y: number; rotated?: boolean }) {
+function LinenPillow({ x, z, y, material, rotated = false }: { x: number; z: number; y: number; material: THREE.Material; rotated?: boolean }) {
   return (
-    <mesh position={[x - CX, y + 0.07, z - CZ]} rotation-y={rotated ? Math.PI / 2 : 0} scale={[0.31, 0.075, 0.20]} geometry={pillowGeometry} material={BED_LINEN} castShadow receiveShadow />
+    <mesh position={[x - CX, y + 0.07, z - CZ]} rotation-y={rotated ? Math.PI / 2 : 0} scale={[0.31, 0.075, 0.20]} geometry={pillowGeometry} material={material} castShadow receiveShadow />
   );
 }
 
@@ -212,20 +194,20 @@ export function QueenBed({
     <group>
       <SoftBox x={x} z={z} y={base + 0.07} w={planW} d={planD} h={h - mattress - 0.04} radius={0.055} material={palette.oak} />
       <SoftBox x={x} z={z} y={base + 0.035} w={planW - 0.1} d={planD - 0.1} h={0.045} radius={0.02} material={BRONZE} />
-      <SoftBox x={x} z={z} y={base + h - mattress} w={planW - 0.05} d={planD - 0.05} h={mattress} radius={0.075} material={BOUCLE} />
-      <SoftBox x={headX} z={headZ} y={base + 0.12} w={headW} d={headD} h={0.72} radius={0.055} material={BOUCLE} />
+      <SoftBox x={x} z={z} y={base + h - mattress} w={planW - 0.05} d={planD - 0.05} h={mattress} radius={0.075} material={palette.upholstery} />
+      <SoftBox x={headX} z={headZ} y={base + 0.12} w={headW} d={headD} h={0.72} radius={0.055} material={palette.upholstery} />
       <group position={[x - CX, base + h, z - CZ]} rotation-y={headOnZ ? (sign > 0 ? 0 : Math.PI) : sign * Math.PI / 2}>
-        <mesh position={[0, 0, -0.22]} geometry={duvetGeometry} material={BED_LINEN} castShadow receiveShadow />
+        <mesh position={[0, 0, -0.22]} geometry={duvetGeometry} material={palette.upholstery} castShadow receiveShadow />
       </group>
       {headOnZ ? (
         <>
-          <LinenPillow x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
-          <LinenPillow x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
+          <LinenPillow material={palette.upholstery} x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
+          <LinenPillow material={palette.upholstery} x={x + 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
         </>
       ) : (
         <>
-          <LinenPillow x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} rotated />
-          <LinenPillow x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} rotated />
+          <LinenPillow material={palette.upholstery} x={x + sign * (planW / 2 - 0.34)} z={z - 0.38} y={base + h} rotated />
+          <LinenPillow material={palette.upholstery} x={x + sign * (planW / 2 - 0.34)} z={z + 0.38} y={base + h} rotated />
         </>
       )}
     </group>
@@ -324,6 +306,7 @@ export function Dresser({
 /** Sofa: seat + back. `face` = direction the sitter looks (into the room). */
 export function Sofa({
   base,
+  palette,
   x,
   z,
   face = "w",
@@ -350,7 +333,7 @@ export function Sofa({
 
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + 0.14} w={planW} d={planD} h={0.3} radius={0.11} material={BOUCLE} />
+      <SoftBox x={x} z={z} y={base + 0.14} w={planW} d={planD} h={0.3} radius={0.11} material={palette.upholstery} />
       <SoftBox
         x={x + backOff.x}
         z={z + backOff.z}
@@ -359,7 +342,7 @@ export function Sofa({
         d={backD}
         h={h - 0.18}
         radius={0.07}
-        material={BOUCLE}
+        material={palette.upholstery}
       />
       {[-1, 1].map((side) => (
         <SoftBox
@@ -371,7 +354,7 @@ export function Sofa({
           d={cushionD}
           h={0.12}
           radius={0.055}
-          material={BOUCLE}
+          material={palette.upholstery}
         />
       ))}
       {[-1, 1].map((side) => (
@@ -384,7 +367,7 @@ export function Sofa({
           d={alongNS ? 0.17 : planD - 0.08}
           h={0.42}
           radius={0.07}
-          material={BOUCLE}
+          material={palette.upholstery}
         />
       ))}
       {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
@@ -405,6 +388,7 @@ export function Sofa({
 
 export function LoungeChair({
   base,
+  palette,
   x,
   z,
   face = "n",
@@ -429,7 +413,7 @@ export function LoungeChair({
 
   return (
     <group>
-      <SoftBox x={x} z={z} y={base + 0.17} w={planW - 0.08} d={planD - 0.08} h={0.24} radius={0.1} material={BOUCLE} />
+      <SoftBox x={x} z={z} y={base + 0.17} w={planW - 0.08} d={planD - 0.08} h={0.24} radius={0.1} material={palette.upholstery} />
       <SoftBox
         x={x + backOff.x}
         z={z + backOff.z}
@@ -613,7 +597,6 @@ export function Cooktop({
 
 const POTTED_PLANT_MODEL = "/models/potted-plant-02/potted_plant_02_1k.gltf";
 const FLOWERING_PLANT_MODEL = "/models/periwinkle-plant/periwinkle_plant_1k.gltf";
-const JASMINE_FOLIAGE = "/textures/jasmine-foliage.png";
 
 function ScannedPlant({
   src,
@@ -671,46 +654,6 @@ function ScannedPlant({
       scale={scale}
       dispose={null}
     />
-  );
-}
-
-export function FoliageCluster({
-  x,
-  y,
-  z,
-  scale = 1,
-}: {
-  palette: Palette;
-  x: number;
-  y: number;
-  z: number;
-  scale?: number;
-}) {
-  const source = useTexture(JASMINE_FOLIAGE);
-  const material = useMemo(() => {
-    const map = source.clone();
-    map.colorSpace = THREE.SRGBColorSpace;
-    map.anisotropy = 8;
-    map.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({
-      map,
-      color: "#738367",
-      roughness: 0.9,
-      transparent: true,
-      alphaTest: 0.4,
-      side: THREE.DoubleSide,
-      depthWrite: true,
-    });
-  }, [source]);
-  useEffect(() => () => { material.map?.dispose(); material.dispose(); }, [material]);
-  return (
-    <group position={[x - CX, y, z - CZ]} scale={scale} rotation-y={(x * 5.7 + z * 2.9) % (Math.PI * 2)}>
-      {[0, Math.PI / 2, Math.PI / 4].map((rotation, index) => (
-        <mesh key={rotation} rotation-y={rotation} position={[0, index * 0.035, 0]} material={material} castShadow>
-          <planeGeometry args={[0.78 - index * 0.08, 0.64 + index * 0.08]} />
-        </mesh>
-      ))}
-    </group>
   );
 }
 

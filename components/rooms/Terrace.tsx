@@ -2,7 +2,7 @@
 import { Blk, Cyl, SoftBox, type Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
-import { PlanterBox, PotPlant } from "./furniture";
+import { MoodOlivePot } from "./MoodGardenProps";
 import { DecorTray } from "./LuxuryDetails";
 import { terraceCushionMaterial, terraceIronMaterial, terraceStoneMaterial } from "./terraceMaterials";
 import { terraceFurnitureSpec } from "@/data/terraceFurniture";
@@ -76,10 +76,10 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
         <TerraceDiningSet base={0.08} x={1.85} z={6.0} />
       </EditableFurniture>
       <DecorTray base={0.83} palette={palette} x={1.85} z={6.0} />
-      <PlanterBox base={0.08} palette={palette} x={0.45} z={5.1} />
-      <PlanterBox base={0.08} palette={palette} x={0.45} z={6.7} />
-      <PotPlant base={0.08} palette={palette} x={0.45} z={3.7} scale={1.15} />
-      <PotPlant base={0.08} palette={palette} x={3.15} z={8.0} scale={1.05} />
+      <MoodOlivePot quality={quality} scale={0.68} base={0.08} palette={palette} x={0.45} z={5.1} />
+      <MoodOlivePot quality={quality} scale={0.68} base={0.08} palette={palette} x={0.45} z={6.7} />
+      <MoodOlivePot quality={quality} base={0.08} palette={palette} x={0.45} z={3.7} scale={1.15} />
+      <MoodOlivePot quality={quality} base={0.08} palette={palette} x={3.15} z={8.0} scale={1.05} />
     </group>
   );
 }

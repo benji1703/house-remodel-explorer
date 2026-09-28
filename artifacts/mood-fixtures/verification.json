@@ -1,0 +1,279 @@
+{
+  "assets": [
+    {
+      "file": "public/models/mood/toilet-wall-hung.glb",
+      "bounds": {
+        "min": [
+          -0.1800109938164053,
+          0.1400024296592672,
+          0
+        ],
+        "max": [
+          0.1800109938164053,
+          0.4779862253433705,
+          0.5400000214576721
+        ]
+      }
+    },
+    {
+      "file": "public/models/mood/olive-pot.glb",
+      "bounds": {
+        "min": [
+          -0.4401813759573517,
+          0,
+          -0.42761504650115967
+        ],
+        "max": [
+          0.43075347087464905,
+          1.4578945636749268,
+          0.44513097405433655
+        ]
+      }
+    },
+    {
+      "file": "public/models/mood/olive-pot-light.glb",
+      "bounds": {
+        "min": [
+          -0.3184476472528561,
+          0,
+          -0.3452323564157519
+        ],
+        "max": [
+          0.35964438096600615,
+          1.4578945636749268,
+          0.3473232873544726
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/trachelospermum-jasminoides.glb",
+      "bounds": {
+        "min": [
+          -0.3896678221057659,
+          -0.0019117017509415746,
+          -2.1284468976271613
+        ],
+        "max": [
+          0.3708094191383129,
+          2.8613124572860023,
+          0.08936905688171204
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/trachelospermum-jasminoides-light.glb",
+      "bounds": {
+        "min": [
+          -0.07055058800725225,
+          -0.0019117017509415746,
+          -2.095111090172967
+        ],
+        "max": [
+          0.37087714397458316,
+          2.8613124572860023,
+          0.0893486157264538
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/trachelospermum-jasminoides-far.glb",
+      "bounds": {
+        "min": [
+          -0.3657866650621866,
+          -0.0019117017509415746,
+          -2.095111090172967
+        ],
+        "max": [
+          0.3707973295252298,
+          2.8613124572860023,
+          0.0893486157264538
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/myrtus-communis.glb",
+      "bounds": {
+        "min": [
+          -0.4631614089012146,
+          0.005031800589023083,
+          -0.4630524516105652
+        ],
+        "max": [
+          0.4628007113933563,
+          0.9018220669116501,
+          0.46290966868400574
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/myrtus-communis-light.glb",
+      "bounds": {
+        "min": [
+          -0.4631614089012146,
+          0.005037479698185299,
+          -0.4597695791540713
+        ],
+        "max": [
+          0.4628007113933563,
+          0.9056278700344659,
+          0.46291449902635523
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/myrtus-communis-far.glb",
+      "bounds": {
+        "min": [
+          -0.44427793924560455,
+          0.005106788594275713,
+          -0.45790112018585205
+        ],
+        "max": [
+          0.42439422471048077,
+          0.9075853044742036,
+          0.4405646324157715
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-fruticosa.glb",
+      "bounds": {
+        "min": [
+          -0.4857778251171112,
+          0.004524777337271413,
+          -0.4851438358340144
+        ],
+        "max": [
+          0.485701322555542,
+          0.6789356056070103,
+          0.4838448718104243
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-fruticosa-light.glb",
+      "bounds": {
+        "min": [
+          -0.4857778251171112,
+          0.004540283439133153,
+          -0.4838433772194545
+        ],
+        "max": [
+          0.485701322555542,
+          0.6872108015918904,
+          0.48384081421972913
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-fruticosa-far.glb",
+      "bounds": {
+        "min": [
+          -0.46762017966922986,
+          0.004597527619237707,
+          -0.4781763255596161
+        ],
+        "max": [
+          0.42475820596004116,
+          0.690127941076305,
+          0.4644150733947754
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-rosmarinus.glb",
+      "bounds": {
+        "min": [
+          -0.44663989523677916,
+          0.004526853657896013,
+          -0.4468781352043152
+        ],
+        "max": [
+          0.44607144573955626,
+          0.6648160215716992,
+          0.4475802481174469
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-rosmarinus-light.glb",
+      "bounds": {
+        "min": [
+          -0.44663405418395996,
+          0.004540283439133153,
+          -0.4430667373764761
+        ],
+        "max": [
+          0.44606560468673706,
+          0.6648136512806828,
+          0.44756238790633757
+        ]
+      }
+    },
+    {
+      "file": "public/models/landscape/salvia-rosmarinus-far.glb",
+      "bounds": {
+        "min": [
+          -0.4272403550548382,
+          0.004597527619237707,
+          -0.44308459758758545
+        ],
+        "max": [
+          0.41394131001974444,
+          0.6608503717213672,
+          0.4231354594230652
+        ]
+      }
+    }
+  ],
+  "views": [
+    {
+      "quality": "high",
+      "calls": 941,
+      "triangles": 3964373,
+      "vines": [
+        {
+          "species": "trachelospermum-jasminoides",
+          "accepted": [
+            "bougainvillea-outer-south",
+            "bougainvillea-outer-north"
+          ],
+          "rejected": []
+        }
+      ],
+      "excludedPlants": [
+        "terrace-north-27",
+        "terrace-south-11",
+        "north-courtyard-17"
+      ]
+    },
+    {
+      "quality": "light",
+      "calls": 715,
+      "triangles": 2800181,
+      "vines": [
+        {
+          "species": "trachelospermum-jasminoides",
+          "accepted": [
+            "bougainvillea-outer-south"
+          ],
+          "rejected": []
+        },
+        {
+          "species": "trachelospermum-jasminoides",
+          "accepted": [
+            "bougainvillea-outer-north"
+          ],
+          "rejected": []
+        }
+      ],
+      "excludedPlants": [
+        "terrace-north-27",
+        "terrace-south-11",
+        "north-courtyard-17"
+      ]
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

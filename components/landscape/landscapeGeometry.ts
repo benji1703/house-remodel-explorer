@@ -33,5 +33,5 @@ export function transformLandscapeBounds(bounds: LandscapeBounds, positionCm: re
   return { minCm: box.min.toArray() as [number, number, number], maxCm: box.max.toArray() as [number, number, number] };
 }
 export function plantAssetIsClear(plant: LandscapePlant, bands: readonly LandscapeBounds[]) {
-  return bands.every((band) => isLandscapeBoundsClear(transformLandscapeBounds(band, plant.positionCm, [plant.scale, plant.scale, plant.scale], plant.rotation), plant.species === "bougainvillea-glabra"));
+  return bands.every((band) => isLandscapeBoundsClear(transformLandscapeBounds(band, plant.positionCm, [plant.scale, plant.scale, plant.scale], plant.rotation), plant.species === "trachelospermum-jasminoides"));
 }

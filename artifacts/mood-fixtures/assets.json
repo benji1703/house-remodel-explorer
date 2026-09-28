@@ -1,0 +1,77 @@
+[
+  {
+    "file": "public/models/mood/toilet-wall-hung.glb",
+    "bytes": 20920,
+    "triangles": 2868
+  },
+  {
+    "file": "public/models/mood/olive-pot.glb",
+    "bytes": 273168,
+    "triangles": 21034
+  },
+  {
+    "file": "public/models/mood/olive-pot-light.glb",
+    "bytes": 184052,
+    "triangles": 14410
+  },
+  {
+    "file": "public/models/landscape/trachelospermum-jasminoides.glb",
+    "bytes": 321156,
+    "triangles": 25209
+  },
+  {
+    "file": "public/models/landscape/trachelospermum-jasminoides-light.glb",
+    "bytes": 172328,
+    "triangles": 13629
+  },
+  {
+    "file": "public/models/landscape/trachelospermum-jasminoides-far.glb",
+    "bytes": 166268,
+    "triangles": 12981
+  },
+  {
+    "file": "public/models/landscape/myrtus-communis.glb",
+    "bytes": 293916,
+    "triangles": 22416
+  },
+  {
+    "file": "public/models/landscape/myrtus-communis-light.glb",
+    "bytes": 160124,
+    "triangles": 12080
+  },
+  {
+    "file": "public/models/landscape/myrtus-communis-far.glb",
+    "bytes": 60056,
+    "triangles": 4296
+  },
+  {
+    "file": "public/models/landscape/salvia-fruticosa.glb",
+    "bytes": 323552,
+    "triangles": 23576
+  },
+  {
+    "file": "public/models/landscape/salvia-fruticosa-light.glb",
+    "bytes": 176872,
+    "triangles": 12776
+  },
+  {
+    "file": "public/models/landscape/salvia-fruticosa-far.glb",
+    "bytes": 67320,
+    "triangles": 4644
+  },
+  {
+    "file": "public/models/landscape/salvia-rosmarinus.glb",
+    "bytes": 479076,
+    "triangles": 36352
+  },
+  {
+    "file": "public/models/landscape/salvia-rosmarinus-light.glb",
+    "bytes": 249816,
+    "triangles": 18880
+  },
+  {
+    "file": "public/models/landscape/salvia-rosmarinus-far.glb",
+    "bytes": 83892,
+    "triangles": 6192
+  }
+]

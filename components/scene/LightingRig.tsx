@@ -60,19 +60,21 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
       <fog attach="fog" args={[designMode ? exterior ? new THREE.Color("#625b58").lerp(new THREE.Color("#d7d6cc"), sun.daylight * 0.92).multiplyScalar(sun.daylight) : sun.sky : "#e5e5ea", 25, 49]} />
       {designMode && sun.daylight > 0 && <SkyDome sunDirection={sun.direction} daylight={sun.daylight} garden={exterior} />}
       {designMode && sun.daylight > 0 && (
-        <Environment key={`daylight-${sunHour}-${exterior}`} resolution={profile.environmentResolution} frames={1} environmentIntensity={sun.daylight * (exterior ? gardenLighting.environmentIntensity : 0.72)}>
-          <color attach="background" args={["#9c8e80"]} />
+        // Neutral sky bounce keeps oak/plaster distinct; window light supplies
+        // the warm/cool directionality instead of a uniform brown ambient wash.
+        <Environment key={`daylight-${sunHour}-${exterior}`} resolution={profile.environmentResolution} frames={1} environmentIntensity={sun.daylight * (exterior ? gardenLighting.environmentIntensity : 0.52)}>
+          <color attach="background" args={[exterior ? "#9c8e80" : "#c5ccd1"]} />
           <Lightformer form="rect" intensity={sun.daylight * 2.1} color={sun.color} scale={[18, 5, 1]} position={sun.position} />
           <Lightformer form="rect" intensity={sun.daylight * 1.15} color="#d3d0c8" scale={[20, 16, 1]} position={[0, 14, 0]} rotation-x={Math.PI / 2} />
           <Lightformer form="rect" intensity={sun.daylight * 0.62} color="#d2ad78" scale={[20, 20, 1]} position={[0, -8, 0]} rotation-x={-Math.PI / 2} />
           <Lightformer form="rect" intensity={sun.daylight * 1.5} color="#fff1d2" scale={[7, 4, 1]} position={[0, 2, -7]} rotation-y={Math.PI} />
         </Environment>
       )}
-      <hemisphereLight args={["#c9c8c1", "#9d7957", designMode ? exterior ? sun.daylight * (gardenLighting.hemisphereBase + gardenLighting.hemisphereDaylight) : sun.daylight * 0.51 : 1.1]} />
-      <ambientLight intensity={designMode ? exterior ? sun.daylight * (gardenLighting.ambientBase + gardenLighting.ambientDaylight) : sun.daylight * 0.088 : 0.45} />
+      <hemisphereLight args={["#c9c8c1", "#9d7957", designMode ? exterior ? sun.daylight * (gardenLighting.hemisphereBase + gardenLighting.hemisphereDaylight) : sun.daylight * 0.3 : 1.1]} />
+      <ambientLight intensity={designMode ? exterior ? sun.daylight * (gardenLighting.ambientBase + gardenLighting.ambientDaylight) : sun.daylight * 0.045 : 0.45} />
       {localLights && kitchenRoom && <>
-        <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 3.2} color="#f1f4f6" />
-        <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 4} color="#fff1db" />
+        <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 5} color="#f1f4f6" />
+        <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 6} color="#fff1db" />
       </>}
       <primitive object={shadowTarget} />
       <directionalLight target={shadowTarget} position={designMode ? [sun.position[0] + shadowTarget.position.x, sun.position[1], sun.position[2] + shadowTarget.position.z] : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow={quality === "high" && (!designMode || sun.daylight > 0)} shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-shadowSpan} shadow-camera-right={shadowSpan} shadow-camera-top={shadowSpan} shadow-camera-bottom={-shadowSpan} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />

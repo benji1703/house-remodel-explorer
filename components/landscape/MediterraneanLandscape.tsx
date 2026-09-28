@@ -20,7 +20,7 @@ function PlantBatch({ species, plants, quality, onSelect }: {
   species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: PlantDetail; onSelect: (plant: LandscapePlant) => void;
 }) {
   const { get, invalidate } = useThree();
-  const { scene } = useGLTF(`/models/landscape/${species}${quality === "high" ? "" : `-${quality}`}.glb?v=leaf-v2`);
+  const { scene } = useGLTF(`/models/landscape/${species}${quality === "high" ? "" : `-${quality}`}.glb?v=mood-v3`);
   const suffix = quality === "high" ? "" : "-light";
   const barkMaps = useKTX2((species === "olea-europaea" ? ["color", "normal", "roughness"] : []).map((map) => `/textures/landscape/bark-${map}${suffix}.ktx2`), "/decoders/basis/");
   const barkTextures = useMemo(() => barkMaps.map((source) => {
@@ -117,7 +117,7 @@ function Gravel({ quality }: { quality: Quality }) {
  * irregular feathered edge; there is no geometric border or elevated bed. */
 function PlantingBeds() {
   const ref = useRef<THREE.InstancedMesh>(null);
-  const plants = useMemo(() => landscapePlants.filter((p) => p.species !== "bougainvillea-glabra"), []);
+  const plants = useMemo(() => landscapePlants.filter((p) => p.species !== "trachelospermum-jasminoides"), []);
   const material = useMemo(() => {
     const m = new THREE.MeshBasicMaterial({ color: "#5e5746", transparent: true, opacity: 0.22, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 });
     m.onBeforeCompile = (shader) => {
@@ -220,7 +220,7 @@ function PlantCell({ species, plants, quality, onSelect }: {
     return [sum[0] / plants.length / 100 - CX, landscapeSpecies[species].heightCm / 200, sum[1] / plants.length / 100 - CZ];
   }, [plants, species]);
   const diameter = landscapeSpecies[species].heightCm / 100;
-  const tree = species === "olea-europaea" || species === "bougainvillea-glabra";
+  const tree = species === "olea-europaea" || species === "trachelospermum-jasminoides";
   const near = useProjectedDetail(center, diameter, tree ? 360 : 160, quality === "high");
   const medium = useProjectedDetail(center, diameter, tree ? 200 : 65);
   const detail: PlantDetail = near ? "high" : medium ? "light" : "far";

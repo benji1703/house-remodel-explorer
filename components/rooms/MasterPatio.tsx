@@ -3,7 +3,8 @@ import { Blk } from "./shared";
 import type { Palette } from "./shared";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
-import { FoliageCluster, LoungeChair, PlanterBox, PotPlant } from "./furniture";
+import { LoungeChair } from "./furniture";
+import { MoodOlivePot } from "./MoodGardenProps";
 import { SideTable } from "./LuxuryDetails";
 
 /**
@@ -96,26 +97,10 @@ export function MasterPatio({
         <LoungeChair base={0.06} palette={palette} x={cx - 0.35} z={cz + 0.4} face="e" />
       </EditableFurniture>
       <SideTable base={0.06} palette={palette} x={cx + 0.48} z={cz + 0.42} />
-      <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
-      <PlanterBox base={0.06} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
+      <MoodOlivePot quality={quality} scale={0.7} base={0.06} palette={palette} x={x0 + 0.35} z={z0 + 0.45} />
+      <MoodOlivePot quality={quality} scale={0.7} base={0.06} palette={palette} x={x0 + 0.35} z={z1 - 0.45} />
       {/* Keep the west exit landing clear for the door leaf and first step. */}
-      <PotPlant base={0.06} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
-
-      {quality === "high" &&
-        [0, 1, 2].map((i) => {
-          const px = i % 2 === 0 ? x0 + 0.14 : x1 - 0.14;
-          const pz = z0 + 0.5 + i * 0.7;
-          return (
-            <FoliageCluster
-              key={`vine-${i}`}
-              x={px}
-              y={h * 0.55}
-              z={pz}
-              scale={0.9 + (i % 3) * 0.12}
-              palette={palette}
-            />
-          );
-        })}
+      <MoodOlivePot quality={quality} base={0.06} palette={palette} x={x1 - 0.35} z={z1 - 0.4} scale={0.95} />
     </group>
   );
 }

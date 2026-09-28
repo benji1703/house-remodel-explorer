@@ -1,0 +1,145 @@
+{
+  "errors": [],
+  "cases": [
+    {
+      "name": "kitchen",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 40,
+      "calls": 239
+    },
+    {
+      "name": "living",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "clay",
+        "linen"
+      ],
+      "textures": 51,
+      "calls": 464
+    },
+    {
+      "name": "bedroom",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen",
+        "clay"
+      ],
+      "textures": 40,
+      "calls": 202
+    },
+    {
+      "name": "guest",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 42,
+      "calls": 158
+    },
+    {
+      "name": "east-bedroom",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 42,
+      "calls": 128
+    },
+    {
+      "name": "bathroom",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 40,
+      "calls": 187
+    },
+    {
+      "name": "ensuite",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak"
+      ],
+      "textures": 38,
+      "calls": 297
+    },
+    {
+      "name": "overview",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "clay",
+        "linen"
+      ],
+      "textures": 46,
+      "calls": 1007
+    },
+    {
+      "name": "overview-light",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "clay",
+        "linen"
+      ],
+      "textures": 61,
+      "calls": 950
+    },
+    {
+      "name": "kitchen-parquet",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 40,
+      "calls": 239
+    },
+    {
+      "name": "survey-shell",
+      "passed": true
+    },
+    {
+      "name": "mobile-kitchen",
+      "surfaces": [
+        "travertine",
+        "mineral",
+        "plaster",
+        "oak",
+        "linen"
+      ],
+      "textures": 35,
+      "calls": 225
+    }
+  ],
+  "passed": true
+}

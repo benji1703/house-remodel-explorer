@@ -1,6 +1,8 @@
 "use client";
 
-import { RoundedBox } from "@react-three/drei";
+import { RoundedBox, useGLTF } from "@react-three/drei";
+import { Suspense, useMemo } from "react";
+import { moodFixtures } from "@/data/moodFixtures";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
@@ -61,25 +63,10 @@ const MIRROR = new THREE.MeshPhysicalMaterial({
   envMapIntensity: 2.1,
 });
 
-const WATER = new THREE.MeshPhysicalMaterial({
-  color: "#cbdedc",
-  roughness: 0.08,
-  transmission: 0.72,
-  transparent: true,
-  opacity: 0.72,
-  thickness: 0.01,
-  envMapIntensity: 1.45,
-});
-
 const DARK_GAP = new THREE.MeshStandardMaterial({ color: "#393a36", roughness: 0.62 });
 
 // Closed revolved profiles give sanitaryware a real ceramic thickness and
 // recessed interior; no opaque disk or solid sphere fills the opening.
-const TOILET_PROFILE = [
-  [0.08, 0.02], [0.14, 0.04], [0.20, 0.13], [0.222, 0.25],
-  [0.219, 0.275], [0.188, 0.275], [0.178, 0.23], [0.14, 0.15],
-  [0.065, 0.10], [0, 0.10], [0, 0.02], [0.08, 0.02],
-].map(([r, y]) => new THREE.Vector2(r, y));
 const BASIN_PROFILE = [
   [0, 0], [0.09, 0], [0.145, 0.025], [0.178, 0.075],
   [0.18, 0.11], [0.17, 0.116], [0.16, 0.108], [0.154, 0.072],
@@ -93,88 +80,35 @@ function wallRotation(against: Wall) {
   return 0;
 }
 
-function ToiletBowl({ wallHung }: { wallHung: boolean }) {
-  return (
-    <group>
-      <mesh position={[0, 0.18, 0.46]} scale={[0.78, 1, 1.08]} material={CERAMIC} castShadow receiveShadow>
-        <latheGeometry args={[TOILET_PROFILE, 64]} />
-      </mesh>
-      <mesh position={[0, 0.455, 0.46]} rotation-x={-Math.PI / 2} scale={[0.78, 1.08, 1]} material={CERAMIC} castShadow>
-        <torusGeometry args={[0.19, 0.029, 14, 48]} />
-      </mesh>
-      <mesh position={[0, 0.292, 0.46]} rotation-x={-Math.PI / 2} scale={[0.76, 1.02, 1]} material={WATER}>
-        <circleGeometry args={[0.078, 40]} />
-      </mesh>
-      <mesh position={[0, 0.482, 0.455]} rotation-x={-Math.PI / 2} scale={[0.79, 1.08, 1]} material={CERAMIC} castShadow>
-        <torusGeometry args={[0.205, 0.014, 10, 48]} />
-      </mesh>
-      <RoundedBox
-        args={wallHung ? [0.25, 0.18, 0.33] : [0.23, 0.25, 0.32]}
-        position={wallHung ? [0, 0.32, 0.165] : [0, 0.135, 0.40]}
-        radius={0.035}
-        smoothness={5}
-        material={CERAMIC}
-        castShadow
-        receiveShadow
-      />
-    </group>
-  );
+function ToiletAsset() {
+  const { scene } = useGLTF(moodFixtures.toilet.asset);
+  const instance = useMemo(() => {
+    const object = scene.clone(true);
+    object.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        node.castShadow = true;
+        node.receiveShadow = true;
+      }
+    });
+    return object;
+  }, [scene]);
+  return <primitive object={instance} dispose={null} />;
 }
 
-/** Distinct wall-hung or close-coupled WC, oriented from the wall into the room. */
-function Toilet({
-  base,
-  x,
-  z,
-  against,
-  wallHung = false,
-  projection,
-}: {
-  base: number;
-  x: number;
-  z: number;
-  against: Wall;
-  wallHung?: boolean;
-  projection?: number;
+/** Closed D-seat porcelain, authored from mood-ensuite-06 in Blender. */
+function Toilet({ base, x, z, against, projection = moodFixtures.toilet.projectionCm / 100 }: {
+  base: number; x: number; z: number; against: Wall; projection?: number;
 }) {
   return (
-    <group position={[x - CX, base, z - CZ]} rotation-y={wallRotation(against)}>
-      {!wallHung && (
-        <>
-          <RoundedBox
-            args={[0.41, 0.7, 0.18]}
-            position={[0, 0.47, 0.095]}
-            radius={0.045}
-            smoothness={5}
-            material={CERAMIC}
-            castShadow
-            receiveShadow
-          />
-          <mesh position={[0, 0.83, 0.085]} material={CHROME} castShadow>
-            <cylinderGeometry args={[0.035, 0.035, 0.008, 28]} />
-          </mesh>
-        </>
-      )}
-      {wallHung && (
-        <WallAttachment x={x} z={z} wall={against === "n" ? "north" : against === "s" ? "south" : against === "e" ? "east" : "west"}>
-          <RoundedBox
-            args={[0.24, 0.015, 0.15]}
-            position={[0, 0.93, 0.006]}
-            rotation-x={Math.PI / 2}
-            radius={0.012}
-            smoothness={4}
-            material={CHROME}
-            castShadow
-          />
-          {[-0.047, 0.047].map((offset) => (
-            <mesh key={offset} position={[offset, 0.93, 0.017]} rotation-x={Math.PI / 2} material={CERAMIC_INNER}>
-              <circleGeometry args={[0.022, 24]} />
-            </mesh>
-          ))}
-        </WallAttachment>
-      )}
-      <group scale-z={projection ? projection / 0.704 : 1}>
-        <ToiletBowl wallHung={wallHung} />
+    <group name="Mood reference wall-hung toilet" position={[x - CX, base, z - CZ]} rotation-y={wallRotation(against)}>
+      <WallAttachment x={x} z={z} wall={against === "n" ? "north" : against === "s" ? "south" : against === "e" ? "east" : "west"}>
+        <RoundedBox args={[0.24, 0.15, 0.012]} position={[0, 0.93, 0.009]} radius={0.006} smoothness={3} material={CERAMIC_INNER} castShadow />
+        {[-1, 1].map((side) => <mesh key={side} position={[side * 0.048, 0.93, 0.016]} material={CHROME}>
+          <torusGeometry args={[side < 0 ? 0.039 : 0.026, 0.0008, 6, 36]} />
+        </mesh>)}
+      </WallAttachment>
+      <group scale-z={projection / (moodFixtures.toilet.projectionCm / 100)}>
+        <Suspense fallback={null}><ToiletAsset /></Suspense>
       </group>
     </group>
   );
@@ -358,7 +292,7 @@ export function MainBathroom({ base, palette, reflections = false, lightsOn = tr
 
       {/* Fixtures are offset from wall centre-lines to the finished faces so
           flush plates, shower brassware, and joinery never bleed next door. */}
-      <Toilet base={base} x={5.02} z={11.05} against="w" wallHung />
+      <Toilet base={base} x={moodFixtures.toilet.mainBathroom.wallXCm / 100} z={moodFixtures.toilet.mainBathroom.zCm / 100} against="w" />
       <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
       <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
       <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} reflect={reflections} />
@@ -388,7 +322,7 @@ export function EnsuiteBathroom({ base, palette, reflections = false, lightsOn =
           <SoftBox x={cistern.x / 100} z={cistern.z / 100} y={base} w={cistern.width / 100} d={cistern.depth / 100} h={cistern.height / 100} radius={0.01} material={palette.interior} />
           <SoftBox x={cistern.x / 100} z={cistern.z / 100} y={base + cistern.height / 100} w={cistern.width / 100} d={cistern.depth / 100} h={0.018} radius={0.005} material={palette.stone} />
         </WallAttachment>
-        <Toilet base={base} x={wc.wallX / 100} z={wc.z / 100} against="e" wallHung projection={wc.projection / 100} />
+        <Toilet base={base} x={wc.wallX / 100} z={wc.z / 100} against="e" projection={wc.projection / 100} />
       </group>
       <group name={vanity.id} userData={{ fixtureId: vanity.id }}>
         <SoftBox x={vx} z={vz} y={base + 0.31} w={vanity.width / 100} d={vanity.depth / 100} h={0.44} radius={0.015} material={palette.oak} />

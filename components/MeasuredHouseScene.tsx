@@ -9,7 +9,9 @@ import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
 import { designAssumptions, house, type HouseZone, type ZoneId } from "@/data/house";
 import { kitchenViews, type KitchenView, type FloorFinish } from "@/data/kitchen";
 import { createMineralTextures } from "@/lib/mineralTextures";
-import { createOakTexture } from "@/lib/oakTexture";
+import { applyMoodSurface, cloneSurfaceMaterial } from "@/lib/moodSurfaceMaterial";
+import { moodSurfaces } from "@/data/moodSurfaces";
+import { createTextileBump } from "@/lib/textileTexture";
 import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLightUniformsLib.js";
 import { CX, CZ, type Palette } from "./rooms/shared";
 import { Kitchen } from "./rooms/Kitchen";
@@ -497,14 +499,17 @@ function finish(
 
 /** Soft sage — Klil Belgian frames / shutters (light, not racing green). */
 const FRAME_GREEN = "#66735e";
-/** Pale natural oak — shared by doors and joinery to sit quietly with the floor. */
-const LIGHT_OAK = "#e6d6bb";
 
 function buildPalette(
   designMode: boolean,
   textures: {
     plaster: THREE.Texture;
     oak: THREE.Texture;
+    travertine: THREE.Texture;
+    clay: THREE.Texture;
+    linen: THREE.Texture;
+    mineral: THREE.Texture;
+    textileBump: THREE.Texture;
     herringbone: HerringboneTextureSet;
     stone: THREE.Texture;
     limewash: ReturnType<typeof createMineralTextures>;
@@ -552,13 +557,14 @@ function buildPalette(
   }
 
 // Finishes: lime-wash beige shell, soft sage Klil windows, light-oak doors.
-  const travertine = finish("#d7c9b5", 0.58, 0, 0.035, textures.stone, 0.008);
+  const travertine = applyMoodSurface(finish("#ffffff", 0.64, 0, 0.025), textures.travertine, "travertine");
   const microcement = new THREE.MeshPhysicalMaterial({
     color: "#e1d5c2", map: textures.microtopping.albedo,
     bumpMap: textures.microtopping.bump, bumpScale: 0.00055,
     roughnessMap: textures.microtopping.roughness, roughness: 0.94,
     envMapIntensity: 0.8,
   });
+  applyMoodSurface(microcement, textures.mineral, "mineral");
   microcement.userData.moduleMeters = 4;
   const oakFloor = new THREE.MeshPhysicalMaterial({
     color: "#e6d5b9",
@@ -578,12 +584,15 @@ function buildPalette(
     roughness: 1, roughnessMap: textures.limewash.roughness,
     envMapIntensity: 0.8,
   });
+  applyMoodSurface(mineralWall, textures.plaster, "plaster");
   const sandFloor = new THREE.MeshPhysicalMaterial({
     color: "#eee4d3", map: textures.microtopping.albedo,
     bumpMap: textures.microtopping.bump, bumpScale: 0.00065,
     roughness: 1, roughnessMap: textures.microtopping.roughness,
     clearcoat: 0.06, clearcoatRoughness: 0.65, envMapIntensity: 1,
   });
+  applyMoodSurface(sandFloor, textures.mineral, "mineral");
+  sandFloor.color.set("#e6dccb");
   sandFloor.userData.moduleMeters = 4;
   oakFloor.userData.moduleMeters = HERRINGBONE_MODULE_METERS;
   const dryFloor = floorFinish === "sand-microtopping" ? sandFloor : oakFloor;
@@ -608,15 +617,19 @@ function buildPalette(
       ior: 1.46,
     }),
     frame: finish(FRAME_GREEN, 0.53, 0.36, 0.06),
-    oak: finish(LIGHT_OAK, 0.61, 0, 0.035, textures.oak, 0.00035),
+    oak: applyMoodSurface(finish("#ffffff", 0.64, 0, 0.025), textures.oak, "oak"),
     timber: finish("#765338", 0.72, 0, 0.025),
-    upholstery: finish("#ddd3c3", 0.98),
+    upholstery: applyMoodSurface(new THREE.MeshPhysicalMaterial({
+      roughness: 0.96, sheen: 0.5, sheenRoughness: 0.85,
+      sheenColor: new THREE.Color("#fff7eb"), envMapIntensity: 0.65,
+      bumpMap: textures.textileBump, bumpScale: 0.0007, side: THREE.DoubleSide,
+    }), textures.linen, "linen"),
     stone: travertine,
     charcoal: finish("#38352f", 0.48, 0.14, 0.08),
     greenery,
     vine,
     flower,
-    terracotta: finish("#c0906a", 0.8, 0, 0.04),
+    terracotta: applyMoodSurface(finish("#ffffff", 0.91), textures.clay, "clay"),
     floors: {
       "north-extension": dryFloor,
       "central-core": dryFloor,
@@ -803,7 +816,7 @@ function WallRun({
   const obstructedRef = useRef(false);
   const displayMaterial = useMemo(() => {
     if (!focusZone) return material;
-    const clone = material.clone();
+    const clone = cloneSurfaceMaterial(material);
     clone.transparent = true;
     clone.opacity = 1;
     clone.depthWrite = true;
@@ -912,7 +925,7 @@ function ZoneFloor({
     if (!(sourceFloorMaterial instanceof THREE.MeshStandardMaterial) || !sourceFloorMaterial.map) {
       return sourceFloorMaterial;
     }
-    const material = sourceFloorMaterial.clone();
+    const material = cloneSurfaceMaterial(sourceFloorMaterial);
     const moduleMeters = sourceFloorMaterial.userData.moduleMeters ?? 1.6;
     const cloneMap = (source: THREE.Texture | null) => {
       if (!source) return null;
@@ -1038,12 +1051,22 @@ function SceneContent({
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
     plasterSource,
+    oakSource,
+    travertineSource,
+    claySource,
+    linenSource,
+    mineralSource,
     herringboneSource,
     herringboneNormalSource,
     herringboneRoughnessSource,
     stoneSource,
   ] = useTexture([
-    "/textures/lime-plaster-ai.jpg",
+    moodSurfaces.plaster.image,
+    moodSurfaces.oak.image,
+    moodSurfaces.travertine.image,
+    moodSurfaces.clay.image,
+    moodSurfaces.linen.image,
+    moodSurfaces.mineral.image,
     `/textures/herringbone-parquet-diff-${floorResolution}.jpg`,
     `/textures/herringbone-parquet-normal-${floorResolution}.jpg`,
     `/textures/herringbone-parquet-rough-${floorResolution}.jpg`,
@@ -1052,14 +1075,13 @@ function SceneContent({
   const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? 16 : 4);
   const textureSet = useMemo(
     () => ({
-      plaster: prepareGradedFloorMap(
-        plasterSource,
-        textureAnisotropy,
-        "brightness(1.52) saturate(0.42) contrast(0.72)",
-        THREE.SRGBColorSpace,
-        "rgba(244, 238, 228, 0.12)",
-      ),
-      oak: createOakTexture(textureAnisotropy),
+      plaster: prepareTexture(plasterSource, [1, 1], textureAnisotropy),
+      oak: prepareTexture(oakSource, [1, 1], textureAnisotropy),
+      travertine: prepareTexture(travertineSource, [1, 1], textureAnisotropy),
+      clay: prepareTexture(claySource, [1, 1], textureAnisotropy),
+      linen: prepareTexture(linenSource, [1, 1], textureAnisotropy),
+      mineral: prepareTexture(mineralSource, [1, 1], textureAnisotropy),
+      textileBump: createTextileBump(),
       herringbone: prepareHerringboneTexture(
         herringboneSource,
         herringboneNormalSource,
@@ -1080,6 +1102,11 @@ function SceneContent({
       herringboneRoughnessSource,
       herringboneSource,
       plasterSource,
+      oakSource,
+      travertineSource,
+      claySource,
+      linenSource,
+      mineralSource,
       stoneSource,
       textureAnisotropy,
       quality,

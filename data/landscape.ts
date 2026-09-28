@@ -9,7 +9,7 @@ export const landscapeSpecies = {
   "limonium-perezii": { name: "Sea lavender", botanical: "Limonium perezii", heightCm: 78, spreadCm: 85, role: "Broad basal rosette · airy violet flower sprays", reference: 7 },
   "leymus-arenarius": { name: "Dune grass", botanical: "Leymus arenarius", heightCm: 90, spreadCm: 115, role: "Blue-green blades · proposed contained clumps", reference: 8 },
   "lomandra-longifolia": { name: "Lomandra", botanical: "Lomandra longifolia", heightCm: 60, spreadCm: 100, role: "Fine arching foliage · warm straw accents", reference: 9 },
-  "bougainvillea-glabra": { name: "Bougainvillea", botanical: "Bougainvillea glabra", heightCm: 300, spreadCm: 250, role: "Magenta bracts · trained on the outer pergola beam", reference: 6 },
+  "trachelospermum-jasminoides": { name: "Star jasmine", botanical: "Trachelospermum jasminoides", heightCm: 300, spreadCm: 250, role: "White star flowers · winding stems on the existing pergola", reference: 6 },
 } as const;
 
 export type LandscapeSpeciesId = keyof typeof landscapeSpecies;
@@ -65,8 +65,8 @@ const anchors: LandscapePlant[] = [
   plant("olive-north-west-specimen", "olea-europaea", -760, 170, 0.72, 1.8),
   plant("olive-south-west-specimen", "olea-europaea", -700, 1260, 0.78, 4.8),
   plant("olive-east-boundary-specimen", "olea-europaea", 1530, 620, 0.62, 3.4),
-  plant("bougainvillea-outer-south", "bougainvillea-glabra", 44, 782, 1, 0, 8),
-  plant("bougainvillea-outer-north", "bougainvillea-glabra", 44, 400, 1, Math.PI, 8),
+  plant("bougainvillea-outer-south", "trachelospermum-jasminoides", 44, 782, 1, 0, 8),
+  plant("bougainvillea-outer-north", "trachelospermum-jasminoides", 44, 400, 1, Math.PI, 8),
 ];
 
 // Golden-angle cluster samples use jittered radius and coherent species groups.
@@ -90,9 +90,9 @@ export const landscapeRandom = (n: number) => { const x = Math.sin(n * 127.1 + 3
 export function isPlantClear(p: LandscapePlant) {
   // Early conservative placement pass; runtime rechecks the actual GLB geometry.
   // Olive and vine height bands are checked there, so upper foliage may frame paths.
-  const radius = p.species === "olea-europaea" ? 65 * p.scale : p.species === "bougainvillea-glabra" ? 10 : landscapeSpecies[p.species].spreadCm * p.scale * 0.55;
+  const radius = p.species === "olea-europaea" ? 65 * p.scale : p.species === "trachelospermum-jasminoides" ? 10 : landscapeSpecies[p.species].spreadCm * p.scale * 0.55;
   const [x, y, z] = p.positionCm;
-  return isLandscapeBoundsClear({ minCm: [x - radius, y, z - radius], maxCm: [x + radius, y + 100, z + radius] }, p.species === "bougainvillea-glabra");
+  return isLandscapeBoundsClear({ minCm: [x - radius, y, z - radius], maxCm: [x + radius, y + 100, z + radius] }, p.species === "trachelospermum-jasminoides");
 }
 const proposedDrifts = drifts.flatMap((drift, di) => Array.from({ length: drift.count }, (_, i) => {
   // Retry within the same designed mass; never silently push planting onto a route.

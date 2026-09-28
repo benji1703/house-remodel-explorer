@@ -28,3 +28,20 @@ Poly Haven publishes these assets under [CC0](https://polyhaven.com/license).
 - `textures/jasmine-foliage.png`
 
 Generated for the Villa Nehama visualization and retained as mood/material references.
+
+## Supplied mood references and original fixture models
+
+- The renderer samples patches from the existing files in `references/moods/`.
+  Exact image/crop provenance is in `data/moodSurfaces.ts`; no replacement images
+  or third-party material licenses were added by this pass.
+- `models/mood/*.glb` — original Blender meshes for the closed D-seat wall-hung
+  WC (`mood-ensuite-06.jpeg`) and rolled-lip clay olive pot
+  (`mood-terrace-08.jpeg`). These are modeled interpretations, not scans or
+  manufacturer CAD. Fixture dimensions are proposed visual sizes.
+- `models/landscape/trachelospermum-jasminoides*.glb` — original supported white
+  jasmine inspired by `mood-terrace-05.jpeg`, replacing the magenta flowering vine.
+- The myrtle, sage and rosemary GLBs were rebuilt with connected low branches and
+  leafy mounds using the existing plant-reference images. All of these replacements
+  are authored/exported by `scripts/build-mood-fixtures.py` using Blender 4.5 LTS,
+  then Meshopt packed with `scripts/pack-mood-fixtures.mjs`. Light/far versions
+  reduce leaf/branch counts. No stock photographs were turned into floating cards.

@@ -7,6 +7,7 @@ import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BarStool, Cooktop, FURN, Pendant } from "./furniture";
+import { cloneSurfaceMaterial } from "@/lib/moodSurfaceMaterial";
 import { kitchenPresentation } from "@/data/kitchen";
 
 function KitchenWorktop({ base, palette }: { base: number; palette: Palette }) {
@@ -369,9 +370,9 @@ function IntegratedFridge({ base, palette, x, z, open, onToggle }: { base: numbe
  */
 export function Kitchen({ base, palette: sharedPalette, furnitureEditing, appliances, onToggleAppliance, lightsOn = true, nightFactor = 1 }: { base: number; palette: Palette; furnitureEditing: FurnitureEditingState; appliances?: { fridge: boolean; dishwasher: boolean }; onToggleAppliance?: (id: "fridge" | "dishwasher") => void; lightsOn?: boolean; nightFactor?: number }) {
   const oak = useMemo(() => {
-    const material = sharedPalette.oak.clone() as THREE.MeshPhysicalMaterial;
-    material.color.set("#bd986a");
-    material.roughness = 0.56;
+    const material = cloneSurfaceMaterial(sharedPalette.oak) as THREE.MeshPhysicalMaterial;
+    material.color.set("#b99469");
+    material.roughness = 0.63;
     material.bumpScale = 0.00012;
     return material;
   }, [sharedPalette.oak]);

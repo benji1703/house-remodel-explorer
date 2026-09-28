@@ -10,6 +10,23 @@ export function GardenDiagnostics() {
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || !new URLSearchParams(location.search).has("gardenQA")) return;
     const api = {
+      surfaces: () => {
+        const materials = new Set<THREE.MeshStandardMaterial>();
+        state.scene.traverseVisible((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+          for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+            if (material instanceof THREE.MeshStandardMaterial && material.userData.moodSurface) materials.add(material);
+          }
+        });
+        return [...materials].map((material) => ({
+          surface: material.userData.moodSurface,
+          image: material.userData.moodImage,
+          sourceUrl: material.map?.image?.currentSrc || material.map?.image?.src,
+          loaded: Boolean(material.map?.image?.width),
+          colorSpace: material.map?.colorSpace,
+          shader: material.customProgramCacheKey(),
+        }));
+      },
       snapshot: () => ({
         renderer: state.gl.getContext().getParameter(state.gl.getContext().RENDERER),
         cameraType: state.get().camera.type,

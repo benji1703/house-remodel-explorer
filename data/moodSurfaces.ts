@@ -10,6 +10,8 @@ export type MoodSurface = {
   color: string;
   detail: number;
   space: "object" | "world";
+  /** Appearance estimates from the photograph, not scanned surface metrology. */
+  mineralFinish?: { reliefMm: number; roughness: readonly [number, number]; illuminationLod: number };
 };
 
 export const moodSurfaces = {
@@ -31,12 +33,15 @@ export const moodSurfaces = {
   plaster: {
     image: "/references/moods/mood-living-14.jpeg",
     crop: [0.18, 0.08, 0.25, 0.46], sampleCm: [60, 74],
-    color: "#ebcda2", detail: 0.12, space: "world",
+    color: "#dcc39f", detail: 0.95, space: "world",
+    mineralFinish: { reliefMm: 1.2, roughness: [0.87, 0.98], illuminationLod: 6 },
   },
   mineral: {
-    image: "/references/moods/mood-bath-16.jpeg",
-    crop: [0.62, 0.64, 0.26, 0.27], sampleCm: [70, 49],
-    color: "#dcc099", detail: 0.10, space: "world",
+    image: "/references/moods/mood-living-14.jpeg",
+    // Foreground floor only: below the timber skirting, away from the window.
+    crop: [0.46, 0.86, 0.22, 0.12], sampleCm: [80, 38],
+    color: "#ac8d68", detail: 0.9, space: "world",
+    mineralFinish: { reliefMm: 0.45, roughness: [0.46, 0.68], illuminationLod: 4.8 },
   },
   linen: {
     image: "/references/moods/mood-living-08.jpeg",

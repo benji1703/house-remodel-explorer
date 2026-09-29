@@ -13,7 +13,7 @@ const expectedImages = {
   oak: '/references/moods/mood-kitchen-16.jpeg',
   travertine: '/references/moods/mood-kitchen-detail.jpeg',
   plaster: '/references/moods/mood-living-14.jpeg',
-  mineral: '/references/moods/mood-bath-16.jpeg',
+  mineral: '/references/moods/mood-living-14.jpeg',
   linen: '/references/moods/mood-living-08.jpeg',
 };
 async function settle(page) {
@@ -34,7 +34,7 @@ async function inspect(page, name, expected) {
     assert.equal(new URL(surface.sourceUrl).pathname, expectedImages[surface.surface], `${name}: bound texture is the original mood image`);
     assert.equal(surface.loaded, true, `${name}: source image decoded`);
     assert.equal(surface.colorSpace, 'srgb');
-    assert.equal(surface.shader, `mood-surface-v1-${surface.surface}`, `${name}: clones retain the crop shader`);
+    assert.equal(surface.shader, `mood-surface-v2-${surface.surface}`, `${name}: clones retain the crop shader`);
   }
   const snapshot = await page.evaluate(() => window.__gardenQA.snapshot());
   assert.ok(snapshot.calls > 0 && snapshot.triangles > 0, `${name}: rendered scene`);
@@ -50,9 +50,9 @@ try {
     ['east-bedroom', 'east-lower-room', true], ['bathroom', 'service-core', false], ['ensuite', 'ensuite', false],
   ]) {
     await page.goto(`${base}/?view=model&camera=room&zone=${zone}&gardenQA=1`);
-    await inspect(page, name, ['oak', 'plaster', 'mineral', ...(textile ? ['linen'] : [])]);
+    await inspect(page, name, ['oak', 'plaster', ...(textile ? ['linen'] : [])]);
   }
-  await page.goto(`${base}/?view=model&camera=overview&gardenQA=1`);
+  await page.goto(`${base}/?view=model&camera=overview&floor=sand-microtopping&gardenQA=1`);
   await inspect(page, 'overview', Object.keys(expectedImages));
   await page.getByRole('button', { name: 'Use lighter rendering' }).click();
   await inspect(page, 'overview-light', Object.keys(expectedImages));

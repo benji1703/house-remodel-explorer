@@ -31,7 +31,7 @@ export const materialCards: MaterialCard[] = [
     id: "sand-microtopping",
     family: "Floor",
     title: "Light beige microcement",
-    description: "A clean, pale beige mineral floor with restrained trowel variation and a soft sealed sheen, continuous through the dry rooms.",
+    description: "An optional pale beige mineral floor with restrained trowel variation and a soft sealed sheen, continuous throughout the house.",
     image: moodSurfaces.mineral.image,
     alt: "Mood reference for the warm mineral floor used in the 3D rooms",
     specification: "Continuous 3 mm system",

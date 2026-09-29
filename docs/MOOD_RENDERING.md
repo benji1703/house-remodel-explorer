@@ -11,7 +11,7 @@ or scanned PBR materials.
 | Oak | `mood-kitchen-16.jpeg` | Joinery, doors, bedroom storage and bathroom vanities |
 | Travertine | `mood-kitchen-detail.jpeg` | Worktops, island, vanity tops and tables |
 | Lime plaster | `mood-living-14.jpeg` | Interior/exterior shell |
-| Mineral finish | `mood-bath-16.jpeg` | Sand floor option and wet-room floors |
+| Mineral finish | `mood-living-14.jpeg` (foreground floor patch) | Optional sand floor finish throughout the house |
 | Linen | `mood-living-08.jpeg` | Sofa, chair seats, bed upholstery, duvets and pillows |
 
 `data/moodSurfaces.ts` records each image, selected surface patch and visual sample
@@ -29,8 +29,30 @@ on replacement. The lighter profile retains its reduced geometry, effects and
 framebuffer budgets. Existing parquet PBR maps remain the oak-floor option.
 
 Interior lighting uses more neutral sky bounce, less uniform ambient fill, and
-stronger existing kitchen window lights. Existing garden lighting is retained.
+presentation fill at the existing kitchen and living openings. Existing garden lighting is retained.
 The Materials board points to the same source images as these rendered finishes.
+
+## Mineral surface continuation — 2026-09-29
+
+Plaster and microcement now derive pigment, estimated fine relief and roughness
+from the same world-projected mood-image patch. The former procedural bump and
+roughness maps are no longer mixed with the photographic crop or allocated by
+the viewer. Plaster retains a matte finish; the floor has a softer polished
+response. Relief is a shading estimate (1.2 mm plaster / 0.45 mm floor), not a
+change to mesh geometry or a measured material specification.
+
+The shader removes broad photographed illumination before using fine grain for
+surface gradients, and fades detail at distance. Warm beige walls, a lighter
+cream ceiling and sand floors use reduced daytime ambient/environment fill and
+stronger contact shading. Daylight, golden hour, evening and lights-off behavior
+are checked on desktop and mobile. The finish swatches and Materials board use
+the shared surface data.
+
+Oak parquet is the default in every room, including both bathrooms, as requested
+by the owner. The floor selector applies one continuous finish to all seven rooms;
+explicit `floor=sand-microtopping` links still select the mineral alternative.
+The controls panel separates furniture and dimension actions into two padded
+buttons on desktop walkthroughs as well as mobile.
 
 No footprint, wall run, opening, floor level or ceiling height changed. `data/house.ts` and the measured master overlay are unchanged;
 no new architectural geometry was inferred from the mood references.

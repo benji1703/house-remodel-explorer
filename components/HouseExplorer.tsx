@@ -106,7 +106,7 @@ export function HouseExplorer() {
   const floorParam = searchParams.get("floor");
   const floorFinish: FloorFinish = floorParam === "sand-microtopping" || floorParam === "oak"
     ? floorParam
-    : "sand-microtopping";
+    : "oak";
   const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
     ? moodParam
     : isMoodBoardId(zoneParam)
@@ -920,7 +920,7 @@ export function HouseExplorer() {
                         </button>
                       ))}
                     </div>
-                    <p>Continuous finish throughout the dry rooms.</p>
+                    <p>One finish throughout the house.</p>
                   </fieldset>
                   <div className={cameraMode === "walk" ? "mobile-model-actions" : "mobile-model-actions mobile-only"}>
                     <button
@@ -935,6 +935,7 @@ export function HouseExplorer() {
                     <button
                       type="button"
                       className={showMeasurements ? "is-active" : ""}
+                      aria-pressed={showMeasurements}
                       onClick={() => setShowMeasurements((value) => !value)}
                     >
                       {showMeasurements ? "Hide dimensions" : "Show dimensions"}

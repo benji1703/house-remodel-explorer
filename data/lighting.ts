@@ -75,14 +75,14 @@ export const lightingScenes = [
 /** Broad indirect illumination keeps pale mineral finishes clean under a ceiling.
  * Shared across quality profiles; no additional shadow maps or fixture meshes. */
 export const interiorLighting = {
-  environment: 0.82,
+  environment: 0.58,
   environmentColor: "#fff8ee",
   skyColor: "#fff8ed",
   groundColor: "#eadbc5",
-  hemisphere: 0.8,
-  ambient: 0.11,
-  directionalFill: 0.35,
+  hemisphere: 0.42,
+  ambient: 0.045,
+  directionalFill: 0.15,
   eveningHemisphere: 0.3,
   eveningAmbient: 0.14,
-  contactOpacity: 0.18,
+  contactOpacity: 0.28,
 } as const;

@@ -2748,6 +2748,30 @@ body.has-lightbox { overflow: hidden; }
 .finish-swatch.is-oak { background: url('/textures/light-oak-ai.jpg') center / cover; }
 .finish-swatch.is-sand-microtopping { background: radial-gradient(ellipse at 30% 40%, #f0e8da, #e2d7c4); }
 .finish-control p { margin: 8px 0 0; font-size: 9px; color: #ffffff85; }
+.mobile-model-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.mobile-model-actions button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f4f2ea;
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.mobile-model-actions button:hover { background: #ffffff18; }
+.mobile-model-actions button.is-active { background: #f0eee7; color: #34291f; }
+.mobile-model-actions button:focus-visible,
+.finish-options button:focus-visible { outline: 2px solid #eee4d3; outline-offset: 3px; }
 .kitchen-view-strip { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; gap: 3px; padding: 5px; border: 1px solid #ffffff30; border-radius: 12px; background: #f5f1e9ed; box-shadow: 0 6px 30px #24282020; backdrop-filter: blur(16px); }
 .kitchen-view-strip button { border: 0; border-radius: 8px; background: transparent; padding: 11px 14px; white-space: nowrap; color: #555d52; font-size: 11px; cursor: pointer; }
 .kitchen-view-strip button span { margin-right: 8px; opacity: .5; font-size: 9px; }
@@ -3019,6 +3043,7 @@ body.has-lightbox { overflow: hidden; }
   }
   .experience-dock.is-open { display: block; }
   .experience-dock-head strong { font-size: 17px; }
+  .mobile-model-actions { display: grid !important; }
   .experience-close {
     display: grid !important;
     place-items: center;
@@ -3026,23 +3051,6 @@ body.has-lightbox { overflow: hidden; }
     height: 30px;
     padding: 0 !important;
   }
-  .mobile-model-actions {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-  }
-  .mobile-model-actions button {
-    min-height: 38px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 9px;
-    background: rgba(255, 255, 255, 0.07);
-    color: #f4f2ea;
-    font-size: 11px;
-  }
-  .mobile-model-actions button.is-active { background: #f0eee7; color: #34291f; }
   .daylight-note { display: none; }
   .dimensioned-overlay-container { grid-template-columns: 1fr; padding: 10px 12px 24px; min-height: 0; }
   .stage.is-plan .dimensioned-overlay-container { padding: 12px 10px 20px; }

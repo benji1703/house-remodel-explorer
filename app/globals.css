@@ -3265,3 +3265,40 @@ body.has-lightbox { overflow: hidden; }
 .lighting-scenes button { padding: 10px 5px; min-height: 40px; border: 1px solid #ffffff24; border-radius: 8px; background: #ffffff0b; color: #eee6d9; font: inherit; font-size: 10px; cursor: pointer; }
 .lighting-scenes button[aria-pressed="true"] { background: #f7eedf; color: #453c2e; }
 .lighting-scenes button:focus-visible { outline: 2px solid #eac58e; outline-offset: 2px; }
+
+/* Warm, quieter viewer chrome: one toolbar and a compact movement hint. */
+.stage-toolbar { padding: 5px; gap: 4px; border: 1px solid #b8a18440; border-radius: 14px; background: #fcf6ebed; box-shadow: 0 4px 18px #59452c12; backdrop-filter: blur(16px); }
+.stage-toolbar .segmented { padding: 2px; border: 0; border-radius: 9px; background: #e9ddc94d; box-shadow: none; }
+.stage-toolbar .segmented button { color: #6a5945; padding: 8px 12px; }
+.stage-toolbar .segmented button.is-active { background: #fffaf0; color: #493c2d; box-shadow: 0 1px 4px #59452c14; }
+.stage-toolbar .toolbar-chip { color: #6a5945; background: transparent; box-shadow: none; border-color: transparent; border-radius: 9px; }
+.stage-toolbar .toolbar-chip.is-active { background: #705b40; color: #fffaf0; }
+.stage-toolbar .toolbar-chip:hover { background: #e9ddc9; color: #493c2d; }
+.walk-controls { gap: 10px; }
+.walk-help { padding: 12px 14px; gap: 4px; border: 1px solid #b8a18440; border-radius: 12px; background: #fcf6ebed; color: #594832; box-shadow: 0 4px 18px #59452c12; }
+.walk-help strong { font-size: 12px; }
+.walk-help > span { font-size: 11px; color: #78644c; }
+.walk-help-actions { display: flex; gap: 12px; }
+.walk-help-actions button { min-height: 28px; font-size: 10px; text-underline-offset: 3px; }
+.walk-pad { display: none; }
+.is-pad-open .walk-pad { display: grid; }
+.walk-touch-hint { display: none; }
+.walk-finish-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
+.walk-finish-palette > div { display: grid; gap: 4px; }
+.walk-finish-palette span { display: block; height: 45px; border-radius: 8px; border: 1px solid #80633f18; }
+.walk-finish-palette b { color: #594832; font-size: 11px; font-weight: 500; }
+.walk-finish-palette small { color: #8b755c; font-size: 10px; }
+.finish-swatch.is-sand-microtopping { background: linear-gradient(120deg, #e6ccaa, #dcc099); }
+@media (min-width: 801px) {
+  .app-body.is-model.is-walk { grid-template-columns: minmax(0, 1fr) 270px; }
+  .is-walk .detail { background: #f8efdf; }
+  .is-walk .detail h2 { font-size: 32px; }
+}
+@media (max-width: 800px), (pointer: coarse) {
+  .walk-pad { display: grid; }
+  .walk-pad-toggle, .walk-desktop-hint { display: none; }
+  .walk-touch-hint { display: block; }
+  .walk-help { padding: 9px 11px; }
+  .stage-toolbar { left: auto; max-width: calc(100% - 20px); }
+  .stage-toolbar .segmented button { padding: 8px 9px; }
+}

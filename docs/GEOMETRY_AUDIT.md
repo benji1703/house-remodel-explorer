@@ -138,3 +138,8 @@ No detailed 3D asset, furniture plan, kitchen layout, opening, or appliance plac
 - Furniture no longer blocks first-person exploration: the camera stays at its existing eye height while passing through furnishings. Architectural walls, closed doors, fixed glazing and the footprint still constrain movement. No jumping or furniture climbing is implied.
 - Light beige mineral pigments replace the darker sand tones; reduced crop contrast and fine bump retain the original mood-image character without the mottled concrete appearance.
 - Soft daylight is the default, with golden-hour and evening-glow presets. Broader indirect illumination works in both quality profiles; full-detail walkthroughs also use presentation fill at the existing kitchen and living openings. No new fixture positions or architectural geometry are introduced.
+
+### Beige palette and viewer polish — owner follow-up, 2026-09-29
+
+- Strengthened the wall pigment to warm beige and the microcement to sand beige, with a separate lighter cream ceiling; these are finish choices only. Mood-image detail remains subtle.
+- Consolidated floating controls into one warm toolbar; reduced the desktop FPS overlay, kept the movement pad available on demand and always visible on touch layouts, and added finish swatches to a slimmer room navigator.

@@ -31,12 +31,12 @@ export const moodSurfaces = {
   plaster: {
     image: "/references/moods/mood-living-14.jpeg",
     crop: [0.18, 0.08, 0.25, 0.46], sampleCm: [60, 74],
-    color: "#f7eedf", detail: 0.16, space: "world",
+    color: "#ebcda2", detail: 0.12, space: "world",
   },
   mineral: {
     image: "/references/moods/mood-bath-16.jpeg",
     crop: [0.62, 0.64, 0.26, 0.27], sampleCm: [70, 49],
-    color: "#f0e3cf", detail: 0.14, space: "world",
+    color: "#dcc099", detail: 0.10, space: "world",
   },
   linen: {
     image: "/references/moods/mood-living-08.jpeg",

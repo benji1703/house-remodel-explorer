@@ -12,6 +12,7 @@ import {
   type FurnitureSizeOverrides,
 } from "@/data/furniture";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
+import { moodSurfaces } from "@/data/moodSurfaces";
 import { lightingScenes } from "@/data/lighting";
 import { site } from "@/data/site";
 import type { GardenView } from "@/data/gardenViews";
@@ -496,6 +497,18 @@ export function HouseExplorer() {
         </span>
       </button>
     </>
+  ) : cameraMode === "walk" ? (
+    <>
+      <p className="detail-kicker">At home, at your pace</p>
+      <h2>Walk through.</h2>
+      <p className="detail-copy">Choose a starting room. Move freely through the furnishings.</p>
+      <div className="walk-finish-palette" aria-label="Interior palette">
+        <div><span style={{ background: moodSurfaces.plaster.color }} /><b>Limewash</b><small>Warm beige walls</small></div>
+        <div><span style={{ background: floorFinish === "oak" ? moodSurfaces.oak.color : moodSurfaces.mineral.color }} /><b>{floorFinish === "oak" ? "Oak parquet" : "Microcement"}</b><small>{floorFinish === "oak" ? "Natural oak floors" : "Soft sand floors"}</small></div>
+      </div>
+      <RoomDirectory onSelect={selectRoom} />
+      <button type="button" className="overview-plan-link" onClick={() => goToView("references")}>Explore the mood <span aria-hidden="true">↗</span></button>
+    </>
   ) : cameraMode !== "room" ? (
     <>
       <p className="detail-kicker">A home, reimagined</p>
@@ -605,7 +618,7 @@ export function HouseExplorer() {
         </div>
       </header>
 
-      <div className={`app-body is-${view}${modelLoading ? " is-model-loading" : ""}`} id="top">
+      <div className={`app-body is-${view}${cameraMode === "walk" ? " is-walk" : ""}${modelLoading ? " is-model-loading" : ""}`} id="top">
         <section
           ref={stageRef}
           id="explorer-content"
@@ -686,7 +699,7 @@ export function HouseExplorer() {
                   setExperienceOpen(false); setFurnitureEditorOpen(false); setSheetOpen(false);
                   navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace");
                 }}>Walk · FPS</button>}
-                {webglSupport === true && (
+                {webglSupport === true && cameraMode !== "walk" && (
                   <>
                     <button
                       type="button"
@@ -909,7 +922,7 @@ export function HouseExplorer() {
                     </div>
                     <p>Continuous finish throughout the dry rooms.</p>
                   </fieldset>
-                  <div className="mobile-model-actions mobile-only">
+                  <div className={cameraMode === "walk" ? "mobile-model-actions" : "mobile-model-actions mobile-only"}>
                     <button
                       type="button"
                       onClick={() => {

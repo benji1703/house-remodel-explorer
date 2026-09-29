@@ -28,6 +28,11 @@ try {
   await ready(page);
   assert.ok(page.url().includes('camera=walk'));
   assert.equal((await snapshot(page)).cameraType, 'PerspectiveCamera');
+  const pad = page.getByRole('group', { name: 'Walk and turn', exact: true });
+  assert.equal(await pad.isVisible(), false, 'Desktop movement pad is tucked away');
+  await page.getByRole('button', { name: 'Movement pad', exact: true }).click();
+  assert.equal(await pad.isVisible(), true, 'Movement pad remains available');
+  await page.getByRole('button', { name: 'Movement pad', exact: true }).click();
   const start = (await snapshot(page)).camera;
   assert.ok(Math.abs(start[1] - 1.75) < 0.01, 'Eye height above existing floor');
   const canvas = page.locator('canvas').first();

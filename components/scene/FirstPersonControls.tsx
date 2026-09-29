@@ -1,7 +1,7 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 import { house, type ZoneId } from "@/data/house";
 import { walkSettings, walkStarts } from "@/data/walkthrough";
@@ -151,12 +151,21 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
 }
 
 export function WalkControls({ input, onReset }: { input: RefObject<WalkInput>; onReset: () => void }) {
+  const [padOpen, setPadOpen] = useState(false);
   const actions: [Action, string, string][] = [
     ["turnLeft", "Turn left", "↶"], ["forward", "Walk forward", "↑"], ["turnRight", "Turn right", "↷"],
     ["left", "Step left", "←"], ["back", "Walk backward", "↓"], ["right", "Step right", "→"],
   ];
-  return <div className="walk-controls" aria-label="First-person controls">
-    <div className="walk-help"><strong>Walk · FPS</strong><span>Drag to look · hold arrows to move</span><span>WASD / arrow keys · tap doors to open</span><span>Move freely through furniture</span><button type="button" onClick={onReset}>Reset position</button></div>
+  return <div className={padOpen ? "walk-controls is-pad-open" : "walk-controls"} aria-label="First-person controls">
+    <div className="walk-help">
+      <strong>Walk · FPS</strong>
+      <span className="walk-desktop-hint">WASD to move · drag to look</span>
+      <span className="walk-touch-hint">Hold arrows to move · drag to look</span>
+      <div className="walk-help-actions">
+        <button type="button" onClick={onReset}>Reset position</button>
+        <button type="button" className="walk-pad-toggle" aria-expanded={padOpen} onClick={() => setPadOpen(value => !value)}>Movement pad</button>
+      </div>
+    </div>
     <div className="walk-pad" role="group" aria-label="Walk and turn">
       {actions.map(([action, label, glyph]) => <button key={action} type="button" aria-label={label}
         onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); input.current.held.add(action); input.current.wake?.(); }}

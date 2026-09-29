@@ -422,6 +422,7 @@ function buildPalette(
     return {
       exterior: finish("#d9cdb8", 0.92),
       interior: finish("#e2d8c6", 0.92),
+      ceiling: finish("#e2d8c6", 0.92),
       ground: finish("#bebdb7", 0.94),
       glass: new THREE.MeshPhysicalMaterial({
         color: "#d6dcdd",
@@ -483,6 +484,8 @@ function buildPalette(
     envMapIntensity: 0.8,
   });
   applyMoodSurface(mineralWall, textures.plaster, "plaster");
+  const ceiling = cloneSurfaceMaterial(mineralWall);
+  ceiling.color.set("#f5e8cf");
   const sandFloor = new THREE.MeshPhysicalMaterial({
     color: "#eee4d3", map: textures.microtopping.albedo,
     bumpMap: textures.microtopping.bump, bumpScale: 0.0002,
@@ -501,6 +504,7 @@ function buildPalette(
   return {
     exterior: mineralWall,
     interior: mineralWall,
+    ceiling,
     ground: finish("#bdb19e", 0.94, 0, 0, textures.stone, 0.005),
     glass: new THREE.MeshPhysicalMaterial({
       color: "#bcd2d6",
@@ -1054,7 +1058,7 @@ function SceneContent({
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={onLandscapeReady} />}
       <FootprintSurface material={palette.ground} elevation={0.002} />
-      {cameraMode === "walk" && <FootprintSurface material={palette.interior} elevation={zoneById[selectedZone].level + designAssumptions.finishedCeilingHeightCm / 100} ceiling />}
+      {cameraMode === "walk" && <FootprintSurface material={palette.ceiling} elevation={zoneById[selectedZone].level + designAssumptions.finishedCeilingHeightCm / 100} ceiling />}
       {house.zones.map((zone) => (
         <ZoneFloor
           key={zone.id}

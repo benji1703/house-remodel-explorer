@@ -132,3 +132,9 @@ No detailed 3D asset, furniture plan, kitchen layout, opening, or appliance plac
 - Walk mode displays full-height walls and a ceiling surface at the existing accepted 250 cm finished-height datum. The ceiling follows the exact existing footprint. Orbit/plan views retain their cutaway presentation.
 - Kept the original mood-image texture crops on oak, plaster, mineral floors, stone, linen and clay. These remain approximate visual finishes, not scanned PBR or surveyed material specifications.
 - Keyboard, drag-look, touch movement, room starting positions, door state, focus cleanup and transitions between perspective/orthographic cameras are covered by `scripts/verify-walkthrough.mjs`; pure collision checks are in `scripts/verify-walk-collision.mjs`.
+
+## FPS and pale mineral finishes — 2026-09-29
+
+- Furniture no longer blocks first-person exploration: the camera stays at its existing eye height while passing through furnishings. Architectural walls, closed doors, fixed glazing and the footprint still constrain movement. No jumping or furniture climbing is implied.
+- Light beige mineral pigments replace the darker sand tones; reduced crop contrast and fine bump retain the original mood-image character without the mottled concrete appearance.
+- Soft daylight is the default, with golden-hour and evening-glow presets. Broader indirect illumination works in both quality profiles; full-detail walkthroughs also use presentation fill at the existing kitchen and living openings. No new fixture positions or architectural geometry are introduced.

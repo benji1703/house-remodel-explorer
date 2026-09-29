@@ -3260,3 +3260,8 @@ body.has-lightbox { overflow: hidden; }
 @media (max-width: 560px) {
   .toolbar-chip.walk-trigger { font-size: 11px; padding: 8px 10px; min-height: 40px; }
 }
+
+.lighting-scenes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 14px; }
+.lighting-scenes button { padding: 10px 5px; min-height: 40px; border: 1px solid #ffffff24; border-radius: 8px; background: #ffffff0b; color: #eee6d9; font: inherit; font-size: 10px; cursor: pointer; }
+.lighting-scenes button[aria-pressed="true"] { background: #f7eedf; color: #453c2e; }
+.lighting-scenes button:focus-visible { outline: 2px solid #eac58e; outline-offset: 2px; }

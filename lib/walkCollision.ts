@@ -2,7 +2,6 @@ import { house } from "../data/house";
 import { exteriorOpenings, partitions, EXT_THICKNESS, INT_THICKNESS } from "../data/structuralWalls";
 import { walkSettings } from "../data/walkthrough";
 
-export type WalkObstacle = { minX: number; maxX: number; minZ: number; maxZ: number };
 const radius = walkSettings.radiusCm / 100;
 const walls = [
   ...house.footprint.map((a, i) => ({ a, b: house.footprint[(i + 1) % house.footprint.length], openings: exteriorOpenings[i] ?? [], thickness: EXT_THICKNESS, prefix: `ext-${i}` })),
@@ -10,7 +9,7 @@ const walls = [
 ];
 
 /** Plan coordinates in metres, using the same runs/openings as the renderer. */
-export function canWalkAt(x: number, z: number, allDoorsOpen: boolean, doorStates: Record<string, boolean>, obstacles: WalkObstacle[] = []) {
+export function canWalkAt(x: number, z: number, allDoorsOpen: boolean, doorStates: Record<string, boolean>) {
   // Indoor walkthrough: the measured floor polygon is the navigation boundary.
   let inside = false;
   const points = house.footprint;
@@ -33,7 +32,7 @@ export function canWalkAt(x: number, z: number, allDoorsOpen: boolean, doorState
     );
     if (!passage) return false;
   }
-  return !obstacles.some((box) => x > box.minX - radius && x < box.maxX + radius && z > box.minZ - radius && z < box.maxZ + radius);
+  return true;
 }
 
 /** Small, axis-separated steps prevent tunnelling and slide along walls. */

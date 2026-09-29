@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { house, type ZoneId } from "@/data/house";
 import { walkSettings, walkStarts } from "@/data/walkthrough";
-import { canWalkAt, moveWalkPosition, type WalkObstacle } from "@/lib/walkCollision";
+import { canWalkAt, moveWalkPosition } from "@/lib/walkCollision";
 import { CX, CZ } from "../rooms/shared";
 
 type Action = "forward" | "back" | "left" | "right" | "turnLeft" | "turnRight";
@@ -23,7 +23,7 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
   input: RefObject<WalkInput>; active: boolean; zone: ZoneId; revision: number;
   allDoorsOpen: boolean; doorStates: Record<string, boolean>;
 }) {
-  const { camera, gl, scene, invalidate } = useThree();
+  const { camera, gl, invalidate } = useThree();
   const angles = useRef({ yaw: 0, pitch: 0 });
   const keyboard = useRef(new Set<string>());
   const rotation = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
@@ -136,29 +136,13 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
     camera.quaternion.setFromEuler(rotation.current);
     const forward = axis("forward", "back"), side = axis("right", "left");
     if (forward || side) {
-      const obstacles: WalkObstacle[] = [];
-      // Editable furniture uses its actual current dimensions. Fixed furniture
-      // can opt in with walkObstacle, so collision follows rendered geometry.
-      scene.updateMatrixWorld();
-      scene.traverse((object) => {
-        if (object.userData.furnitureId) {
-          const dims = object.userData.dimensionsCm;
-          const swap = object.userData.swapPlanAxes;
-          const position = object.getWorldPosition(new THREE.Vector3());
-          const halfX = (swap ? dims.depthCm : dims.widthCm) / 200;
-          const halfZ = (swap ? dims.widthCm : dims.depthCm) / 200;
-          obstacles.push({ minX: position.x + CX - halfX, maxX: position.x + CX + halfX, minZ: position.z + CZ - halfZ, maxZ: position.z + CZ + halfZ });
-        } else if (object.userData.walkObstacle) {
-          const box = new THREE.Box3().setFromObject(object);
-          obstacles.push({ minX: box.min.x + CX, maxX: box.max.x + CX, minZ: box.min.z + CZ, maxZ: box.max.z + CZ });
-        }
-      });
+      // FPS exploration ignores furnishings; architecture still constrains movement.
       const scale = walkSettings.speedCmPerSecond / 100 * dt / Math.hypot(forward, side);
       const { yaw } = angles.current;
       const dx = (side * Math.cos(yaw) - forward * Math.sin(yaw)) * scale;
       const dz = (-forward * Math.cos(yaw) - side * Math.sin(yaw)) * scale;
       const [x, z] = moveWalkPosition(camera.position.x + CX, camera.position.z + CZ, dx, dz,
-        (x, z) => canWalkAt(x, z, allDoorsOpen, doorStates, obstacles));
+        (x, z) => canWalkAt(x, z, allDoorsOpen, doorStates));
       camera.position.set(x - CX, camera.position.y, z - CZ);
     }
     if (pressed.size) invalidate();
@@ -172,7 +156,7 @@ export function WalkControls({ input, onReset }: { input: RefObject<WalkInput>; 
     ["left", "Step left", "←"], ["back", "Walk backward", "↓"], ["right", "Step right", "→"],
   ];
   return <div className="walk-controls" aria-label="First-person controls">
-    <div className="walk-help"><strong>Walk · FPS</strong><span>Drag to look · hold arrows to move</span><span>WASD / arrow keys · tap doors to open</span><button type="button" onClick={onReset}>Reset position</button></div>
+    <div className="walk-help"><strong>Walk · FPS</strong><span>Drag to look · hold arrows to move</span><span>WASD / arrow keys · tap doors to open</span><span>Move freely through furniture</span><button type="button" onClick={onReset}>Reset position</button></div>
     <div className="walk-pad" role="group" aria-label="Walk and turn">
       {actions.map(([action, label, glyph]) => <button key={action} type="button" aria-label={label}
         onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); input.current.held.add(action); input.current.wake?.(); }}

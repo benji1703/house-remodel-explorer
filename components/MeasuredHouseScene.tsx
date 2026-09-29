@@ -458,9 +458,9 @@ function buildPalette(
   const travertine = applyMoodSurface(finish("#ffffff", 0.64, 0, 0.025), textures.travertine, "travertine");
   const microcement = new THREE.MeshPhysicalMaterial({
     color: "#e1d5c2", map: textures.microtopping.albedo,
-    bumpMap: textures.microtopping.bump, bumpScale: 0.00055,
-    roughnessMap: textures.microtopping.roughness, roughness: 0.94,
-    envMapIntensity: 0.8,
+    bumpMap: textures.microtopping.bump, bumpScale: 0.00018,
+    roughnessMap: textures.microtopping.roughness, roughness: 0.86,
+    envMapIntensity: 1,
   });
   applyMoodSurface(microcement, textures.mineral, "mineral");
   microcement.userData.moduleMeters = 4;
@@ -478,19 +478,18 @@ function buildPalette(
   const greenery = finish("#789064", 0.82, 0, 0.025);
   const mineralWall = new THREE.MeshPhysicalMaterial({
     color: "#efe6d7", map: textures.limewash.albedo,
-    bumpMap: textures.limewash.bump, bumpScale: 0.0008,
+    bumpMap: textures.limewash.bump, bumpScale: 0.00025,
     roughness: 1, roughnessMap: textures.limewash.roughness,
     envMapIntensity: 0.8,
   });
   applyMoodSurface(mineralWall, textures.plaster, "plaster");
   const sandFloor = new THREE.MeshPhysicalMaterial({
     color: "#eee4d3", map: textures.microtopping.albedo,
-    bumpMap: textures.microtopping.bump, bumpScale: 0.00065,
-    roughness: 1, roughnessMap: textures.microtopping.roughness,
+    bumpMap: textures.microtopping.bump, bumpScale: 0.0002,
+    roughness: 0.86, roughnessMap: textures.microtopping.roughness,
     clearcoat: 0.06, clearcoatRoughness: 0.65, envMapIntensity: 1,
   });
   applyMoodSurface(sandFloor, textures.mineral, "mineral");
-  sandFloor.color.set("#e6dccb");
   sandFloor.userData.moduleMeters = 4;
   oakFloor.userData.moduleMeters = HERRINGBONE_MODULE_METERS;
   const dryFloor = floorFinish === "sand-microtopping" ? sandFloor : oakFloor;
@@ -927,7 +926,7 @@ function SceneContent({
   quality,
   showMeasurements = false,
   onCameraAzimuth,
-  sunHour = 16.5,
+  sunHour = 13.5,
   houseLightsOn = true,
   allDoorsOpen = true,
   doorStates = {},

@@ -81,7 +81,7 @@ Escape releases keyboard focus. Movement stops when the viewer loses focus.
 
 Walk mode stays within the existing house floor, with full-height walls and a
 ceiling at the model's accepted height. Open doors permit passage; walls, closed
-doors and major furniture block movement. **With finishes** renders the existing
+doors block movement. Furniture is passable at normal eye height for free FPS exploration. **With finishes** renders the existing
 mood-image materials; **Survey shell** shows the neutral model. The light quality
 profile and non-WebGL Plan fallback remain available.
 
@@ -91,3 +91,7 @@ Walkthrough checks (browser check needs a running development server):
 node scripts/verify-walk-collision.mjs
 PLAYWRIGHT_MODULE=/path/to/playwright node scripts/verify-walkthrough.mjs
 ```
+
+The default **Soft daylight** scene pairs pale beige limewash and microcement
+with broad interior bounce. Controls also offers **Golden hour** and **Evening
+glow**; the time slider and house-light switch remain independently adjustable.

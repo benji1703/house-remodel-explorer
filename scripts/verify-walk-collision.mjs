@@ -29,6 +29,7 @@ try {
   assert.ok(x < 7.4, 'Large frame movement cannot tunnel through wall');
   const [, z] = moveWalkPosition(7.36, 7.7, .3, .3, allowed);
   assert.ok(z > 7.9, 'Movement slides along wall');
-  assert.equal(canWalkAt(6, 4, true, {}, [{ minX: 5.5, maxX: 6.5, minZ: 3.5, maxZ: 4.5 }]), false, 'Furniture blocks movement');
+  assert.equal(canWalkAt(5.35, 2.42, true, {}), true, 'Kitchen island remains passable in FPS');
+  assert.equal(canWalkAt(6.7, 6.1, true, {}), true, 'Sofa remains passable in FPS');
   console.log('Passed: seven spawns, doors, overrides, jambs, glazing, envelope, tunnelling, sliding and furniture.');
 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }

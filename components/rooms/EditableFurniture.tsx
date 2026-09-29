@@ -45,7 +45,7 @@ export function EditableFurniture({
       name={item.uuid}
       position={[originX, base, originZ]}
       scale={[swapPlanAxes ? depthScale : widthScale, heightScale, swapPlanAxes ? widthScale : depthScale]}
-      userData={{ furnitureId: id, uuid: item.uuid, dimensionsCm: current, swapPlanAxes }}
+      userData={{ furnitureId: id, uuid: item.uuid, dimensionsCm: current }}
       onClick={(event) => {
         event.stopPropagation();
         editing.onSelect(id);

@@ -12,6 +12,7 @@ import {
   type FurnitureSizeOverrides,
 } from "@/data/furniture";
 import { isMoodBoardId, roomMoodBoards, type MoodBoardId } from "@/data/moodboards";
+import { lightingScenes } from "@/data/lighting";
 import { site } from "@/data/site";
 import type { GardenView } from "@/data/gardenViews";
 import { kitchenViews, type KitchenView, type FloorFinish } from "@/data/kitchen";
@@ -145,9 +146,8 @@ export function HouseExplorer() {
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
-  // Open on a curated late-afternoon presentation light; the controls still
-  // offer local time for daylight studies.
-  const [sunHour, setSunHour] = useState(16.75);
+  // Start with bright, soft daylight; local time remains available for studies.
+  const [sunHour, setSunHour] = useState<number>(lightingScenes[0].hour);
   const [houseLightsOn, setHouseLightsOn] = useState(true);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
@@ -825,6 +825,12 @@ export function HouseExplorer() {
                       </button>
                     </div>
                   </div>
+                  <div className="lighting-scenes" role="group" aria-label="Lighting scenes">
+                    {lightingScenes.map((scene) => <button key={scene.id} type="button"
+                      aria-pressed={sunHour === scene.hour && houseLightsOn}
+                      onClick={() => { setSunHour(scene.hour); setHouseLightsOn(true); }}
+                    >{scene.label}</button>)}
+                  </div>
                   <label className="sun-scrubber" htmlFor="sun-hour">
                     <span>Plan-north daylight</span>
                     <input
@@ -894,7 +900,7 @@ export function HouseExplorer() {
                   <fieldset className="finish-control">
                     <legend>Floor finish</legend>
                     <div className="finish-options">
-                      {([['oak', 'Oak parquet'], ['sand-microtopping', 'Sand microtopping']] as const).map(([id, label]) => (
+                      {([['oak', 'Oak parquet'], ['sand-microtopping', 'Light beige microcement']] as const).map(([id, label]) => (
                         <button key={id} type="button" aria-pressed={floorFinish === id} onClick={() => navigate({ floor: id }, "replace")}>
                           <span className={`finish-swatch is-${id}`} aria-hidden="true" />
                           <span>{label}</span>

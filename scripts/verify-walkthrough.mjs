@@ -53,6 +53,14 @@ try {
   assert.ok(distance(beforeLook, (await snapshot(page)).direction) > 0.1, 'Drag looks around');
   assert.ok(page.url().includes('camera=walk'), 'Dragging does not select a room');
   await page.getByRole('button', { name: 'Reset position', exact: true }).click();
+  // Cross the sofa's footprint, which used to trap the first-person camera.
+  await page.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`); await ready(page);
+  await page.evaluate(() => window.__gardenQA.camera([1, 1.75, 1.75], [1, 1.75, .75]));
+  await canvas.focus(); await page.keyboard.down('w');
+  await page.waitForFunction(() => window.__gardenQA.snapshot().camera[2] < -.25, null, { timeout: 10000 });
+  await page.keyboard.up('w');
+  assert.ok(Math.abs((await snapshot(page)).camera[1] - 1.75) < .001, 'Furniture does not raise or trap the camera');
+  report.cases.push('FPS passes through furniture at stable eye height');
   // Place the camera before the bedroom door; controller heading remains north.
   // Side-step east through this exact measured opening with doors open/closed.
   await page.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`); await ready(page);

@@ -64,3 +64,25 @@ export const wetAreaLighting = [
   { id: "ensuite-ceiling", room: "Ensuite", positionCm: [415, 1115] as const, heightCm: 225, rangeCm: 280, intensity: 1.8, color: "#ffe0b5" },
   { id: "wet-area-entry", room: "Bathroom approach", positionCm: [545, 945] as const, heightCm: 235, rangeCm: 360, intensity: 2.4, color: "#ffddb0" },
 ] as const;
+
+/** Curated presentation light, not a change to surveyed orientation or fixtures. */
+export const lightingScenes = [
+  { id: "daylight", label: "Soft daylight", hour: 13.5 },
+  { id: "golden", label: "Golden hour", hour: 17.25 },
+  { id: "evening", label: "Evening glow", hour: 21 },
+] as const;
+
+/** Broad indirect illumination keeps pale mineral finishes clean under a ceiling.
+ * Shared across quality profiles; no additional shadow maps or fixture meshes. */
+export const interiorLighting = {
+  environment: 0.82,
+  environmentColor: "#fff8ee",
+  skyColor: "#fff8ed",
+  groundColor: "#eadbc5",
+  hemisphere: 0.8,
+  ambient: 0.11,
+  directionalFill: 0.35,
+  eveningHemisphere: 0.3,
+  eveningAmbient: 0.14,
+  contactOpacity: 0.18,
+} as const;

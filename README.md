@@ -73,7 +73,7 @@ See `docs/PROJECT_HANDOFF.md` for the continuation sequence and `docs/GEOMETRY_A
 
 ## First-person walkthrough
 
-Choose **Walk · FPS** in the House toolbar (also under Controls → Camera).
+Choose **Explore** in the House toolbar (also under Controls → Camera).
 Use **WASD** to move, **arrow keys** to walk/turn, and **drag** to look around.
 The on-screen pad supports touch and keyboard activation; on desktop, choose **Movement pad** to show it. Select a room to start
 there, use **Reset position** if needed, and **Back to house** to return to orbit.

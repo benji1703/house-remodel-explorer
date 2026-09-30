@@ -405,6 +405,7 @@ function buildPalette(
     travertine: THREE.Texture;
     clay: THREE.Texture;
     linen: THREE.Texture;
+    woven: THREE.Texture;
     mineral: THREE.Texture;
     textileBump: THREE.Texture;
     herringbone: HerringboneTextureSet;
@@ -434,6 +435,7 @@ function buildPalette(
       oak: finish("#cfc4b4", 0.75),
       timber: grey,
       upholstery: finish("#c4c3bd", 0.9),
+      woven: finish("#c4c3bd", 0.9),
       stone: finish("#c9c8c2", 0.7),
       charcoal: finish("#6f6f6b", 0.7),
       greenery: finish("#a5a9a0", 0.9),
@@ -510,6 +512,10 @@ function buildPalette(
       sheenColor: new THREE.Color("#fff7eb"), envMapIntensity: 0.65,
       bumpMap: textures.textileBump, bumpScale: 0.0007, side: THREE.DoubleSide,
     }), textures.linen, "linen"),
+    woven: applyMoodSurface(new THREE.MeshPhysicalMaterial({
+      roughness: 0.91, sheen: 0.12, sheenRoughness: 0.94, envMapIntensity: 0.7,
+      bumpMap: textures.textileBump, bumpScale: 0.00045, side: THREE.DoubleSide,
+    }), textures.woven, "woven"),
     stone: travertine,
     charcoal: finish("#38352f", 0.48, 0.14, 0.08),
     greenery,
@@ -957,6 +963,7 @@ function SceneContent({
     travertineSource,
     claySource,
     linenSource,
+    wovenSource,
     mineralSource,
     herringboneSource,
     herringboneNormalSource,
@@ -968,6 +975,7 @@ function SceneContent({
     moodSurfaces.travertine.image,
     moodSurfaces.clay.image,
     moodSurfaces.linen.image,
+    moodSurfaces.woven.image,
     moodSurfaces.mineral.image,
     `/textures/herringbone-parquet-diff-${floorResolution}.jpg`,
     `/textures/herringbone-parquet-normal-${floorResolution}.jpg`,
@@ -982,6 +990,7 @@ function SceneContent({
       travertine: prepareTexture(travertineSource, [1, 1], textureAnisotropy),
       clay: prepareTexture(claySource, [1, 1], textureAnisotropy),
       linen: prepareTexture(linenSource, [1, 1], textureAnisotropy),
+      woven: prepareTexture(wovenSource, [1, 1], textureAnisotropy),
       mineral: prepareTexture(mineralSource, [1, 1], textureAnisotropy),
       textileBump: createTextileBump(),
       herringbone: prepareHerringboneTexture(
@@ -1006,6 +1015,7 @@ function SceneContent({
       travertineSource,
       claySource,
       linenSource,
+      wovenSource,
       mineralSource,
       stoneSource,
       textureAnisotropy,

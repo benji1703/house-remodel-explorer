@@ -277,6 +277,7 @@ export('reading-lamp')
 
 clear()
 # Sculpted oak counter stool, same 40 x 40 x 70 cm editable envelope.
+RUSH = mat('Mood woven oat', (.58, .49, .36), .92)
 for sx in [-1,1]:
     for sz in [-1,1]:
         tube('Splayed oak stool leg',[(sx*17,.1,sz*17),(sx*14,66,sz*14)],1.8,OAK)
@@ -284,7 +285,7 @@ for sz in [-1,1]: tube('Oak foot rail',[(-16,25,sz*16),(16,25,sz*16)],1.4,OAK)
 for sx in [-1,1]: tube('Oak stretcher',[(sx*16,31,-16),(sx*16,31,16)],1.2,OAK)
 box('Saddle oak seat',(0,67,0),(40,6,40),OAK,2.8)
 # Shallow recessed woven pad stays below the 70 cm top datum.
-cloth('Woven seat pad',33,31,lambda u,v:(u,69.6-.8*(1-(u/17)**2)*(1-(v/16)**2),v),OAT,30,24)
+cloth('Woven seat pad',33,31,lambda u,v:(u,69.6-.8*(1-(u/17)**2)*(1-(v/16)**2),v),RUSH,30,24)
 export('oak-counter-stool')
 
 clear()

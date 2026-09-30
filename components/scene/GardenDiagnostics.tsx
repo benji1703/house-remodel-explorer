@@ -81,6 +81,7 @@ export function GardenDiagnostics() {
         return [...materials].map((material) => ({
           surface: material.userData.moodSurface,
           image: material.userData.moodImage,
+          texture: material.userData.moodTexture,
           sourceUrl: material.map?.image?.currentSrc || material.map?.image?.src,
           loaded: Boolean(material.map?.image?.width),
           colorSpace: material.map?.colorSpace,

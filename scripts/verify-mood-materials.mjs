@@ -15,6 +15,16 @@ const expectedImages = {
   plaster: '/references/moods/mood-living-14.jpeg',
   mineral: '/references/moods/mood-living-14.jpeg',
   linen: '/references/moods/mood-living-08.jpeg',
+  woven: '/references/moods/mood-kitchen-06.jpeg',
+};
+const expectedTextures = {
+  clay: '/references/moods/mood-terrace-08.jpeg',
+  oak: '/textures/door-oak-albedo.jpg',
+  travertine: '/references/moods/mood-kitchen-detail.jpeg',
+  plaster: '/references/moods/mood-living-14.jpeg',
+  mineral: '/references/moods/mood-living-14.jpeg',
+  linen: '/textures/linen-washed-albedo.jpg',
+  woven: '/textures/chair-rush-albedo.jpg',
 };
 async function settle(page) {
   await page.waitForFunction(() => window.__gardenQA?.snapshot().target && !document.querySelector('.is-model-loading'));
@@ -31,7 +41,8 @@ async function inspect(page, name, expected) {
   for (const id of expected) assert.ok(surfaces.some(s => s.surface === id), `${name}: ${id} is present`);
   for (const surface of surfaces) {
     assert.equal(surface.image, expectedImages[surface.surface]);
-    assert.equal(new URL(surface.sourceUrl).pathname, expectedImages[surface.surface], `${name}: bound texture is the original mood image`);
+    assert.equal(surface.texture, expectedTextures[surface.surface], `${name}: material records its dedicated texture`);
+    assert.equal(new URL(surface.sourceUrl).pathname, expectedTextures[surface.surface], `${name}: dedicated finish texture is bound`);
     assert.equal(surface.loaded, true, `${name}: source image decoded`);
     assert.equal(surface.colorSpace, 'srgb');
     assert.equal(surface.shader, `mood-surface-v2-${surface.surface}`, `${name}: clones retain the crop shader`);
@@ -44,13 +55,13 @@ async function inspect(page, name, expected) {
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 960 }, reducedMotion: 'reduce' });
   watch(page);
-  for (const [name, zone, textile] of [
-    ['kitchen', 'north-extension', false], ['living', 'central-core', true],
-    ['bedroom', 'southwest-room', true], ['guest', 'east-upper-room', true],
-    ['east-bedroom', 'east-lower-room', true], ['bathroom', 'service-core', false], ['ensuite', 'ensuite', false],
+  for (const [name, zone, textiles] of [
+    ['kitchen', 'north-extension', ['woven']], ['living', 'central-core', ['linen']],
+    ['bedroom', 'southwest-room', ['linen']], ['guest', 'east-upper-room', ['linen']],
+    ['east-bedroom', 'east-lower-room', ['linen']], ['bathroom', 'service-core', []], ['ensuite', 'ensuite', []],
   ]) {
     await page.goto(`${base}/?view=model&camera=room&zone=${zone}&gardenQA=1`);
-    await inspect(page, name, ['oak', 'plaster', ...(textile ? ['linen'] : [])]);
+    await inspect(page, name, ['oak', 'plaster', ...textiles]);
   }
   await page.goto(`${base}/?view=model&camera=overview&floor=sand-microtopping&gardenQA=1`);
   await inspect(page, 'overview', Object.keys(expectedImages));
@@ -66,7 +77,7 @@ try {
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
   watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
-  await inspect(mobile, 'mobile-kitchen', ['oak', 'travertine', 'plaster']);
+  await inspect(mobile, 'mobile-kitchen', ['oak', 'travertine', 'plaster', 'woven']);
   assert.equal(await mobile.locator('button[aria-label="Use lighter rendering"]').getAttribute('aria-pressed'), 'true');
   await mobile.close();
   assert.deepEqual(report.errors, [], 'No browser or shader errors');

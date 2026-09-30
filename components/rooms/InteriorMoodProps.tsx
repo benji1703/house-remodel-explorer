@@ -23,7 +23,10 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
       node.receiveShadow = true;
       const source = node.material as THREE.MeshStandardMaterial;
       if (!materials.has(source)) {
-        const surface = source.name.includes("linen") ? palette.upholstery : source.name.includes("oak") ? palette.oak : null;
+        const sourceName = source.name.toLowerCase();
+        const surface = sourceName.includes("woven") ? palette.woven
+          : sourceName.includes("linen") ? palette.upholstery
+          : sourceName.includes("oak") ? palette.oak : null;
         const material = surface instanceof THREE.MeshStandardMaterial ? cloneSurfaceMaterial(surface) : source.clone();
         material.name = source.name;
         if (surface) material.color.copy(source.color);
@@ -41,7 +44,7 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
       node.material = materials.get(source)!;
     });
     return { object, materials: [...materials.values()] };
-  }, [scene, id, palette.oak, palette.upholstery]);
+  }, [scene, id, palette.oak, palette.upholstery, palette.woven]);
   useEffect(() => () => materials.forEach((material) => material.dispose()), [materials]);
   useEffect(() => {
     refreshShadows();

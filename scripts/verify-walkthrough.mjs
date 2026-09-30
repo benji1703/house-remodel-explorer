@@ -24,11 +24,11 @@ try {
   watch(page);
   await page.goto(`${base}/?view=model&camera=overview&gardenQA=1`);
   await page.waitForFunction(() => window.__gardenQA?.snapshot().calls > 0 && !document.querySelector('.is-model-loading'));
-  await page.getByRole('button', { name: 'Walk · FPS', exact: true }).click();
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
   await ready(page);
   assert.ok(page.url().includes('camera=walk'));
   assert.equal((await snapshot(page)).cameraType, 'PerspectiveCamera');
-  const pad = page.getByRole('group', { name: 'Walk and turn', exact: true });
+  const pad = page.getByRole('group', { name: 'Move and look', exact: true });
   assert.equal(await pad.isVisible(), false, 'Desktop movement pad is tucked away');
   await page.getByRole('button', { name: 'Movement pad', exact: true }).click();
   assert.equal(await pad.isVisible(), true, 'Movement pad remains available');
@@ -86,25 +86,27 @@ try {
   for (const zone of ['north-extension', 'central-core', 'southwest-room', 'east-upper-room', 'east-lower-room', 'service-core', 'ensuite']) {
     await page.goto(`${base}/?view=model&camera=walk&zone=${zone}&gardenQA=1`); await ready(page);
     const surfaces = await page.evaluate(() => window.__gardenQA.surfaces());
-    for (const id of ['oak', 'plaster', 'mineral', 'linen']) assert.ok(surfaces.some(s => s.surface === id && s.loaded), `${zone}: ${id} mood texture loaded`);
+    // This walkthrough stays on the default oak floor; mineral is the optional
+    // microtopping finish and is checked by the mood-material verifier.
+    for (const id of ['oak', 'plaster', 'linen']) assert.ok(surfaces.some(s => s.surface === id && s.loaded), `${zone}: ${id} mood texture loaded`);
     await page.screenshot({ path: `${directory}/${zone}.png` });
     report.cases.push(`${zone}: walk entry and mood textures`);
   }
-  await page.getByRole('button', { name: 'Walk · FPS', exact: true }).click();
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
   await page.waitForTimeout(700);
   assert.ok(page.url().includes('camera=overview'));
   assert.ok((await snapshot(page)).target, 'Orbit controls restored');
   await page.getByRole('button', { name: 'Controls', exact: true }).click();
   await page.getByRole('group', { name: 'Camera view', exact: true }).getByRole('button', { name: 'Plan', exact: true }).click();
   await page.getByRole('button', { name: 'Close controls', exact: true }).click();
-  await page.getByRole('button', { name: 'Walk · FPS', exact: true }).click();
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
   await ready(page);
   assert.equal((await snapshot(page)).cameraType, 'PerspectiveCamera', 'Plan to walk restores perspective camera');
   report.cases.push('orbit and orthographic plan transitions');
   await page.close();
   const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, reducedMotion: 'reduce' }); watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=walk&gardenQA=1`); await ready(mobile);
-  assert.equal(await mobile.getByRole('button', { name: 'Walk · FPS', exact: true }).isVisible(), true, 'Mobile walk option remains visible');
+  assert.equal(await mobile.getByRole('button', { name: 'Explore', exact: true }).isVisible(), true, 'Mobile explore option remains visible');
   const before = (await snapshot(mobile)).camera;
   await mobile.getByRole('button', { name: 'Walk backward', exact: true }).tap();
   await mobile.waitForTimeout(300);

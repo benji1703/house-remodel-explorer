@@ -13,10 +13,12 @@ export function applyMoodSurface<T extends THREE.MeshStandardMaterial>(
 ): T {
   const surface: MoodSurface = moodSurfaces[id];
   const mineral = surface.mineralFinish;
+  const albedo = surface.albedo === true;
   material.map = map;
   material.color.set(surface.color);
   material.userData.moodSurface = id;
-  material.userData.moodImage = surface.image;
+  material.userData.moodImage = surface.referenceImage ?? surface.image;
+  material.userData.moodTexture = surface.image;
   if (mineral) {
     // Mineral channels now share world projection and scale, rather than mixing
     // a photo albedo with unrelated, stretched procedural UV maps.
@@ -68,9 +70,9 @@ export function applyMoodSurface<T extends THREE.MeshStandardMaterial>(
         float moodLod = log2(max(max(footprint.x, footprint.y), 1.0));
         vec3 pigment = texture2D(map, patchUv).rgb;
         vec3 illumination = max(textureLod(map, patchUv, moodLightLod).rgb, vec3(0.025));
-        vec3 moodRatio = clamp(pigment / illumination, 0.55, 1.65);
+        vec3 moodRatio = ${albedo ? "pigment" : "clamp(pigment / illumination, 0.55, 1.65)"};
         float moodTone = dot(moodRatio, vec3(0.2126, 0.7152, 0.0722));
-        float moodDetailFade = 1.0 - smoothstep(3.0, 6.0, moodLod);
+        float moodDetailFade = ${albedo ? "1.0" : "1.0 - smoothstep(3.0, 6.0, moodLod)"};
         diffuseColor.rgb *= mix(vec3(1.0), moodRatio, moodDetail * moodDetailFade);
         // A shorter high-pass separates fine plaster pores from photographed
         // colour clouds. Never use the image's broad shadows as surface relief.

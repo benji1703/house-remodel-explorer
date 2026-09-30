@@ -147,7 +147,8 @@ export function HouseExplorer() {
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
-  // Start with bright, soft daylight; local time remains available for studies.
+  // Keep server markup deterministic, then make the live local clock the
+  // default presentation after hydration. Curated study times remain selectable.
   const [sunHour, setSunHour] = useState<number>(lightingScenes[0].hour);
   const [houseLightsOn, setHouseLightsOn] = useState(true);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
@@ -174,6 +175,14 @@ export function HouseExplorer() {
   const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLElement>(null);
   const furnitureRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const now = new Date();
+      setSunHour(now.getHours() + now.getMinutes() / 60);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   usePanelFocus(detailRef, compact && sheetOpen && (view === "model" || view === "references"), () => setSheetOpen(false), true, stageRef);
   usePanelFocus(experienceRef, view === "model" && experienceOpen, () => setExperienceOpen(false), compact, stageRef);
@@ -674,8 +683,8 @@ export function HouseExplorer() {
           )}
           {view === "model" && (
             <>
-              <p id="model-keyboard-help" className="sr-only">Walk mode: W A S D move, arrow keys walk and turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
-              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "walk" ? `First-person walkthrough, starting in ${active.label}` : cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
+              <p id="model-keyboard-help" className="sr-only">Explore mode: W A S D move, arrow keys turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
+              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "walk" ? `Interactive house view, starting in ${active.label}` : cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
               <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">
                 <div className="segmented">
                   <button
@@ -698,7 +707,7 @@ export function HouseExplorer() {
                 {webglSupport === true && <button type="button" className={cameraMode === "walk" ? "toolbar-chip walk-trigger is-active" : "toolbar-chip walk-trigger"} aria-pressed={cameraMode === "walk"} onClick={() => {
                   setExperienceOpen(false); setFurnitureEditorOpen(false); setSheetOpen(false);
                   navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace");
-                }}>Walk · FPS</button>}
+                }}>Explore</button>}
                 {webglSupport === true && cameraMode !== "walk" && (
                   <>
                     <button
@@ -905,7 +914,7 @@ export function HouseExplorer() {
                             if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
                           }}
                         >
-                          {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : mode === "walk" ? "Walk · FPS" : "Plan"}
+                          {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : mode === "walk" ? "Explore" : "Plan"}
                         </button>
                       ))}
                     </div>

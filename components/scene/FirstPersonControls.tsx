@@ -156,9 +156,9 @@ export function WalkControls({ input, onReset }: { input: RefObject<WalkInput>; 
     ["turnLeft", "Turn left", "↶"], ["forward", "Walk forward", "↑"], ["turnRight", "Turn right", "↷"],
     ["left", "Step left", "←"], ["back", "Walk backward", "↓"], ["right", "Step right", "→"],
   ];
-  return <div className={padOpen ? "walk-controls is-pad-open" : "walk-controls"} aria-label="First-person controls">
+  return <div className={padOpen ? "walk-controls is-pad-open" : "walk-controls"} aria-label="Interactive house controls">
     <div className="walk-help">
-      <strong>Walk · FPS</strong>
+      <strong>Explore the house</strong>
       <span className="walk-desktop-hint">WASD to move · drag to look</span>
       <span className="walk-touch-hint">Hold arrows to move · drag to look</span>
       <div className="walk-help-actions">
@@ -166,7 +166,7 @@ export function WalkControls({ input, onReset }: { input: RefObject<WalkInput>; 
         <button type="button" className="walk-pad-toggle" aria-expanded={padOpen} onClick={() => setPadOpen(value => !value)}>Movement pad</button>
       </div>
     </div>
-    <div className="walk-pad" role="group" aria-label="Walk and turn">
+    <div className="walk-pad" role="group" aria-label="Move and look">
       {actions.map(([action, label, glyph]) => <button key={action} type="button" aria-label={label}
         onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); input.current.held.add(action); input.current.wake?.(); }}
         onPointerUp={(event) => { input.current.held.delete(action); if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }}

@@ -122,6 +122,7 @@ export type Palette = {
   oak: THREE.Material;
   timber: THREE.Material;
   upholstery: THREE.Material;
+  woven: THREE.Material;
   stone: THREE.Material;
   charcoal: THREE.Material;
   greenery: THREE.Material;

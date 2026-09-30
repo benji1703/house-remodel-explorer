@@ -1,15 +1,19 @@
-/** Actual mood-board images used by the renderer, not replacement textures.
+/** Renderer texture and style-reference metadata.
  * Crops are normalized, top-left image coordinates; exclude joints, objects,
  * silhouettes and cast shadows. Sample sizes are visual finish scales in cm,
  * not surveyed dimensions. These references are not verified site photographs.
  */
 export type MoodSurface = {
+  /** Source albedo texture; authored swatches can be separate from references. */
   image: string;
+  referenceImage?: string;
   crop: readonly [number, number, number, number];
   sampleCm: readonly [number, number];
   color: string;
   detail: number;
   space: "object" | "world";
+  /** Generated, evenly lit material swatch rather than a mood-board photograph. */
+  albedo?: boolean;
   /** Appearance estimates from the photograph, not scanned surface metrology. */
   mineralFinish?: { reliefMm: number; roughness: readonly [number, number]; illuminationLod: number };
 };
@@ -21,9 +25,10 @@ export const moodSurfaces = {
     color: "#c1a17b", detail: 0.8, space: "object",
   },
   oak: {
-    image: "/references/moods/mood-kitchen-16.jpeg",
-    crop: [0.23, 0.57, 0.11, 0.30], sampleCm: [26, 64],
-    color: "#c6a77e", detail: 0.85, space: "object",
+    image: "/textures/door-oak-albedo.jpg",
+    referenceImage: "/references/moods/mood-kitchen-16.jpeg",
+    crop: [0, 0, 1, 1], sampleCm: [72, 118],
+    color: "#fffaf2", detail: 0.94, space: "world", albedo: true,
   },
   travertine: {
     image: "/references/moods/mood-kitchen-detail.jpeg",
@@ -32,9 +37,9 @@ export const moodSurfaces = {
   },
   plaster: {
     image: "/references/moods/mood-living-14.jpeg",
-    crop: [0.18, 0.08, 0.25, 0.46], sampleCm: [60, 74],
-    color: "#dcc39f", detail: 0.95, space: "world",
-    mineralFinish: { reliefMm: 1.2, roughness: [0.87, 0.98], illuminationLod: 6 },
+    crop: [0.08, 0.08, 0.58, 0.5], sampleCm: [188, 108],
+    color: "#dcc39f", detail: 0.82, space: "world",
+    mineralFinish: { reliefMm: 0.35, roughness: [0.91, 0.985], illuminationLod: 6 },
   },
   mineral: {
     image: "/references/moods/mood-living-14.jpeg",
@@ -44,9 +49,16 @@ export const moodSurfaces = {
     mineralFinish: { reliefMm: 0.45, roughness: [0.46, 0.68], illuminationLod: 4.8 },
   },
   linen: {
-    image: "/references/moods/mood-living-08.jpeg",
-    crop: [0.46, 0.26, 0.13, 0.25], sampleCm: [16, 30],
-    color: "#e5ddd0", detail: 0.7, space: "object",
+    image: "/textures/linen-washed-albedo.jpg",
+    referenceImage: "/references/moods/mood-living-08.jpeg",
+    crop: [0, 0, 1, 1], sampleCm: [38, 38],
+    color: "#fffdf9", detail: 0.96, space: "object", albedo: true,
+  },
+  woven: {
+    image: "/textures/chair-rush-albedo.jpg",
+    referenceImage: "/references/moods/mood-kitchen-06.jpeg",
+    crop: [0, 0, 1, 1], sampleCm: [42, 42],
+    color: "#fffaf0", detail: 0.95, space: "object", albedo: true,
   },
 } as const satisfies Record<string, MoodSurface>;
 

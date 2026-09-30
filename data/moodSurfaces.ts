@@ -36,9 +36,10 @@ export const moodSurfaces = {
     color: "#ded0b9", detail: 0.85, space: "object",
   },
   plaster: {
-    image: "/references/moods/mood-living-14.jpeg",
-    crop: [0.08, 0.08, 0.58, 0.5], sampleCm: [188, 108],
-    color: "#dcc39f", detail: 0.82, space: "world",
+    image: "/textures/lime-plaster-albedo.jpg",
+    referenceImage: "/references/moods/mood-living-14.jpeg",
+    crop: [0, 0, 1, 1], sampleCm: [225, 225],
+    color: "#fffaf3", detail: 0.9, space: "world", albedo: true,
     mineralFinish: { reliefMm: 0.35, roughness: [0.91, 0.985], illuminationLod: 6 },
   },
   mineral: {

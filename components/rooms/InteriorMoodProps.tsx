@@ -19,6 +19,10 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
     const materials = new Map<THREE.Material, THREE.MeshStandardMaterial>();
     object.traverse((node) => {
       if (!(node instanceof THREE.Mesh)) return;
+      if (id === "kitchen-preparation" && (node.name === "Mood bread crust" || node.name === "Mood bread scoring")) {
+        node.visible = false;
+        return;
+      }
       node.castShadow = true;
       node.receiveShadow = true;
       const source = node.material as THREE.MeshStandardMaterial;

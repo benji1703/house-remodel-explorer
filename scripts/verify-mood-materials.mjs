@@ -21,7 +21,7 @@ const expectedTextures = {
   clay: '/references/moods/mood-terrace-08.jpeg',
   oak: '/textures/door-oak-albedo.jpg',
   travertine: '/references/moods/mood-kitchen-detail.jpeg',
-  plaster: '/references/moods/mood-living-14.jpeg',
+  plaster: '/textures/lime-plaster-albedo.jpg',
   mineral: '/references/moods/mood-living-14.jpeg',
   linen: '/textures/linen-washed-albedo.jpg',
   woven: '/textures/chair-rush-albedo.jpg',

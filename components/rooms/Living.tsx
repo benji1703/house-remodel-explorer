@@ -38,7 +38,7 @@ export function Living({ base, palette, furnitureEditing, lightsOn = true, night
       <InteriorMoodProp palette={palette} id="reading-lamp" {...interiorStyling.readingLamp} base={base} glow={lightsOn ? 0.25 + nightFactor * 0.75 : 0} />
       <ArtTV base={base} x={7.485} z={4.45} wall="east" width={1.22} height={0.72} />
       <Pendant base={base} palette={palette} x={5.4} z={6.1} lightsOn={lightsOn} nightFactor={nightFactor} />
-      <MoodOlivePot base={base} palette={palette} x={7.05} z={4.5} scale={0.9} quality={quality} />
+      <MoodOlivePot base={base} palette={palette} x={6.45} z={4.75} scale={0.82} quality={quality} />
     </group>
   );
 }

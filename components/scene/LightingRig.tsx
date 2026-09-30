@@ -7,7 +7,7 @@ import type { Daylight } from "@/lib/daylight";
 import { SkyDome } from "./SkyDome";
 import { house } from "@/data/house";
 import { CX, CZ } from "../rooms/shared";
-import { gardenLighting, interiorLighting, lightingProfiles, wetAreaLighting } from "@/data/lighting";
+import { gardenLighting, houseLightingFixtures, interiorLighting, lightingProfiles } from "@/data/lighting";
 
 export type LightingRigProps = {
   geometryRevision: number;
@@ -54,9 +54,12 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
   // debug aid. Keep a low daytime contribution so windows and pergola remain
   // natural, then let the warm interior and exterior luminaires carry the
   // composition after sunset.
-  const practicalLevel = designMode && houseLightsOn ? 0.34 + (1 - sun.daylight) * 1.55 : 0;
+  const practicalLevel = designMode && houseLightsOn ? 0.18 + (1 - sun.daylight) * 0.52 : 0;
   const eveningBounce = houseLightsOn ? 1 - sun.daylight : 0;
-  const housePracticals = designMode && profile.localLights;
+  const overviewEvening = cameraMode === "overview" ? eveningBounce : 0;
+  // Point fixtures are cheap and remain essential in the light quality profile:
+  // omitting them made an evening overview read as a completely unlit house.
+  const housePracticals = designMode;
   return (
     <>
       <color attach="background" args={[designMode ? sun.sky : "#e5e5ea"]} />
@@ -73,8 +76,8 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
           <Lightformer form="rect" intensity={sun.daylight * 1.5} color="#fff1d2" scale={[7, 4, 1]} position={[0, 2, -7]} rotation-y={Math.PI} />
         </Environment>
       )}
-      <hemisphereLight args={[exterior ? "#c9c8c1" : interiorLighting.skyColor, exterior ? "#9d7957" : interiorLighting.groundColor, designMode ? exterior ? sun.daylight * (gardenLighting.hemisphereBase + gardenLighting.hemisphereDaylight) : sun.daylight * interiorLighting.hemisphere + eveningBounce * interiorLighting.eveningHemisphere : 1.1]} />
-      <ambientLight color={exterior ? "#ffffff" : "#fff4e5"} intensity={designMode ? exterior ? sun.daylight * (gardenLighting.ambientBase + gardenLighting.ambientDaylight) : sun.daylight * interiorLighting.ambient + eveningBounce * interiorLighting.eveningAmbient : 0.45} />
+      <hemisphereLight args={[exterior ? "#c9c8c1" : interiorLighting.skyColor, exterior ? "#9d7957" : interiorLighting.groundColor, designMode ? exterior ? sun.daylight * (gardenLighting.hemisphereBase + gardenLighting.hemisphereDaylight) + overviewEvening * interiorLighting.eveningHemisphere : sun.daylight * interiorLighting.hemisphere + eveningBounce * interiorLighting.eveningHemisphere : 1.1]} />
+      <ambientLight color={exterior ? "#ffffff" : "#fff4e5"} intensity={designMode ? exterior ? sun.daylight * (gardenLighting.ambientBase + gardenLighting.ambientDaylight) + overviewEvening * interiorLighting.eveningAmbient : sun.daylight * interiorLighting.ambient + eveningBounce * interiorLighting.eveningAmbient : 0.45} />
       {localLights && (kitchenRoom || cameraMode === "walk") && <>
         <rectAreaLight position={[-0.2, 1.65, -5.86]} rotation-y={Math.PI} width={1.6} height={1.2} intensity={sun.daylight * 3} color="#f1f4f6" />
         <rectAreaLight position={[1.69, 1.6, -5.2]} rotation-y={Math.PI / 2} width={1.2} height={1.2} intensity={sun.daylight * 3.5} color="#fff1db" />
@@ -83,12 +86,7 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
       <primitive object={shadowTarget} />
       <directionalLight target={shadowTarget} position={designMode ? [sun.position[0] + shadowTarget.position.x, sun.position[1], sun.position[2] + shadowTarget.position.z] : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow={quality === "high" && (!designMode || sun.daylight > 0)} shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-shadowSpan} shadow-camera-right={shadowSpan} shadow-camera-top={shadowSpan} shadow-camera-bottom={-shadowSpan} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />
       <directionalLight position={designMode ? [9, 6, 7] : [-8, 6, -6]} intensity={designMode ? exterior ? sun.daylight * (gardenLighting.fillBase + gardenLighting.fillDaylight) : sun.daylight * interiorLighting.directionalFill : 0.55} color={designMode ? exterior ? "#d0c5b5" : "#fff5e5" : "#d8d1c5"} />
-      {housePracticals && houseLightsOn && <>
-        <pointLight position={[0, 2.1, 0.2]} intensity={practicalLevel * 1.6} distance={6} decay={2} color="#ffd1a0" />
-        <pointLight position={[-0.1, 2.1, -4.2]} intensity={practicalLevel * 1.35} distance={5.5} decay={2} color="#ffd1a0" />
-        <pointLight position={[-3.9, 2.4, -0.15]} intensity={practicalLevel * 1.2} distance={5.5} decay={2} color="#ffc58a" />
-      </>}
-      {designMode && houseLightsOn && wetAreaLighting.map((fixture) => (
+      {housePracticals && houseLightsOn && houseLightingFixtures.map((fixture) => (
         <pointLight
           key={fixture.id}
           name={fixture.id}
@@ -99,19 +97,6 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
           color={fixture.color}
         />
       ))}
-      {housePracticals && houseLightsOn && <>
-        <pointLight position={[-4.0, 1.05, 5.05]} intensity={practicalLevel * 1.1} distance={3.7} decay={2} color="#ffc27f" />
-        <pointLight position={[4.55, 1.05, 0.4]} intensity={practicalLevel} distance={3.5} decay={2} color="#ffc786" />
-        <pointLight position={[4.55, 1.05, 4.8]} intensity={practicalLevel} distance={3.5} decay={2} color="#ffc786" />
-      </>}
-      {housePracticals && houseLightsOn && <>
-        {/* Exterior path and pergola pools: broad, low-energy pools keep the
-         * limestone readable and make the house visibly inhabited at night. */}
-        <pointLight position={[-4.8, 2.35, 1.15]} intensity={practicalLevel * 0.5} distance={5.2} decay={2} color="#ffbd78" />
-        <pointLight position={[-1.9, 2.35, 1.15]} intensity={practicalLevel * 0.42} distance={4.6} decay={2} color="#ffd39a" />
-        <pointLight position={[5.15, 2.05, -1.65]} intensity={practicalLevel * 0.32} distance={4.5} decay={2} color="#ffd39a" />
-        <pointLight position={[5.15, 2.05, 5.1]} intensity={practicalLevel * 0.28} distance={4.2} decay={2} color="#ffd39a" />
-      </>}
       {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={exterior ? [0, gardenLighting.contactElevationCm / 100, 0] : kitchenRoom ? [-0.2, 0.103, -4.0] : [0, 0.103, 0]} scale={exterior ? gardenLighting.contactSpanCm / 100 : kitchenRoom ? 6 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 2.5 : 2.6} far={exterior ? gardenLighting.contactFarCm / 100 : 2.4} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
     </>
   );

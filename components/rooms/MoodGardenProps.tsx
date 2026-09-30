@@ -12,9 +12,11 @@ function OliveAsset({ palette, light }: { palette: Palette; light: boolean }) {
     const clone = scene.clone(true);
     clone.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return;
-      object.castShadow = true;
-      object.receiveShadow = true;
-      if ((object.material as THREE.Material).name === "Weathered clay") object.material = palette.terracotta;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      const foliage = materials.some((material) => material.name === "Mood olive leaf");
+      object.castShadow = !foliage;
+      object.receiveShadow = !foliage;
+      if (materials.some((material) => material.name === "Weathered clay")) object.material = palette.terracotta;
     });
     return clone;
   }, [scene, palette.terracotta]);

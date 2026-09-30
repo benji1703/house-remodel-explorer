@@ -44,7 +44,7 @@ export const materialCards: MaterialCard[] = [
     family: "Walls",
     title: "Light beige limewash",
     description: "Hand-applied mineral variation softens the measured shell. It should bloom in side light, never look mottled or theatrical.",
-    image: moodSurfaces.plaster.image,
+    image: moodSurfaces.plaster.referenceImage ?? moodSurfaces.plaster.image,
     alt: "Sunlight on lime plaster, the source image for the 3D wall finish",
     specification: "Warm ivory mineral base",
     finish: "Soft, low-contrast brushwork",

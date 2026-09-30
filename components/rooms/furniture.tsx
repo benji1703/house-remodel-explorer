@@ -261,6 +261,14 @@ export function BedsideLamp({
       <mesh position={[x - CX, base + 0.32, z - CZ]} material={LINEN_SHADE} castShadow>
         <cylinderGeometry args={[0.105, 0.17, 0.22, 32, 1, true]} />
       </mesh>
+      <pointLight
+        name="bedside-lamp-light"
+        position={[x - CX, base + 0.28, z - CZ]}
+        color="#ffd4a1"
+        intensity={nightFactor * 0.16}
+        distance={1.55}
+        decay={2}
+      />
     </group>
   );
 }

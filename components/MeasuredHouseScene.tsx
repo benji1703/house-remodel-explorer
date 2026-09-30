@@ -461,11 +461,11 @@ function buildPalette(
     map: textures.herringbone.albedo,
     normalMap: textures.herringbone.normal,
     normalScale: new THREE.Vector2(0.3, 0.3),
-    roughness: 0.84,
+    roughness: 0.9,
     roughnessMap: textures.herringbone.roughness,
-    clearcoat: 0.035,
-    clearcoatRoughness: 0.78,
-    envMapIntensity: 0.96,
+    clearcoat: 0,
+    clearcoatRoughness: 0.88,
+    envMapIntensity: 0.72,
   });
   const greenery = finish("#789064", 0.82, 0, 0.025);
   const mineralWall = new THREE.MeshPhysicalMaterial({
@@ -1166,10 +1166,10 @@ function SceneContent({
             <EastLowerRoom base={zoneById["east-lower-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
           </RoomDetail>
           <RoomDetail center={[0, 0.8, 4.9]} visible={(cameraMode !== "room" || selectedZone === "service-core")}>
-            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} lightsOn={houseLightsOn} />
+            <MainBathroom base={zoneById["service-core"].level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "service-core"} />
           </RoomDetail>
           <RoomDetail center={[-1.5, 0.8, 4.7]} visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
-            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} lightsOn={houseLightsOn} />
+            <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} />
           </RoomDetail>
         </ShadowRefreshProvider></SceneQualityProvider>
       )}

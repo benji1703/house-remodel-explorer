@@ -108,6 +108,71 @@ const FRIDGE_LIGHT = new THREE.MeshStandardMaterial({
 const PRODUCE_GREEN = new THREE.MeshStandardMaterial({ color: "#70805d", roughness: 0.92 });
 const PRODUCE_AMBER = new THREE.MeshStandardMaterial({ color: "#b96f42", roughness: 0.88 });
 
+function SourdoughLoaf({ base }: { base: number }) {
+  const { geometry, crust, cuts } = useMemo(() => {
+    const geometry = new THREE.SphereGeometry(1, 72, 48);
+    const positions = geometry.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+      const angle = Math.atan2(z, x);
+      const radial = 1 + 0.035 * Math.sin(angle * 3 + 0.4) + 0.018 * Math.sin(angle * 7 - 1.2);
+      const flatY = y < -0.42 ? -0.42 + (y + 0.42) * 0.1 : y;
+      positions.setXYZ(i, x * 0.145 * radial, 0.068 + flatY * 0.085, z * 0.11 * radial);
+    }
+    geometry.computeVertexNormals();
+
+    const size = 384;
+    const data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const index = (y * size + x) * 4;
+      const hash = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+      const noise = (hash - Math.floor(hash) - 0.5) * 25;
+      const mottling = Math.sin(x * 0.043 + Math.sin(y * 0.037) * 2) * 5 + Math.cos(y * 0.061 - x * 0.018) * 4;
+      const blister = hash - Math.floor(hash) > 0.993 ? -22 : 0;
+      data[index] = THREE.MathUtils.clamp(155 + noise + mottling + blister, 0, 255);
+      data[index + 1] = THREE.MathUtils.clamp(86 + noise * 0.65 + mottling * 0.75 + blister * 0.68, 0, 255);
+      data[index + 2] = THREE.MathUtils.clamp(39 + noise * 0.42 + mottling * 0.4 + blister * 0.4, 0, 255);
+      data[index + 3] = 255;
+    }
+    const map = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+    map.colorSpace = THREE.SRGBColorSpace;
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.minFilter = THREE.LinearMipmapLinearFilter;
+    map.magFilter = THREE.LinearFilter;
+    map.generateMipmaps = true;
+    map.needsUpdate = true;
+    const crust = new THREE.MeshStandardMaterial({ map, bumpMap: map, bumpScale: 0.0018, roughness: 0.92 });
+
+    const cuts: THREE.BufferGeometry[] = [];
+    for (const slash of [-1, 0, 1]) {
+      const groove: THREE.Vector3[] = [];
+      const ear: THREE.Vector3[] = [];
+      for (let step = 0; step <= 18; step++) {
+        const t = step / 18 - 0.5;
+        const x = slash * 0.043 + t * 0.048;
+        const z = t * 0.092 - slash * 0.006;
+        const dome = Math.sqrt(Math.max(0.08, 1 - (x / 0.145) ** 2 - (z / 0.11) ** 2));
+        const y = 0.068 + 0.085 * dome;
+        groove.push(new THREE.Vector3(x, y + 0.0008, z));
+        ear.push(new THREE.Vector3(x + 0.005, y + 0.0021, z));
+      }
+        cuts.push(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(groove), 40, 0.0013, 6, false),
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ear), 40, 0.0018, 6, false),
+      );
+    }
+    return { geometry, crust, cuts };
+  }, []);
+  useEffect(() => () => { geometry.dispose(); crust.map?.dispose(); crust.dispose(); cuts.forEach((cut) => cut.dispose()); }, [geometry, crust, cuts]);
+  return <group position={[5.12 - CX, base, 2.39 - CZ]}>
+    <mesh geometry={geometry} material={crust} castShadow receiveShadow />
+    {cuts.map((cut, index) => <mesh key={index} geometry={cut} material={index % 2 === 0 ? BREAD_SCORE : BREAD_EAR} castShadow />)}
+  </group>;
+}
+
+const BREAD_SCORE = new THREE.MeshStandardMaterial({ color: "#63351c", roughness: 0.98 });
+const BREAD_EAR = new THREE.MeshStandardMaterial({ color: "#d7a15d", roughness: 0.9 });
+
 function KitchenSink({ base, x, z }: { base: number; x: number; z: number }) {
   const counter = base + 0.947;
   const spout = useMemo(() => new THREE.CatmullRomCurve3([
@@ -426,6 +491,7 @@ export function Kitchen({ base, palette: sharedPalette, furnitureEditing, applia
       </EditableFurniture>
 
       <InteriorMoodProp palette={palette} id="kitchen-preparation" {...interiorStyling.kitchenPreparation} base={base + interiorStyling.kitchenPreparation.heightCm / 100} />
+      <SourdoughLoaf base={base + interiorStyling.kitchenPreparation.heightCm / 100} />
       <InteriorMoodProp palette={palette} id="kitchen-herbs" {...interiorStyling.kitchenHerbs} base={base + interiorStyling.kitchenHerbs.heightCm / 100} />
       <Pendant base={base} palette={palette} x={4.95} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />
       <Pendant base={base} palette={palette} x={5.75} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />

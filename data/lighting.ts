@@ -28,12 +28,12 @@ export const lightingProfiles = {
 /** Proposed practical fixtures, in plan centimetres. Shared by the runtime
  * lights and the orthographic lighting plan markers. */
 export const houseLightingFixtures = [
-  { id: "kitchen-pendant-west", room: "Kitchen", positionCm: [495, 242] as const, color: "#ffd09a" },
-  { id: "kitchen-pendant-east", room: "Kitchen", positionCm: [575, 242] as const, color: "#ffd09a" },
-  { id: "living-pendant", room: "Living", positionCm: [540, 610] as const, color: "#ffd09a" },
-  { id: "master-pendant", room: "Master", positionCm: [170, 1095] as const, color: "#ffc27f" },
-  { id: "bathroom-vanity", room: "Bathroom", positionCm: [525, 1142] as const, color: "#ffe0b5" },
-  { id: "ensuite-vanity", room: "Ensuite", positionCm: [373, 1045] as const, color: "#ffe0b5" },
+  { id: "kitchen-pendant-west", room: "Kitchen", positionCm: [495, 242] as const, heightCm: 205, intensity: 12, rangeCm: 390, color: "#ffd09a" },
+  { id: "kitchen-pendant-east", room: "Kitchen", positionCm: [575, 242] as const, heightCm: 205, intensity: 12, rangeCm: 390, color: "#ffd09a" },
+  { id: "living-pendant", room: "Living", positionCm: [540, 610] as const, heightCm: 205, intensity: 11, rangeCm: 420, color: "#ffd09a" },
+  { id: "master-pendant", room: "Master", positionCm: [170, 1095] as const, heightCm: 205, intensity: 10, rangeCm: 340, color: "#ffc27f" },
+  { id: "bathroom-vanity", room: "Bathroom", positionCm: [525, 1142] as const, heightCm: 158, intensity: 7, rangeCm: 260, color: "#ffe0b5" },
+  { id: "ensuite-vanity", room: "Ensuite", positionCm: [373, 1045] as const, heightCm: 180, intensity: 7, rangeCm: 260, color: "#ffe0b5" },
 ] as const;
 
 /** Proposed garden presentation: neutral sky bounce with a warm directional key.
@@ -82,7 +82,7 @@ export const interiorLighting = {
   hemisphere: 0.32,
   ambient: 0.045,
   directionalFill: 0.10,
-  eveningHemisphere: 0.3,
-  eveningAmbient: 0.14,
+  eveningHemisphere: 0.42,
+  eveningAmbient: 0.18,
   contactOpacity: 0.28,
 } as const;

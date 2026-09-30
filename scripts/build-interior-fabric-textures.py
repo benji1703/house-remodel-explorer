@@ -19,3 +19,4 @@ def build(source: str, target: str, *, saturation: float, brightness: float, con
 build("door-oak-source.jpg", "door-oak-albedo.jpg", saturation=0.60, brightness=1.06, contrast=0.88)
 build("linen-washed-source.jpg", "linen-washed-albedo.jpg", saturation=0.67, brightness=1.04, contrast=0.86)
 build("chair-rush-source.jpg", "chair-rush-albedo.jpg", saturation=0.60, brightness=1.02, contrast=0.82)
+build("lime-plaster-source.jpg", "lime-plaster-albedo.jpg", saturation=0.90, brightness=1.0, contrast=0.90)

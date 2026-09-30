@@ -1,5 +1,7 @@
 "use client";
-import { Blk, Cyl, SoftBox, type Palette } from "./shared";
+import { Blk, CX, CZ, SoftBox, type Palette } from "./shared";
+import { RoundedBox } from "@react-three/drei";
+import * as THREE from "three";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { MoodOlivePot } from "./MoodGardenProps";
@@ -7,23 +9,40 @@ import { DecorTray } from "./LuxuryDetails";
 import { terraceCushionMaterial, terraceIronMaterial, terraceStoneMaterial } from "./terraceMaterials";
 import { terraceFurnitureSpec } from "@/data/terraceFurniture";
 
-function TerraceChair({ x, z, base, rotation = 0 }: { x: number; z: number; base: number; rotation?: number }) {
-  const c = terraceFurnitureSpec.chair;
+function OutdoorBeam({ from, to, radius, material }: { from: [number, number, number]; to: [number, number, number]; radius: number; material: THREE.Material }) {
+  const start = new THREE.Vector3(...from);
+  const end = new THREE.Vector3(...to);
+  const direction = end.clone().sub(start);
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+  return <mesh position={start.clone().add(end).multiplyScalar(0.5)} quaternion={quaternion} material={material} castShadow receiveShadow>
+    <cylinderGeometry args={[radius, radius, direction.length(), 12]} />
+  </mesh>;
+}
+
+function OutdoorPart({ position, size, radius, material }: { position: [number, number, number]; size: [number, number, number]; radius: number; material: THREE.Material }) {
+  return <RoundedBox position={position} args={size} radius={radius} smoothness={3} material={material} castShadow receiveShadow />;
+}
+
+function TerraceChair({ x, z, base, palette, rotation = 0 }: { x: number; z: number; base: number; palette: Palette; rotation?: number }) {
+  const width = terraceFurnitureSpec.chair.widthCm / 100;
   return (
-    <group position={[x - 5.7, 0, z - 6.05]} rotation-y={rotation}>
-      {/* Local coordinates keep every frame member attached to its seat while
-          rotating side chairs around the table. */}
-      <SoftBox x={5.7} z={6.05} y={base + c.seatHeightCm / 100} w={c.widthCm / 100} d={c.depthCm / 100} h={c.cushionCm / 100} radius={0.055} material={terraceCushionMaterial} />
-      <SoftBox x={5.7} z={6.20} y={base + 0.49} w={0.38} d={0.055} h={0.055} radius={0.018} material={terraceIronMaterial} />
-      {[-1, 1].map((side) => <SoftBox key={`rail-${side}`} x={5.7 + side * 0.17} z={6.22} y={base + 0.52} w={0.045} d={0.055} h={0.38} radius={0.018} material={terraceIronMaterial} />)}
-      <SoftBox x={5.7} z={6.22} y={base + 0.84} w={0.38} d={0.055} h={0.055} radius={0.02} material={terraceIronMaterial} />
-      <SoftBox x={5.7} z={6.205} y={base + 0.57} w={0.30} d={0.07} h={0.25} radius={0.035} material={terraceCushionMaterial} />
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => <Cyl key={`${sx}-${sz}`} x={5.7 + sx * 0.17} z={6.05 + sz * 0.18} y={base} r={0.018} h={0.45} segments={12} material={terraceIronMaterial} />))}
+    <group position={[x - CX, base, z - CZ]} rotation-y={rotation}>
+      {/* Tubular powder-coated frame with a visible rush back and tailored pad. */}
+      {[-1, 1].flatMap((side) => [
+        <OutdoorBeam key={`front-${side}`} from={[side * 0.19, 0.025, -0.19]} to={[side * 0.205, 0.47, -0.19]} radius={0.012} material={terraceIronMaterial} />,
+        <OutdoorBeam key={`back-${side}`} from={[side * 0.19, 0.025, 0.19]} to={[side * 0.205, 0.91, 0.23]} radius={0.012} material={terraceIronMaterial} />,
+      ])}
+      <OutdoorBeam from={[-0.205, 0.89, 0.23]} to={[0.205, 0.89, 0.23]} radius={0.014} material={terraceIronMaterial} />
+      <OutdoorBeam from={[-0.195, 0.49, 0.21]} to={[0.195, 0.49, 0.21]} radius={0.01} material={terraceIronMaterial} />
+      {[-1, 1].map((side) => <OutdoorBeam key={`seat-side-${side}`} from={[side * 0.19, 0.43, -0.2]} to={[side * 0.2, 0.43, 0.2]} radius={0.01} material={terraceIronMaterial} />)}
+      <OutdoorPart position={[0, 0.445, 0]} size={[0.39, 0.022, 0.41]} radius={0.014} material={palette.woven} />
+      <OutdoorPart position={[0, 0.485, -0.012]} size={[width - 0.06, 0.065, 0.37]} radius={0.04} material={terraceCushionMaterial} />
+      <OutdoorPart position={[0, 0.69, 0.216]} size={[0.35, 0.34, 0.022]} radius={0.025} material={palette.woven} />
     </group>
   );
 }
 
-function TerraceDiningSet({ base, x, z }: { base: number; x: number; z: number }) {
+function TerraceDiningSet({ base, x, z, palette }: { base: number; x: number; z: number; palette: Palette }) {
   const t = terraceFurnitureSpec.table;
   const tw = t.widthCm / 100, td = t.depthCm / 100, th = t.heightCm / 100;
   return (
@@ -32,10 +51,10 @@ function TerraceDiningSet({ base, x, z }: { base: number; x: number; z: number }
       <SoftBox x={x} z={z} y={base} w={t.pedestalWidthCm / 100} d={0.48} h={th - t.topCm / 100} radius={0.055} material={terraceStoneMaterial} />
       <SoftBox x={x} z={z} y={base + 0.05} w={0.72} d={0.62} h={0.07} radius={0.025} material={terraceStoneMaterial} />
       <SoftBox x={x} z={z} y={base + th - 0.015} w={1.34} d={0.7} h={0.018} radius={0.012} material={terraceStoneMaterial} />
-      <TerraceChair base={base} x={x} z={z - 0.70} rotation={Math.PI} />
-      <TerraceChair base={base} x={x} z={z + 0.70} />
-      <TerraceChair base={base} x={x - 1.07} z={z} rotation={-Math.PI / 2} />
-      <TerraceChair base={base} x={x + 1.07} z={z} rotation={Math.PI / 2} />
+      <TerraceChair base={base} palette={palette} x={x} z={z - 0.70} rotation={Math.PI} />
+      <TerraceChair base={base} palette={palette} x={x} z={z + 0.70} />
+      <TerraceChair base={base} palette={palette} x={x - 1.07} z={z} rotation={-Math.PI / 2} />
+      <TerraceChair base={base} palette={palette} x={x + 1.07} z={z} rotation={Math.PI / 2} />
     </group>
   );
 }
@@ -73,7 +92,7 @@ export function Terrace({ palette, quality, furnitureEditing }: { palette: Palet
       ))}
 
       <EditableFurniture id="terrace-dining-set" editing={furnitureEditing} x={1.85} z={6.0} base={0.08}>
-        <TerraceDiningSet base={0.08} x={1.85} z={6.0} />
+        <TerraceDiningSet base={0.08} palette={palette} x={1.85} z={6.0} />
       </EditableFurniture>
       <DecorTray base={0.83} palette={palette} x={1.85} z={6.0} />
       <MoodOlivePot quality={quality} scale={0.68} base={0.08} palette={palette} x={0.45} z={5.1} />

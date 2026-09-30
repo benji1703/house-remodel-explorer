@@ -225,7 +225,7 @@ export function BelgianDoor({
   width,
   head,
   palette,
-  ajar = 0.55,
+  ajar = Math.PI / 2,
   swing = 1,
   exterior = false,
   wallThickness = 0.2,
@@ -253,7 +253,9 @@ export function BelgianDoor({
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
   const glazed = exterior;
-  const hingeZ = 0;
+  // Put the hinge on the swing-side jamb face so a 90-degree leaf clears
+  // the full wall depth. The closed slab remains inside the frame rebate.
+  const hingeZ = swing * (wallThickness / 2 + 0.003);
   // Left hinge: −Y rot → +Z; flip with swing.
   const leafRef = useRef<THREE.Group>(null);
   const rotY = -swing * ajar;
@@ -286,6 +288,7 @@ export function BelgianDoor({
         ref={leafRef}
         position={[-(width / 2 - FRAME), 0, hingeZ]}
         rotation-y={open ? rotY : 0}
+        userData={{ hingedDoorLeaf: true, openAngle: ajar }}
         onClick={(event) => {
           if (!onToggle) return;
           event.stopPropagation();
@@ -298,7 +301,7 @@ export function BelgianDoor({
           if (onToggle) document.body.style.cursor = "default";
         }}
       >
-        <group position={[leafW / 2, 0, 0]} userData={glazed ? { glazedDoorLeaf: { width: leafW, glassY, glassH } } : undefined}>
+        <group position={[leafW / 2, 0, -swing * (DOOR_LEAF_THICK / 2 + 0.003)]} userData={glazed ? { glazedDoorLeaf: { width: leafW, glassY, glassH } } : undefined}>
           {/* Rails and stiles surround the existing glass dimensions. A solid
               leaf behind the pane made the exterior doors completely opaque. */}
           {(glazed ? [
@@ -356,7 +359,7 @@ export function SlidingDoor({
   width,
   head,
   palette,
-  open = 0.72,
+  open = 1,
   slide = 1,
   face = 1,
   wallThickness = 0.12,
@@ -573,7 +576,7 @@ export function OpeningOnWall({
           width={opening.width}
           head={opening.head}
           palette={palette}
-          open={0.7}
+          open={1}
           isOpen={open}
           onToggle={onToggle}
           slide={opening.slide ?? 1}
@@ -586,7 +589,7 @@ export function OpeningOnWall({
           width={opening.width}
           head={opening.head}
           palette={palette}
-          ajar={exterior ? 0.62 : 0.7}
+          ajar={Math.PI / 2}
           open={open}
           onToggle={onToggle}
           swing={opening.swing ?? 1}

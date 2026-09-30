@@ -88,6 +88,20 @@ export function GardenDiagnostics() {
           shader: material.customProgramCacheKey(),
         }));
       },
+      lighting: () => {
+        const fixtures: object[] = [];
+        const sources: object[] = [];
+        const doors: object[] = [];
+        state.scene.updateMatrixWorld(true);
+        state.scene.traverseVisible(object => {
+          if (object.userData.lightingFixture) fixtures.push({ id: object.userData.lightingFixture, position: object.getWorldPosition(new THREE.Vector3()).toArray() });
+          if (object instanceof THREE.SpotLight || object instanceof THREE.PointLight || object instanceof THREE.RectAreaLight) {
+            sources.push({ name: object.name, type: object.type, intensity: object.intensity, castShadow: object.castShadow, shadowMapAllocated: object instanceof THREE.SpotLight && Boolean(object.shadow.map), position: object.getWorldPosition(new THREE.Vector3()).toArray() });
+          }
+          if (object.userData.hingedDoorLeaf) doors.push({ angle: object.rotation.y, maximum: object.userData.openAngle });
+        });
+        return { fixtures, sources, doors, shadowsEnabled: state.gl.shadowMap.enabled };
+      },
       snapshot: () => ({
         renderer: state.gl.getContext().getParameter(state.gl.getContext().RENDERER),
         cameraType: state.get().camera.type,

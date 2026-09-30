@@ -1157,7 +1157,7 @@ function SceneContent({
             <Living base={zoneById["central-core"].level} palette={palette} furnitureEditing={furnitureEditing} lightsOn={houseLightsOn} nightFactor={sun.practical} />
           </RoomDetail>
           <RoomDetail center={[-4, 0.8, 4.9]} visible={(cameraMode !== "room" || selectedZone === "southwest-room")}>
-            <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
+            <MasterBedroom base={zoneById["southwest-room"].level} palette={palette} furnitureEditing={furnitureEditing} lightsOn={houseLightsOn} nightFactor={houseLightsOn ? sun.practical : 0} />
           </RoomDetail>
           <RoomDetail center={[4.3, 0.8, 0.5]} visible={(cameraMode !== "room" || selectedZone === "east-upper-room")}>
             <EastUpperRoom base={zoneById["east-upper-room"].level} palette={palette} furnitureEditing={furnitureEditing} nightFactor={houseLightsOn ? sun.practical : 0} />
@@ -1227,7 +1227,7 @@ export function MeasuredHouseScene(props: Props) {
     <Canvas
       frameloop={props.active ? "demand" : "never"}
       dpr={profile.dpr}
-      shadows={quality === "high" ? "soft" : false}
+      shadows={quality === "high" ? "soft" : "basic"}
       // The initial camera matches CameraDirector's composed dollhouse view so
       // there is no low-angle flash while controls mount.
       camera={{ position: [-13.8, 16.4, -10.4], fov: 36, near: 0.1, far: 200 }}

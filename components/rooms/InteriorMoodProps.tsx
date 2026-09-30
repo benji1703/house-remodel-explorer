@@ -4,6 +4,7 @@ import { useGLTF } from "@react-three/drei";
 import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { interiorAssets, type InteriorAssetId, type InteriorAssetSpec } from "@/data/interiorStyling";
+import { FixtureDownlight } from "../scene/FixtureDownlight";
 import { createTextileBump } from "@/lib/textileTexture";
 import { useSceneDetail, useSceneQuality, useShadowRefresh } from "../scene/SceneDetail";
 import { cloneSurfaceMaterial } from "@/lib/moodSurfaceMaterial";
@@ -42,13 +43,14 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
         }
         if (source.name === "Mood lamp diffuser") {
           material.emissive.set("#ffc283");
+          material.emissiveIntensity = glow * 1.4;
         }
         materials.set(source, material);
       }
       node.material = materials.get(source)!;
     });
     return { object, materials: [...materials.values()] };
-  }, [scene, id, palette.oak, palette.upholstery, palette.woven]);
+  }, [scene, id, palette.oak, palette.upholstery, palette.woven, glow]);
   useEffect(() => () => materials.forEach((material) => material.dispose()), [materials]);
   useEffect(() => {
     refreshShadows();
@@ -56,7 +58,7 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
   }, [object, refreshShadows]);
   return <>
     <primitive object={object} dispose={null} />
-    {glow > 0 && <pointLight position={[0, 1.25, 0]} color="#ffc78f" intensity={glow * 0.55} distance={3.2} decay={2} />}
+    {glow > 0 && <FixtureDownlight name="reading-floor-lamp-light" position={[0, 1.25, 0]} intensity={glow * 2.4} distance={2.4} />}
   </>;
 }
 

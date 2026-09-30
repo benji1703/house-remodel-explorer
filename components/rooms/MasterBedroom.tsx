@@ -16,11 +16,13 @@ export function MasterBedroom({
   palette,
   furnitureEditing,
   nightFactor = 0,
+  lightsOn = true,
 }: {
   base: number;
   palette: Palette;
   furnitureEditing: FurnitureEditingState;
   nightFactor?: number;
+  lightsOn?: boolean;
 }) {
   return (
     <group>
@@ -43,7 +45,7 @@ export function MasterBedroom({
 
       <ArtTV base={base} x={3.285} z={10.32} wall="east" width={1.08} height={0.64} />
       <DraperyPair base={base} x={1.72} z={12.0} wall="south" span={1.5} />
-      <Pendant base={base} palette={palette} x={1.7} z={10.95} />
+      <Pendant base={base} palette={palette} x={1.7} z={10.95} lightsOn={lightsOn} nightFactor={nightFactor} />
     </group>
   );
 }

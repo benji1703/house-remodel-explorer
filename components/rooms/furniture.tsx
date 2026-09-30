@@ -7,6 +7,7 @@ import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { useSceneDetail } from "../scene/SceneDetail";
 import { InteriorMoodProp } from "./InteriorMoodProps";
+import { FixtureDownlight } from "../scene/FixtureDownlight";
 import { designAssumptions } from "@/data/house";
 
 /**
@@ -261,14 +262,8 @@ export function BedsideLamp({
       <mesh position={[x - CX, base + 0.32, z - CZ]} material={LINEN_SHADE} castShadow>
         <cylinderGeometry args={[0.105, 0.17, 0.22, 32, 1, true]} />
       </mesh>
-      <pointLight
-        name="bedside-lamp-light"
-        position={[x - CX, base + 0.28, z - CZ]}
-        color="#ffd4a1"
-        intensity={nightFactor * 0.16}
-        distance={1.55}
-        decay={2}
-      />
+      <FixtureDownlight name="bedside-lamp-light" position={[x - CX, base + 0.2, z - CZ]}
+        intensity={nightFactor * 0.9} distance={1.4} />
     </group>
   );
 }
@@ -403,7 +398,7 @@ export function Pendant({
         <cylinderGeometry args={[0.004, 0.004, cordLength, 16]} />
       </mesh>
       <mesh position={[x - CX, base + y - h / 2, z - CZ]} material={BRONZE} castShadow>
-        <cylinderGeometry args={[r * 0.5, r, h, 32, 1, false]} />
+        <cylinderGeometry args={[r * 0.5, r, h, 32, 1, true]} />
       </mesh>
       <mesh position={[x - CX, base + y - h + 0.028, z - CZ]} material={BRONZE}>
         <cylinderGeometry args={[r * 0.16, r * 0.16, 0.055, 20]} />

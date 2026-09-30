@@ -28,13 +28,14 @@ export const lightingProfiles = {
 /** Proposed practical fixtures, in plan centimetres. Shared by the runtime
  * lights and the orthographic lighting plan markers. */
 export const houseLightingFixtures = [
-  { id: "kitchen-pendant-west", room: "Kitchen", positionCm: [495, 242] as const, heightCm: 205, intensity: 12, rangeCm: 390, color: "#ffd09a" },
-  { id: "kitchen-pendant-east", room: "Kitchen", positionCm: [575, 242] as const, heightCm: 205, intensity: 12, rangeCm: 390, color: "#ffd09a" },
-  { id: "living-pendant", room: "Living", positionCm: [540, 610] as const, heightCm: 205, intensity: 11, rangeCm: 420, color: "#ffd09a" },
-  { id: "master-pendant", room: "Master", positionCm: [170, 1095] as const, heightCm: 205, intensity: 10, rangeCm: 340, color: "#ffc27f" },
-  { id: "bathroom-vanity", room: "Bathroom", positionCm: [525, 1142] as const, heightCm: 158, intensity: 7, rangeCm: 260, color: "#ffe0b5" },
-  { id: "ensuite-vanity", room: "Ensuite", positionCm: [373, 1045] as const, heightCm: 180, intensity: 7, rangeCm: 260, color: "#ffe0b5" },
+  { id: "kitchen-pendant-west", room: "Kitchen", zone: "north-extension", kind: "pendant", positionCm: [495, 242], heightCm: 179.5, intensity: 15, rangeCm: 390, color: "#ffe0b5", normal: [0, 0] },
+  { id: "kitchen-pendant-east", room: "Kitchen", zone: "north-extension", kind: "pendant", positionCm: [575, 242], heightCm: 179.5, intensity: 15, rangeCm: 390, color: "#ffe0b5", normal: [0, 0] },
+  { id: "living-pendant", room: "Living", zone: "central-core", kind: "pendant", positionCm: [540, 610], heightCm: 179.5, intensity: 18, rangeCm: 420, color: "#ffe0b5", normal: [0, 0] },
+  { id: "master-pendant", room: "Master", zone: "southwest-room", kind: "pendant", positionCm: [170, 1095], heightCm: 179.5, intensity: 14, rangeCm: 340, color: "#ffe0b5", normal: [0, 0] },
+  { id: "bathroom-vanity", room: "Bathroom", zone: "service-core", kind: "wall", positionCm: [496, 1142], heightCm: 195, intensity: 9, rangeCm: 230, color: "#ffe0b5", normal: [1, 0] },
+  { id: "ensuite-vanity", room: "Ensuite", zone: "ensuite", kind: "wall", positionCm: [373, 1028], heightCm: 200, intensity: 8, rangeCm: 210, color: "#ffe0b5", normal: [0, 1] },
 ] as const;
+export type HouseLightingFixture = (typeof houseLightingFixtures)[number];
 
 /** Proposed garden presentation: neutral sky bounce with a warm directional key.
  * This does not change the architectural room lighting or the modeled sun path.
@@ -56,14 +57,6 @@ export const gardenLighting = {
   highContactResolution: 768,
   lightContactResolution: 256,
 } as const;
-
-/** Proposed ceiling fill for the wet rooms and their living-side approach.
- * Short ranges keep the extra light local without additional shadow maps. */
-export const wetAreaLighting = [
-  { id: "bathroom-ceiling", room: "Bathroom", positionCm: [625, 1115] as const, heightCm: 235, rangeCm: 340, intensity: 2.5, color: "#ffe0b5" },
-  { id: "ensuite-ceiling", room: "Ensuite", positionCm: [415, 1115] as const, heightCm: 225, rangeCm: 280, intensity: 1.8, color: "#ffe0b5" },
-  { id: "wet-area-entry", room: "Bathroom approach", positionCm: [545, 945] as const, heightCm: 235, rangeCm: 360, intensity: 2.4, color: "#ffddb0" },
-] as const;
 
 /** Curated presentation light, not a change to surveyed orientation or fixtures. */
 export const lightingScenes = [

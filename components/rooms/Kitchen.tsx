@@ -8,6 +8,8 @@ import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BarStool, Cooktop, FURN, Pendant } from "./furniture";
 import { cloneSurfaceMaterial } from "@/lib/moodSurfaceMaterial";
+import { InteriorMoodProp } from "./InteriorMoodProps";
+import { interiorStyling } from "@/data/interiorStyling";
 import { kitchenPresentation } from "@/data/kitchen";
 
 function KitchenWorktop({ base, palette }: { base: number; palette: Palette }) {
@@ -257,24 +259,6 @@ function TallPantry({
   );
 }
 
-function IslandBowl({ base, palette, x, z }: { base: number; palette: Palette; x: number; z: number }) {
-  return (
-    <group position={[x - CX, base, z - CZ]}>
-      <mesh rotation-x={Math.PI / 2} material={AGED_BRASS} castShadow>
-        <torusGeometry args={[0.17, 0.018, 12, 48]} />
-      </mesh>
-      <mesh position={[0, -0.008, 0]} rotation-x={-Math.PI / 2} material={palette.stone} receiveShadow>
-        <circleGeometry args={[0.15, 48]} />
-      </mesh>
-      {[-0.07, 0.02, 0.08].map((offset, index) => (
-        <mesh key={offset} position={[offset, 0.045 + index * 0.006, index % 2 === 0 ? 0.015 : -0.04]} material={index === 1 ? PRODUCE_AMBER : PRODUCE_GREEN} castShadow>
-          <icosahedronGeometry args={[0.055 + index * 0.006, 2]} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
 function IntegratedFridge({ base, palette, x, z, open, onToggle }: { base: number; palette: Palette; x: number; z: number; open: boolean; onToggle: () => void }) {
   const doorRef = useRef<THREE.Group>(null);
   const { d, h } = FURN.fridge;
@@ -441,7 +425,8 @@ export function Kitchen({ base, palette: sharedPalette, furnitureEditing, applia
         <BarStool base={base} palette={palette} x={5.7} z={3.32} />
       </EditableFurniture>
 
-      <IslandBowl base={base + 0.993} palette={palette} x={5.25} z={2.42} />
+      <InteriorMoodProp palette={palette} id="kitchen-preparation" {...interiorStyling.kitchenPreparation} base={base + interiorStyling.kitchenPreparation.heightCm / 100} />
+      <InteriorMoodProp palette={palette} id="kitchen-herbs" {...interiorStyling.kitchenHerbs} base={base + interiorStyling.kitchenHerbs.heightCm / 100} />
       <Pendant base={base} palette={palette} x={4.95} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />
       <Pendant base={base} palette={palette} x={5.75} z={2.42} y={kitchenPresentation.pendantHeightCm / 100} lightsOn={lightsOn} nightFactor={nightFactor} />
     </group>

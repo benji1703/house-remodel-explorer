@@ -10,6 +10,66 @@ export function GardenDiagnostics() {
   useEffect(() => {
     if (process.env.NODE_ENV === "production" || !new URLSearchParams(location.search).has("gardenQA")) return;
     const api = {
+      openings: () => {
+        state.scene.updateMatrixWorld(true);
+        const walls: THREE.Object3D[] = [];
+        state.scene.traverse((node) => { if (node.userData.wallRun) walls.push(node); });
+        const report: object[] = [];
+        state.scene.traverse((node) => {
+          const opening = node.userData.opening;
+          if (!opening) return;
+          const inverse = node.matrixWorld.clone().invert();
+          const bounds = new THREE.Box3();
+          node.traverse((frame) => {
+            if (!frame.userData.fittedFrame) return;
+            frame.traverse((part) => {
+              if (!(part instanceof THREE.Mesh)) return;
+              part.geometry.computeBoundingBox();
+              bounds.union(part.geometry.boundingBox!.clone().applyMatrix4(inverse.clone().multiply(part.matrixWorld)));
+            });
+          });
+          const thickness = node.userData.wallThickness;
+          // Probe just outside the fitted frame against actual wall meshes.
+          // This catches oversized punches even if a casing hides the gap.
+          const probes = [
+            [-opening.width / 2 - 0.001, (opening.sill + opening.head) / 2],
+            [opening.width / 2 + 0.001, (opening.sill + opening.head) / 2],
+            [0, opening.head + 0.001],
+          ];
+          const wallContact = probes.map(([x, y]) => {
+            const origin = new THREE.Vector3(x, y, thickness / 2 + 0.01).applyMatrix4(node.matrixWorld);
+            const direction = new THREE.Vector3(0, 0, -1).transformDirection(node.matrixWorld);
+            return new THREE.Raycaster(origin, direction, 0, thickness + 0.02).intersectObjects(walls, true).length > 0;
+          });
+          report.push({ name: node.name, kind: node.userData.kind, opening, thickness, frame: { min: bounds.min.toArray(), max: bounds.max.toArray() }, wallContact });
+        });
+        return report;
+      },
+      glazedDoors: () => {
+        state.scene.updateMatrixWorld(true);
+        const report: object[] = [];
+        state.scene.traverse((node) => {
+          const leaf = node.userData.glazedDoorLeaf;
+          if (!leaf) return;
+          const x = leaf.width * 0.28; // clear of the central muntin
+          const origin = new THREE.Vector3(x, leaf.glassY, 0.05).applyMatrix4(node.matrixWorld);
+          const direction = new THREE.Vector3(0, 0, -1).transformDirection(node.matrixWorld);
+          const hits = new THREE.Raycaster(origin, direction, 0, 0.1).intersectObjects(node.children, true);
+          report.push({ name: node.parent?.parent?.name, hits: hits.map((hit) => hit.object.name).filter(Boolean) });
+        });
+        return report;
+      },
+      interiors: () => {
+        const report: object[] = [];
+        state.scene.traverseVisible((node) => {
+          if (!node.userData.interiorAsset) return;
+          let owner = node.parent;
+          while (owner && !owner.userData.furnitureId) owner = owner.parent;
+          const box = new THREE.Box3().setFromObject(node);
+          report.push({ name: node.name, asset: node.userData.interiorAsset, owner: owner?.userData.furnitureId, loaded: !box.isEmpty(), bounds: { min: box.min.toArray(), max: box.max.toArray() } });
+        });
+        return report;
+      },
       surfaces: () => {
         const materials = new Set<THREE.MeshStandardMaterial>();
         state.scene.traverseVisible((object) => {
@@ -35,6 +95,7 @@ export function GardenDiagnostics() {
         dpr: state.gl.getPixelRatio(), size: state.size,
         drawingBuffer: state.gl.getDrawingBufferSize(new THREE.Vector2()).toArray(),
         frames: state.gl.info.render.frame,
+        contactShadowRevision: state.scene.getObjectByName("scene-contact-shadows")?.userData.geometryRevision ?? 0,
         lod: (() => {
           const counts: Record<string, number> = {};
           state.scene.traverseVisible((object) => {

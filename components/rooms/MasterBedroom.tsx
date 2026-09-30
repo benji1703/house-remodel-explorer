@@ -2,6 +2,8 @@
 import type { Palette } from "./shared";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
 import { BedsideLamp, FURN, Nightstand, Pendant, QueenBed } from "./furniture";
+import { InteriorMoodProp } from "./InteriorMoodProps";
+import { interiorStyling } from "@/data/interiorStyling";
 import { ArtTV, BedroomRug, DraperyPair } from "./LuxuryDetails";
 
 /**
@@ -31,13 +33,13 @@ export function MasterBedroom({
 
       <EditableFurniture id="master-nightstand-west" editing={furnitureEditing} x={0.55} z={11.55} base={base}>
         <Nightstand base={base} palette={palette} x={0.55} z={11.55} />
+        <BedsideLamp base={base + FURN.nightstand.h} x={0.55} z={11.55} nightFactor={nightFactor} />
       </EditableFurniture>
       <EditableFurniture id="master-nightstand-east" editing={furnitureEditing} x={2.85} z={11.55} base={base}>
         <Nightstand base={base} palette={palette} x={2.85} z={11.55} />
+        <BedsideLamp base={base + FURN.nightstand.h} x={2.85} z={11.55} nightFactor={nightFactor} />
+        <InteriorMoodProp palette={palette} id="bedside-reading" xCm={285 + interiorStyling.bedsideBooksOffset.xCm} zCm={1155 + interiorStyling.bedsideBooksOffset.zCm} base={base + FURN.nightstand.h} />
       </EditableFurniture>
-
-      <BedsideLamp base={base + FURN.nightstand.h} x={0.55} z={11.55} nightFactor={nightFactor} />
-      <BedsideLamp base={base + FURN.nightstand.h} x={2.85} z={11.55} nightFactor={nightFactor} />
 
       <ArtTV base={base} x={3.285} z={10.32} wall="east" width={1.08} height={0.64} />
       <DraperyPair base={base} x={1.72} z={12.0} wall="south" span={1.5} />

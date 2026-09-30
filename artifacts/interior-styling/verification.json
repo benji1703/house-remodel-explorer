@@ -1,0 +1,1537 @@
+{
+  "errors": [],
+  "cases": [
+    {
+      "name": "living",
+      "props": [
+        {
+          "asset": "oak-counter-stool",
+          "owner": "kitchen-stool-north"
+        },
+        {
+          "asset": "oak-counter-stool",
+          "owner": "kitchen-stool-south"
+        },
+        {
+          "asset": "kitchen-preparation"
+        },
+        {
+          "asset": "kitchen-herbs"
+        },
+        {
+          "asset": "living-rug"
+        },
+        {
+          "asset": "sofa-linen",
+          "owner": "living-sofa"
+        },
+        {
+          "asset": "oak-coffee-table",
+          "owner": "living-coffee-table"
+        },
+        {
+          "asset": "coffee-still-life",
+          "owner": "living-coffee-table"
+        },
+        {
+          "asset": "linen-lounge-chair",
+          "owner": "living-lounge-chair"
+        },
+        {
+          "asset": "linen-lounge-chair"
+        },
+        {
+          "asset": "reading-lamp"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 476,
+        "triangles": 1405672,
+        "geometries": 714,
+        "textures": 38,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 128,
+        "lod": {
+          "light": 45,
+          "far": 772
+        },
+        "clearAlpha": 0,
+        "camera": [
+          2.43,
+          2.2400000000000007,
+          4.129999999999999
+        ],
+        "target": [
+          -0.5,
+          0.86,
+          0
+        ],
+        "direction": [
+          -0.5582603354051552,
+          -0.26293490199969777,
+          -0.7868993806222835
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 2.099999997764826
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 2.100000001490116
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 2
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot.glb",
+            "bytes": 194603,
+            "duration": 6.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-counter-stool.glb",
+            "bytes": 13469,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/living-rug.glb",
+            "bytes": 18464,
+            "duration": 1.800000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/sofa-linen.glb",
+            "bytes": 42782,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-coffee-table.glb",
+            "bytes": 9131,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair.glb",
+            "bytes": 32066,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/interior/reading-lamp.glb",
+            "bytes": 15459,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 8.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 2.800000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 2.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 2.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 2.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/coffee-still-life.glb",
+            "bytes": 41998,
+            "duration": 2.399999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-preparation.glb",
+            "bytes": 46165,
+            "duration": 2.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-herbs.glb",
+            "bytes": 20972,
+            "duration": 1.7999999970197678
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 2.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 2.7000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 2
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 3.900000002235174
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-light.glb?v=mood-v3",
+            "bytes": 942025,
+            "duration": 28.399999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-light.glb?v=mood-v3",
+            "bytes": 107159,
+            "duration": 4.899999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-light.glb?v=mood-v3",
+            "bytes": 97832,
+            "duration": 3.899999998509884
+          }
+        ]
+      }
+    },
+    {
+      "name": "kitchen",
+      "props": [
+        {
+          "asset": "oak-counter-stool",
+          "owner": "kitchen-stool-north"
+        },
+        {
+          "asset": "oak-counter-stool",
+          "owner": "kitchen-stool-south"
+        },
+        {
+          "asset": "kitchen-preparation"
+        },
+        {
+          "asset": "kitchen-herbs"
+        },
+        {
+          "asset": "living-rug"
+        },
+        {
+          "asset": "sofa-linen",
+          "owner": "living-sofa"
+        },
+        {
+          "asset": "oak-coffee-table",
+          "owner": "living-coffee-table"
+        },
+        {
+          "asset": "linen-lounge-chair",
+          "owner": "living-lounge-chair"
+        },
+        {
+          "asset": "linen-lounge-chair"
+        },
+        {
+          "asset": "reading-lamp"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 246,
+        "triangles": 110470,
+        "geometries": 511,
+        "textures": 38,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 126,
+        "lod": {
+          "far": 820
+        },
+        "clearAlpha": 0,
+        "camera": [
+          -3.3000000000000007,
+          2.3499999999999996,
+          -1.899999999999999
+        ],
+        "target": [
+          -0.20000000000000018,
+          1.2000000000000002,
+          -4.6
+        ],
+        "direction": [
+          0.7262024577234039,
+          -0.26939768592964963,
+          -0.6324989147913518
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-counter-stool.glb",
+            "bytes": 13469,
+            "duration": 0.8999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/interior/living-rug.glb",
+            "bytes": 18464,
+            "duration": 0.6999999992549419
+          },
+          {
+            "url": "http://localhost:3000/models/interior/sofa-linen.glb",
+            "bytes": 42782,
+            "duration": 0.6999999992549419
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-coffee-table.glb",
+            "bytes": 9131,
+            "duration": 0.6999999992549419
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair.glb",
+            "bytes": 32066,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/interior/reading-lamp.glb",
+            "bytes": 15459,
+            "duration": 0.7000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot.glb",
+            "bytes": 194603,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 2.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/coffee-still-life.glb",
+            "bytes": 41998,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-preparation.glb",
+            "bytes": 46165,
+            "duration": 1.2999999970197678
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-herbs.glb",
+            "bytes": 20972,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.0999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.5
+          }
+        ]
+      }
+    },
+    {
+      "name": "master",
+      "props": [
+        {
+          "asset": "linen-lounge-chair",
+          "owner": "master-patio-chair"
+        },
+        {
+          "asset": "bed-linen",
+          "owner": "master-bed"
+        },
+        {
+          "asset": "bedside-reading",
+          "owner": "master-nightstand-east"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 223,
+        "triangles": 1097654,
+        "geometries": 522,
+        "textures": 39,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 128,
+        "lod": {
+          "far": 688,
+          "light": 132
+        },
+        "clearAlpha": 0,
+        "camera": [
+          -5.73,
+          2.11,
+          1.7800000000000002
+        ],
+        "target": [
+          -4,
+          0.82,
+          4.7
+        ],
+        "direction": [
+          0.47646651903952775,
+          -0.3552842829832316,
+          0.8042093847372376
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair.glb",
+            "bytes": 32066,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot.glb",
+            "bytes": 194603,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/interior/bed-linen.glb",
+            "bytes": 42128,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/bedside-reading.glb",
+            "bytes": 29441,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-light.glb?v=mood-v3",
+            "bytes": 135807,
+            "duration": 5.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-light.glb?v=mood-v3",
+            "bytes": 112625,
+            "duration": 3.899999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-light.glb?v=mood-v3",
+            "bytes": 47344,
+            "duration": 3.800000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-light.glb?v=mood-v3",
+            "bytes": 11499,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-light.glb?v=mood-v3",
+            "bytes": 11320,
+            "duration": 1
+          }
+        ]
+      }
+    },
+    {
+      "name": "guest",
+      "props": [
+        {
+          "asset": "bed-linen",
+          "owner": "east-upper-bed"
+        },
+        {
+          "asset": "linen-lounge-chair",
+          "owner": "east-upper-chair"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 158,
+        "triangles": 1331872,
+        "geometries": 487,
+        "textures": 41,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 129,
+        "lod": {
+          "far": 666,
+          "high": 6,
+          "light": 148
+        },
+        "clearAlpha": 0,
+        "camera": [
+          1.2000000000000006,
+          2.1500000000000004,
+          -0.6999999999999998
+        ],
+        "target": [
+          4.3,
+          0.86,
+          0.65
+        ],
+        "direction": [
+          0.8566085643503476,
+          -0.3564596929070803,
+          0.37303921350740926
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/bed-linen.glb",
+            "bytes": 42128,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair.glb",
+            "bytes": 32066,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 1.8999999985098839
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.0999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea.glb?v=mood-v3",
+            "bytes": 1497927,
+            "duration": 131.39999999850988
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-light.glb?v=mood-v3",
+            "bytes": 135807,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-light.glb?v=mood-v3",
+            "bytes": 112625,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-light.glb?v=mood-v3",
+            "bytes": 107159,
+            "duration": 1.2999999970197678
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-light.glb?v=mood-v3",
+            "bytes": 47344,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-light.glb?v=mood-v3",
+            "bytes": 11499,
+            "duration": 0.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color.ktx2",
+            "bytes": 1380187,
+            "duration": 4.100000001490116
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal.ktx2",
+            "bytes": 1363955,
+            "duration": 3.899999998509884
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness.ktx2",
+            "bytes": 1102013,
+            "duration": 3.400000002235174
+          }
+        ]
+      }
+    },
+    {
+      "name": "east-bedroom",
+      "props": [
+        {
+          "asset": "bed-linen",
+          "owner": "east-lower-bed"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 130,
+        "triangles": 932021,
+        "geometries": 483,
+        "textures": 41,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 127,
+        "lod": {
+          "far": 685,
+          "high": 3,
+          "light": 131
+        },
+        "clearAlpha": 0,
+        "camera": [
+          1.2300000000000013,
+          2.11,
+          1.9800000000000009
+        ],
+        "target": [
+          4.3,
+          0.82,
+          4.6
+        ],
+        "direction": [
+          0.7245444297314813,
+          -0.30445026526176266,
+          0.6183408488262158
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/interior/bed-linen.glb",
+            "bytes": 42128,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 2.099999997764826
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.0999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea.glb?v=mood-v3",
+            "bytes": 1497927,
+            "duration": 117.20000000298023
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-light.glb?v=mood-v3",
+            "bytes": 135807,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-light.glb?v=mood-v3",
+            "bytes": 112625,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-light.glb?v=mood-v3",
+            "bytes": 107159,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-light.glb?v=mood-v3",
+            "bytes": 47344,
+            "duration": 0.8999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-light.glb?v=mood-v3",
+            "bytes": 11499,
+            "duration": 0.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-light.glb?v=mood-v3",
+            "bytes": 11320,
+            "duration": 0.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color.ktx2",
+            "bytes": 1380187,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal.ktx2",
+            "bytes": 1363955,
+            "duration": 2
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness.ktx2",
+            "bytes": 1102013,
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "bathroom",
+      "props": [
+        {
+          "asset": "bath-linen"
+        }
+      ],
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 205,
+        "triangles": 1158603,
+        "geometries": 499,
+        "textures": 38,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 165,
+        "lod": {
+          "far": 633,
+          "light": 183,
+          "high": 3
+        },
+        "clearAlpha": 0,
+        "camera": [
+          -2.0999999999999996,
+          2.1500000000000004,
+          3.15
+        ],
+        "target": [
+          0.55,
+          0.95,
+          5.15
+        ],
+        "direction": [
+          0.7506600238551687,
+          -0.339921520236303,
+          0.566535867060505
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.5999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/mood/toilet-wall-hung.glb",
+            "bytes": 10703,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 2.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/bath-linen.glb",
+            "bytes": 10438,
+            "duration": 1.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.0999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-light.glb?v=mood-v3",
+            "bytes": 942025,
+            "duration": 4.200000002980232
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-light.glb?v=mood-v3",
+            "bytes": 135807,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-light.glb?v=mood-v3",
+            "bytes": 112625,
+            "duration": 1.2999999970197678
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-light.glb?v=mood-v3",
+            "bytes": 107159,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-light.glb?v=mood-v3",
+            "bytes": 47344,
+            "duration": 0.8000000007450581
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius.glb?v=mood-v3",
+            "bytes": 20377,
+            "duration": 2.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-light.glb?v=mood-v3",
+            "bytes": 11499,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-light.glb?v=mood-v3",
+            "bytes": 11320,
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "editable-table",
+      "resizeAndRemoval": true
+    },
+    {
+      "name": "living-light",
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 461,
+        "triangles": 1490532,
+        "geometries": 746,
+        "textures": 61,
+        "dpr": 1,
+        "size": {
+          "width": 1098,
+          "height": 876,
+          "top": 73,
+          "left": 11
+        },
+        "drawingBuffer": [
+          1098,
+          876
+        ],
+        "frames": 349,
+        "lod": {
+          "light": 51,
+          "far": 766
+        },
+        "clearAlpha": 0,
+        "camera": [
+          2.43,
+          2.2400000000000007,
+          4.129999999999999
+        ],
+        "target": [
+          -0.5,
+          0.86,
+          0
+        ],
+        "direction": [
+          -0.5582603354051552,
+          -0.26293490199969777,
+          -0.7868993806222835
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot.glb",
+            "bytes": 194603,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-counter-stool.glb",
+            "bytes": 13469,
+            "duration": 1.0999999977648258
+          },
+          {
+            "url": "http://localhost:3000/models/interior/living-rug.glb",
+            "bytes": 18464,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/interior/sofa-linen.glb",
+            "bytes": 42782,
+            "duration": 1.1000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-coffee-table.glb",
+            "bytes": 9131,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair.glb",
+            "bytes": 32066,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/reading-lamp.glb",
+            "bytes": 15459,
+            "duration": 0.9000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 2.2999999970197678
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.6000000014901161
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/coffee-still-life.glb",
+            "bytes": 41998,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-preparation.glb",
+            "bytes": 46165,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-herbs.glb",
+            "bytes": 20972,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-light.glb?v=mood-v3",
+            "bytes": 942025,
+            "duration": 3.900000002235174
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-light.glb?v=mood-v3",
+            "bytes": 107159,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-light.glb?v=mood-v3",
+            "bytes": 97832,
+            "duration": 1.300000000745058
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot-light.glb",
+            "bytes": 132084,
+            "duration": 6.299999997019768
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-counter-stool-light.glb",
+            "bytes": 13259,
+            "duration": 2.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-herbs-light.glb",
+            "bytes": 14057,
+            "duration": 2.399999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-preparation-light.glb",
+            "bytes": 42034,
+            "duration": 3.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/living-rug-light.glb",
+            "bytes": 25267,
+            "duration": 2.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/sofa-linen-light.glb",
+            "bytes": 35036,
+            "duration": 3
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-coffee-table-light.glb",
+            "bytes": 6730,
+            "duration": 3.399999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/interior/coffee-still-life-light.glb",
+            "bytes": 31201,
+            "duration": 4.200000002980232
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair-light.glb",
+            "bytes": 21325,
+            "duration": 3.899999998509884
+          },
+          {
+            "url": "http://localhost:3000/models/interior/reading-lamp-light.glb",
+            "bytes": 19102,
+            "duration": 3.800000000745058
+          }
+        ]
+      }
+    },
+    {
+      "name": "survey-shell",
+      "stylingAbsent": true
+    },
+    {
+      "name": "orthographic",
+      "allFrameContacts": true
+    },
+    {
+      "name": "mobile-kitchen",
+      "snapshot": {
+        "renderer": "WebKit WebGL",
+        "cameraType": "PerspectiveCamera",
+        "calls": 231,
+        "triangles": 51088,
+        "geometries": 354,
+        "textures": 35,
+        "dpr": 1.5,
+        "size": {
+          "width": 388,
+          "height": 701,
+          "top": 49,
+          "left": 1
+        },
+        "drawingBuffer": [
+          582,
+          1051
+        ],
+        "frames": 108,
+        "lod": {
+          "far": 820
+        },
+        "clearAlpha": 0,
+        "camera": [
+          -3.3000000000000007,
+          2.3499999999999996,
+          -1.899999999999999
+        ],
+        "target": [
+          -0.20000000000000018,
+          1.2000000000000002,
+          -4.6
+        ],
+        "direction": [
+          0.7262024577234039,
+          -0.26939768592964963,
+          -0.6324989147913518
+        ],
+        "assets": [
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-normal-light.ktx2",
+            "bytes": 341606,
+            "duration": 3.699999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-color-light.ktx2",
+            "bytes": 310145,
+            "duration": 3.599999997764826
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/gravel-roughness-light.ktx2",
+            "bytes": 278857,
+            "duration": 3.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-counter-stool-light.glb",
+            "bytes": 13259,
+            "duration": 1.4000000022351742
+          },
+          {
+            "url": "http://localhost:3000/models/interior/living-rug-light.glb",
+            "bytes": 25267,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/interior/sofa-linen-light.glb",
+            "bytes": 35036,
+            "duration": 2.099999997764826
+          },
+          {
+            "url": "http://localhost:3000/models/interior/oak-coffee-table-light.glb",
+            "bytes": 6730,
+            "duration": 1.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/models/interior/linen-lounge-chair-light.glb",
+            "bytes": 21325,
+            "duration": 1.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/reading-lamp-light.glb",
+            "bytes": 19102,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/mood/olive-pot-light.glb",
+            "bytes": 132084,
+            "duration": 4.100000001490116
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/olea-europaea-far.glb?v=mood-v3",
+            "bytes": 294701,
+            "duration": 8.899999998509884
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-color-light.ktx2",
+            "bytes": 350053,
+            "duration": 2.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-normal-light.ktx2",
+            "bytes": 341913,
+            "duration": 2.2000000029802322
+          },
+          {
+            "url": "http://localhost:3000/textures/landscape/bark-roughness-light.ktx2",
+            "bytes": 284270,
+            "duration": 1.8999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-rosmarinus-far.glb?v=mood-v3",
+            "bytes": 48155,
+            "duration": 2.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/salvia-fruticosa-far.glb?v=mood-v3",
+            "bytes": 41151,
+            "duration": 2.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/interior/coffee-still-life-light.glb",
+            "bytes": 31201,
+            "duration": 1.8999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-preparation-light.glb",
+            "bytes": 42034,
+            "duration": 2.600000001490116
+          },
+          {
+            "url": "http://localhost:3000/models/interior/kitchen-herbs-light.glb",
+            "bytes": 14057,
+            "duration": 1.3999999985098839
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/myrtus-communis-far.glb?v=mood-v3",
+            "bytes": 39205,
+            "duration": 2.199999999254942
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/limonium-perezii-far.glb?v=mood-v3",
+            "bytes": 19920,
+            "duration": 3.599999997764826
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/leymus-arenarius-far.glb?v=mood-v3",
+            "bytes": 3889,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/lomandra-longifolia-far.glb?v=mood-v3",
+            "bytes": 3751,
+            "duration": 1.5
+          },
+          {
+            "url": "http://localhost:3000/models/landscape/trachelospermum-jasminoides-far.glb?v=mood-v3",
+            "bytes": 81506,
+            "duration": 3.600000001490116
+          }
+        ]
+      }
+    }
+  ],
+  "passed": true
+}

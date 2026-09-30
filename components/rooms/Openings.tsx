@@ -42,16 +42,20 @@ function FrameRect({
   depth,
   material,
   includeBottom = true,
+  trim = FRAME,
+  fitted = false,
 }: {
   w: number;
   h: number;
   depth: number;
   material: THREE.Material;
   includeBottom?: boolean;
+  trim?: number;
+  fitted?: boolean;
 }) {
-  const t = FRAME;
+  const t = trim;
   return (
-    <group>
+    <group userData={fitted ? { fittedFrame: true } : undefined}>
       <mesh position={[-(w - t) / 2, 0, 0]} material={material} castShadow>
         <boxGeometry args={[t, h, depth]} />
       </mesh>
@@ -68,6 +72,17 @@ function FrameRect({
       )}
     </group>
   );
+}
+
+/** Oak architrave laps onto both plaster faces; the jamb fills the wall depth. */
+function DoorCasing({ width, height, wallThickness, material }: {
+  width: number; height: number; wallThickness: number; material: THREE.Material;
+}) {
+  return <>{[-1, 1].map((side) => (
+    <group key={side} position={[0, 0.01, side * (wallThickness / 2 + 0.006)]}>
+      <FrameRect w={width + 0.04} h={height + 0.02} depth={0.016} trim={0.06} material={material} includeBottom={false} />
+    </group>
+  ))}</>;
 }
 
 /** Horizontal louvre shutter leaf — Klil Belgian 1300 character. */
@@ -154,9 +169,9 @@ export function BelgianWindow({
   return (
     <group position={[0, midY, 0]}>
       <group position={[0, 0, frameZ]}>
-        <FrameRect w={width - 0.02} h={h - 0.01} depth={frameDepth} material={palette.frame} />
+        <FrameRect w={width} h={h} depth={frameDepth} material={palette.frame} fitted />
         <mesh material={palette.glass}>
-          <boxGeometry args={[width - FRAME * 2 - 0.02, h - FRAME * 2 - 0.01, GLASS_T]} />
+          <boxGeometry args={[width - FRAME * 2, h - FRAME * 2, GLASS_T]} />
         </mesh>
         {muntins.map((bar, i) => (
           <mesh
@@ -233,7 +248,7 @@ export function BelgianDoor({
   const midY = h / 2;
   const glassH = h * 0.42;
   const glassY = h * 0.22;
-  const jambDepth = Math.max(wallThickness - 0.01, 0.1);
+  const jambDepth = wallThickness;
   const leafW = width - FRAME * 2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
@@ -265,7 +280,8 @@ export function BelgianDoor({
       onPointerEnter={() => { if (onToggle) document.body.style.cursor = "pointer"; }}
       onPointerLeave={() => { document.body.style.cursor = "default"; }}
     >
-      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={exterior} />
+      <FrameRect w={width} h={h} depth={jambDepth} material={wood} includeBottom={exterior} fitted />
+      <DoorCasing width={width} height={h} wallThickness={wallThickness} material={wood} />
       <group
         ref={leafRef}
         position={[-(width / 2 - FRAME), 0, hingeZ]}
@@ -282,19 +298,22 @@ export function BelgianDoor({
           if (onToggle) document.body.style.cursor = "default";
         }}
       >
-        <group position={[leafW / 2, 0, 0]}>
-          <mesh material={wood} castShadow receiveShadow>
-            <boxGeometry args={[leafW, leafH, DOOR_LEAF_THICK]} />
-          </mesh>
-          <mesh position={[0, 0, DOOR_LEAF_THICK / 2 + 0.002]} material={wood} castShadow>
-            <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
-          </mesh>
-          <mesh position={[0, 0, -(DOOR_LEAF_THICK / 2 + 0.002)]} material={wood} castShadow>
-            <boxGeometry args={[leafW - 0.004, leafH - 0.004, 0.004]} />
-          </mesh>
+        <group position={[leafW / 2, 0, 0]} userData={glazed ? { glazedDoorLeaf: { width: leafW, glassY, glassH } } : undefined}>
+          {/* Rails and stiles surround the existing glass dimensions. A solid
+              leaf behind the pane made the exterior doors completely opaque. */}
+          {(glazed ? [
+            { x: -(leafW - FRAME) / 2, y: 0, w: FRAME, h: leafH },
+            { x: (leafW - FRAME) / 2, y: 0, w: FRAME, h: leafH },
+            { x: 0, y: (glassY - glassH / 2 - leafH / 2) / 2, w: leafW - FRAME * 2, h: glassY - glassH / 2 + leafH / 2 },
+            { x: 0, y: (glassY + glassH / 2 + leafH / 2) / 2, w: leafW - FRAME * 2, h: leafH / 2 - glassY - glassH / 2 },
+          ] : [{ x: 0, y: 0, w: leafW, h: leafH }]).map((panel, index) => (
+            <mesh key={index} position={[panel.x, panel.y, 0]} material={wood} castShadow receiveShadow>
+              <boxGeometry args={[panel.w, panel.h, DOOR_LEAF_THICK]} />
+            </mesh>
+          ))}
           {glazed && (
             <>
-              <mesh position={[0, glassY, 0]} material={palette.glass}>
+              <mesh name="glazed-door-pane" position={[0, glassY, 0]} material={palette.glass}>
                 <boxGeometry args={[leafW - FRAME * 2, glassH, GLASS_T]} />
               </mesh>
               <mesh position={[0, glassY, DOOR_LEAF_THICK / 2 + 0.006]} material={wood}>
@@ -359,7 +378,7 @@ export function SlidingDoor({
 }) {
   const h = head;
   const midY = h / 2;
-  const jambDepth = Math.max(wallThickness - 0.01, 0.08);
+  const jambDepth = wallThickness;
   const leafW = width - FRAME * 1.2;
   const leafH = h - FRAME * 2;
   const wood = palette.oak;
@@ -396,7 +415,8 @@ export function SlidingDoor({
       onPointerEnter={() => { if (onToggle) document.body.style.cursor = "pointer"; }}
       onPointerLeave={() => { document.body.style.cursor = "default"; }}
     >
-      <FrameRect w={width - 0.02} h={h - 0.01} depth={jambDepth} material={wood} includeBottom={false} />
+      <FrameRect w={width} h={h} depth={jambDepth} material={wood} includeBottom={false} fitted />
+      <DoorCasing width={width} height={h} wallThickness={wallThickness} material={wood} />
       <mesh position={[0, h / 2 - FRAME * 0.6, trackZ]} material={palette.charcoal}>
         <boxGeometry args={[width - FRAME, 0.02, 0.028]} />
       </mesh>
@@ -444,7 +464,7 @@ export function BelgianTerraceDoors({
 }) {
   const leafW = width / leafCount;
   const midY = head / 2;
-  const frameDepth = Math.max(wallThickness - 0.02, 0.08);
+  const frameDepth = wallThickness;
   const extFace = -(wallThickness / 2) - 0.01;
   const leavesRef = useRef<Array<THREE.Group | null>>([]);
 
@@ -462,7 +482,7 @@ export function BelgianTerraceDoors({
   });
   return (
     <group position={[0, midY, 0]}>
-      <FrameRect w={width} h={head} depth={frameDepth} material={palette.frame} />
+      <FrameRect w={width} h={head} depth={frameDepth} material={palette.frame} fitted />
       {Array.from({ length: leafCount }, (_, i) => {
         const x = -width / 2 + leafW * (i + 0.5);
         return (
@@ -536,7 +556,7 @@ export function OpeningOnWall({
   const pz = a[1] + (dz / length) * opening.at;
 
   return (
-    <group position={[px - CX, 0, pz - CZ]} rotation-y={-angle}>
+    <group name={`opening-${a.join("-")}-${opening.at}`} userData={{ opening, kind, wallThickness }} position={[px - CX, 0, pz - CZ]} rotation-y={-angle}>
       {kind === "window" && (
         <BelgianWindow
           width={opening.width}

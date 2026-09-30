@@ -143,3 +143,12 @@ No detailed 3D asset, furniture plan, kitchen layout, opening, or appliance plac
 
 - Strengthened the wall pigment to warm beige and the microcement to sand beige, with a separate lighter cream ceiling; these are finish choices only. Mood-image detail remains subtle.
 - Consolidated floating controls into one warm toolbar; reduced the desktop FPS overlay, kept the movement pad available on demand and always visible on touch layouts, and added finish swatches to a slimmer room navigator.
+
+## Opening fit and interior styling — 2026-09-30
+
+- Removed the renderer-only 12 mm widening on each jamb and the separate 10 mm frame inset (22 mm of visible daylight per side). Wall punches and fitted window/door frames now share the existing opening width, sill and head datums in `data/structuralWalls.ts`.
+- Door jambs span the full existing partition depth, with oak casing overlapping both plaster faces. The overview section now sits 6 cm above the tallest opening (246 cm in the current model); the previous 235 cm display cut severed the head of the 240 cm living glazing. This is a display section, not a ceiling-height revision.
+- The footprint, opening schedule, wall thicknesses and room levels are unchanged. The measured source comparison and orthographic check are saved under `artifacts/interior-styling/`.
+- New furnishings are proposed removable fit-out, guided by the mood artifact: curved linen chairs, an oak slab-leg coffee table, woven counter stools, rugs, cushions, throws, reading lamp, ceramics, books and kitchen preparation pieces. References and proposed placement coordinates are recorded in `data/interiorStyling.ts`; no mood-image room dimensions or layout were copied.
+- Blender authoring: `scripts/build-interior-mood.py`; the tailored 220 cm sofa has a reproducible Three.js builder at `scripts/build-tailored-sofa.mjs`. Meshopt packing: `scripts/pack-interior-mood.mjs`. Separate high/light GLBs load by room and projected detail. Furniture-supported accessories share the owner's edit/removal transform.
+- `scripts/verify-interior-styling.mjs` checks actual frame bounds and ray-tests both jambs and the head against wall meshes for all 18 openings, plus the clear glazing in exterior door leaves. It also exercises furniture scaling/removal, contact-shadow refresh, survey mode, the orthographic view and mobile asset loading.

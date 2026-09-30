@@ -1,0 +1,22 @@
+{
+  "errors": [],
+  "scenes": [
+    {
+      "profile": "desktop",
+      "means": {
+        "Soft daylight": 169.45961515068302,
+        "Golden hour": 153.40960634149195,
+        "Evening glow": 115.77850320684604
+      }
+    },
+    {
+      "profile": "mobile",
+      "means": {
+        "Soft daylight": 162.2636119215471,
+        "Golden hour": 137.85972337147697,
+        "Evening glow": 83.16426471589293
+      }
+    }
+  ],
+  "passed": true
+}

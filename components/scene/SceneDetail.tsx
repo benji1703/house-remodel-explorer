@@ -6,6 +6,12 @@ import * as THREE from "three";
 
 const DetailContext = createContext(false);
 export const useSceneDetail = () => useContext(DetailContext);
+const QualityContext = createContext<"high" | "light">("high");
+export const SceneQualityProvider = QualityContext.Provider;
+export const useSceneQuality = () => useContext(QualityContext);
+const ShadowRefreshContext = createContext<() => void>(() => {});
+export const ShadowRefreshProvider = ShadowRefreshContext.Provider;
+export const useShadowRefresh = () => useContext(ShadowRefreshContext);
 
 /** Screen-space detail with separate entry/exit thresholds prevents zoom flicker.
  * CSS pixels, not device pixels: a Retina display must not load a bigger scene.

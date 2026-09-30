@@ -29,7 +29,7 @@ import { GardenDiagnostics } from "./scene/GardenDiagnostics";
 import { LightingRig } from "./scene/LightingRig";
 import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
-import { RoomDetail } from "./scene/SceneDetail";
+import { RoomDetail, SceneQualityProvider, ShadowRefreshProvider } from "./scene/SceneDetail";
 import { SceneFirstFrame, SceneLoading, ScenePending } from "./scene/SceneLoading";
 import { RenderBudget } from "./scene/RenderBudget";
 import { getDaylight } from "@/lib/daylight";
@@ -366,9 +366,9 @@ function CameraDirector({
   return null;
 }
 
-// Dollhouse cut: above window heads so punched openings read as true holes
-// (bedroom window head 2.20) while still allowing an overhead look into rooms.
-const SECTION = 2.35;
+// Keep a visible lintel above the tallest fitted opening, including the
+// 240 cm living glazing. A 235 cm cut left that frame floating above its wall.
+const SECTION = Math.max(...Object.values(exteriorOpenings).flat().map((opening) => opening.head)) + 0.06;
 
 function finish(
   color: string,
@@ -741,11 +741,11 @@ function WallRun({
   const pieces = useMemo(() => {
     const out: Array<{ from: number; to: number; bottom: number; top: number }> = [];
     let cursor = -ext;
-    // Slight reveal so frame isn't coplanar with wall jambs.
-    const reveal = 0.012;
+    // The punched wall and fitted frame share the exact opening datum.
+    // A reveal is wall depth, not an air gap around the frame perimeter.
     for (const opening of [...openings].sort((left, right) => left.at - right.at)) {
-      const from = opening.at - opening.width / 2 - reveal;
-      const to = opening.at + opening.width / 2 + reveal;
+      const from = opening.at - opening.width / 2;
+      const to = opening.at + opening.width / 2;
       if (from > cursor) out.push({ from: cursor, to: from, bottom: 0, top: height });
       if (opening.sill > 0) out.push({ from, to, bottom: 0, top: Math.min(opening.sill, height) });
       if (opening.head < height) out.push({ from, to, bottom: opening.head, top: height });
@@ -756,7 +756,7 @@ function WallRun({
   }, [openings, length, height, ext]);
 
   return (
-    <group ref={groupRef} position={[(a[0] + b[0]) / 2 - CX, 0, (a[1] + b[1]) / 2 - CZ]} rotation-y={-angle}>
+    <group ref={groupRef} userData={{ wallRun: true }} position={[(a[0] + b[0]) / 2 - CX, 0, (a[1] + b[1]) / 2 - CZ]} rotation-y={-angle}>
       {pieces.map((piece, index) => (
         <mesh
           key={index}
@@ -936,6 +936,20 @@ function SceneContent({
   onLandscapeReady,
 }: Props & { walkInput: React.RefObject<WalkInput>; onReady: () => void; landscapeReady: "high" | "light" | null; onLandscapeReady: (quality: "high" | "light") => void }) {
   const { gl } = useThree();
+  const [geometryRevision, setGeometryRevision] = useState(0);
+  const shadowRefreshFrame = useRef<number | null>(null);
+  const refreshShadows = useCallback(() => {
+    // Asset effects run after commit. Batch concurrent arrivals so a room
+    // takes one fresh contact capture, without a perpetual shadow render loop.
+    if (shadowRefreshFrame.current !== null) return;
+    shadowRefreshFrame.current = requestAnimationFrame(() => {
+      shadowRefreshFrame.current = null;
+      setGeometryRevision((revision) => revision + 1);
+    });
+  }, []);
+  useEffect(() => () => {
+    if (shadowRefreshFrame.current !== null) cancelAnimationFrame(shadowRefreshFrame.current);
+  }, []);
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
     plasterSource,
@@ -1036,7 +1050,7 @@ function SceneContent({
 
   return (
     <>
-      <LightingRig designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
+      <LightingRig geometryRevision={geometryRevision} designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={onLandscapeReady} />}
       <FootprintSurface material={palette.ground} elevation={0.002} />
@@ -1123,7 +1137,7 @@ function SceneContent({
 
       {/* Room silhouettes stay legible; close details follow projected size as you zoom. */}
       {designMode && (
-        <>
+        <SceneQualityProvider value={quality}><ShadowRefreshProvider value={refreshShadows}>
           <RoomDetail center={[-3.9, 0.8, -0.15]} visible={(cameraMode !== "room" || selectedZone === "central-core")}><Terrace palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></RoomDetail>
           <RoomDetail center={[-7, 0.8, 4.2]} visible={(cameraMode !== "room" || selectedZone === "southwest-room")}><MasterPatio palette={palette} quality={quality} furnitureEditing={furnitureEditing} /></RoomDetail>
           <RoomDetail center={[-0.3, 0.8, -4.3]} visible={(cameraMode !== "room" || selectedZone === "north-extension" || selectedZone === "central-core")}>
@@ -1147,7 +1161,7 @@ function SceneContent({
           <RoomDetail center={[-1.5, 0.8, 4.7]} visible={(cameraMode !== "room" || selectedZone === "ensuite")}>
             <EnsuiteBathroom base={zoneById.ensuite.level} palette={palette} reflections={quality === "high" && cameraMode === "room" && selectedZone === "ensuite"} lightsOn={houseLightsOn} />
           </RoomDetail>
-        </>
+        </ShadowRefreshProvider></SceneQualityProvider>
       )}
 
       {!designMode && <gridHelper args={[28, 28, "#b8b1a5", "#d6d0c5"]} position={[0, -0.03, 0]} />}

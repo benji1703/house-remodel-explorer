@@ -10,6 +10,7 @@ import { CX, CZ } from "../rooms/shared";
 import { gardenLighting, interiorLighting, lightingProfiles, wetAreaLighting } from "@/data/lighting";
 
 export type LightingRigProps = {
+  geometryRevision: number;
   designMode: boolean;
   quality: "high" | "light";
   landscapeReady: "high" | "light" | null;
@@ -25,7 +26,7 @@ export type LightingRigProps = {
 };
 
 /** One lighting boundary: quality policy, daylight probe and shadow budget live together. */
-export const LightingRig = memo(function LightingRig({ designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
+export const LightingRig = memo(function LightingRig({ geometryRevision, designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
   const profile = lightingProfiles[quality];
   const garden = cameraMode === "garden";
   // Focus the same 2048 map on the room being inspected: finer contact edges
@@ -46,6 +47,7 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
   // store can publish synchronously while a child PlantBatch is rendering,
   // which would update LightingRig during PlantBatch render. Scene navigation,
   // quality and finish keys still remount the capture deterministically.
+  // Committed interior assets also request a batched geometry revision.
   const gardenSun = useMemo(() => sun.color.clone().lerp(new THREE.Color("#fff4df"), 0.3), [sun.color]);
   const localLights = designMode && profile.localLights && (cameraMode === "room" || cameraMode === "walk");
   // Practical fixtures are part of the house presentation, not a room-only
@@ -110,7 +112,7 @@ export const LightingRig = memo(function LightingRig({ designMode, quality, land
         <pointLight position={[5.15, 2.05, -1.65]} intensity={practicalLevel * 0.32} distance={4.5} decay={2} color="#ffd39a" />
         <pointLight position={[5.15, 2.05, 5.1]} intensity={practicalLevel * 0.28} distance={4.2} decay={2} color="#ffd39a" />
       </>}
-      {designMode && <ContactShadows frames={1} key={`${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={exterior ? [0, gardenLighting.contactElevationCm / 100, 0] : kitchenRoom ? [-0.2, 0.103, -4.0] : [0, 0.103, 0]} scale={exterior ? gardenLighting.contactSpanCm / 100 : kitchenRoom ? 6 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 2.5 : 2.6} far={exterior ? gardenLighting.contactFarCm / 100 : 2.4} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
+      {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={exterior ? [0, gardenLighting.contactElevationCm / 100, 0] : kitchenRoom ? [-0.2, 0.103, -4.0] : [0, 0.103, 0]} scale={exterior ? gardenLighting.contactSpanCm / 100 : kitchenRoom ? 6 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 2.5 : 2.6} far={exterior ? gardenLighting.contactFarCm / 100 : 2.4} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
     </>
   );
 });

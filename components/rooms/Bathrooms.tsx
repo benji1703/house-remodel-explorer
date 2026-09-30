@@ -2,6 +2,8 @@
 
 import { RoundedBox, useGLTF } from "@react-three/drei";
 import { Suspense, useMemo } from "react";
+import { InteriorMoodProp } from "./InteriorMoodProps";
+import { interiorStyling } from "@/data/interiorStyling";
 import { moodFixtures } from "@/data/moodFixtures";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
@@ -269,7 +271,7 @@ function Vanity({
 
       <Cyl x={x - w * 0.34} z={z + 0.12} y={base + 0.77} r={0.025} h={0.11} segments={20} material={CERAMIC_INNER} />
       <Cyl x={x - w * 0.34} z={z + 0.12} y={base + 0.88} r={0.012} h={0.025} segments={16} material={CHROME} />
-      <SoftBox x={x + w * 0.34} z={z - 0.07} y={base + 0.77} w={0.2} d={0.14} h={0.026} radius={0.01} material={palette.upholstery} />
+      {w < 1.3 && <SoftBox x={x + w * 0.34} z={z - 0.07} y={base + 0.77} w={0.2} d={0.14} h={0.026} radius={0.01} material={palette.upholstery} />}
 
       {mirror && (
         <group position={[x - CX, base + 1.42, z + 0.245 - CZ]}>
@@ -295,6 +297,7 @@ export function MainBathroom({ base, palette, reflections = false, lightsOn = tr
       <Toilet base={base} x={moodFixtures.toilet.mainBathroom.wallXCm / 100} z={moodFixtures.toilet.mainBathroom.zCm / 100} against="w" />
       <Shower base={base} palette={palette} x={7.07} z={10.74} screens={{ west: true, south: true }} />
       <Vanity base={base} palette={palette} x={6.05} z={11.72} w={1.35} mirror={false} />
+      <InteriorMoodProp palette={palette} id="bath-linen" {...interiorStyling.bathroomTowels} base={base + interiorStyling.bathroomTowels.heightCm / 100} />
       <WallMirror base={base} x={4.955} z={11.42} wall="west" width={0.64} height={0.76} reflect={reflections} />
       {lightsOn && <pointLight position={[5.25 - CX, base + 1.58, 11.42 - CZ]} intensity={0.8} distance={1.8} decay={2} color="#ffd3a0" />}
     </group>

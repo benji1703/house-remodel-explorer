@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
 import { useSceneDetail } from "../scene/SceneDetail";
+import { InteriorMoodProp } from "./InteriorMoodProps";
 import { designAssumptions } from "@/data/house";
 
 /**
@@ -68,6 +69,8 @@ function LinenPillow({ x, z, y, material, rotated = false }: { x: number; z: num
     <mesh position={[x - CX, y + 0.07, z - CZ]} rotation-y={rotated ? Math.PI / 2 : 0} scale={[0.31, 0.075, 0.20]} geometry={pillowGeometry} material={material} castShadow receiveShadow />
   );
 }
+
+
 
 const SADDLE_LEATHER = new THREE.MeshPhysicalMaterial({
   color: "#8f674b",
@@ -199,6 +202,8 @@ export function QueenBed({
       <group position={[x - CX, base + h, z - CZ]} rotation-y={headOnZ ? (sign > 0 ? 0 : Math.PI) : sign * Math.PI / 2}>
         <mesh position={[0, 0, -0.22]} geometry={duvetGeometry} material={palette.upholstery} castShadow receiveShadow />
       </group>
+      <InteriorMoodProp palette={palette} id="bed-linen" xCm={x * 100} zCm={z * 100} base={base + h}
+        rotation={headOnZ ? (sign > 0 ? 0 : Math.PI) : sign * Math.PI / 2} />
       {headOnZ ? (
         <>
           <LinenPillow material={palette.upholstery} x={x - 0.38} z={z + sign * (planD / 2 - 0.34)} y={base + h} />
@@ -303,7 +308,7 @@ export function Dresser({
   return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={2} frontAxis={along === "z" ? "x" : "z"} />;
 }
 
-/** Sofa: seat + back. `face` = direction the sitter looks (into the room). */
+/** Tailored sofa, retaining the editable 220 × 90 × 75 cm body. */
 export function Sofa({
   base,
   palette,
@@ -317,73 +322,8 @@ export function Sofa({
   z: number;
   face?: "n" | "s" | "e" | "w";
 }) {
-  const { w, d, h } = FURN.sofa3;
-  const alongNS = face === "e" || face === "w";
-  const planW = alongNS ? d : w;
-  const planD = alongNS ? w : d;
-  const backOff =
-    face === "w" ? { x: planW / 2 - 0.08, z: 0 } :
-    face === "e" ? { x: -(planW / 2 - 0.08), z: 0 } :
-    face === "n" ? { x: 0, z: planD / 2 - 0.08 } :
-    { x: 0, z: -(planD / 2 - 0.08) };
-  const backW = alongNS ? 0.16 : planW;
-  const backD = alongNS ? planD : 0.16;
-  const cushionW = alongNS ? planW - 0.18 : planW * 0.46;
-  const cushionD = alongNS ? planD * 0.46 : planD - 0.18;
-
-  return (
-    <group>
-      <SoftBox x={x} z={z} y={base + 0.14} w={planW} d={planD} h={0.3} radius={0.11} material={palette.upholstery} />
-      <SoftBox
-        x={x + backOff.x}
-        z={z + backOff.z}
-        y={base + 0.25}
-        w={backW}
-        d={backD}
-        h={h - 0.18}
-        radius={0.07}
-        material={palette.upholstery}
-      />
-      {[-1, 1].map((side) => (
-        <SoftBox
-          key={`cushion-${side}`}
-          x={x + (alongNS ? 0 : side * planW * 0.235)}
-          z={z + (alongNS ? side * planD * 0.235 : 0)}
-          y={base + 0.43}
-          w={cushionW}
-          d={cushionD}
-          h={0.12}
-          radius={0.055}
-          material={palette.upholstery}
-        />
-      ))}
-      {[-1, 1].map((side) => (
-        <SoftBox
-          key={`arm-${side}`}
-          x={x + (alongNS ? 0 : side * (planW / 2 - 0.085))}
-          z={z + (alongNS ? side * (planD / 2 - 0.085) : 0)}
-          y={base + 0.22}
-          w={alongNS ? planW - 0.08 : 0.17}
-          d={alongNS ? 0.17 : planD - 0.08}
-          h={0.42}
-          radius={0.07}
-          material={palette.upholstery}
-        />
-      ))}
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
-        <Cyl
-          key={`leg-${sx}-${sz}`}
-          x={x + sx * (planW / 2 - 0.13)}
-          z={z + sz * (planD / 2 - 0.13)}
-          y={base}
-          r={0.025}
-          h={0.16}
-          material={BRONZE}
-          segments={16}
-        />
-      )))}
-    </group>
-  );
+  const rotation = face === "e" ? Math.PI : face === "n" ? -Math.PI / 2 : face === "s" ? Math.PI / 2 : 0;
+  return <InteriorMoodProp palette={palette} id="tailored-linen-sofa" xCm={x * 100} zCm={z * 100} base={base} rotation={rotation} />;
 }
 
 export function LoungeChair({
@@ -399,58 +339,8 @@ export function LoungeChair({
   z: number;
   face?: "n" | "s" | "e" | "w";
 }) {
-  const { w, d, h } = FURN.lounge;
-  const alongNS = face === "e" || face === "w";
-  const planW = alongNS ? d : w;
-  const planD = alongNS ? w : d;
-  const backOff =
-    face === "w" ? { x: planW / 2 - 0.08, z: 0 } :
-    face === "e" ? { x: -(planW / 2 - 0.08), z: 0 } :
-    face === "n" ? { x: 0, z: planD / 2 - 0.08 } :
-    { x: 0, z: -(planD / 2 - 0.08) };
-  const backW = alongNS ? 0.14 : planW;
-  const backD = alongNS ? planD : 0.14;
-
-  return (
-    <group>
-      <SoftBox x={x} z={z} y={base + 0.17} w={planW - 0.08} d={planD - 0.08} h={0.24} radius={0.1} material={palette.upholstery} />
-      <SoftBox
-        x={x + backOff.x}
-        z={z + backOff.z}
-        y={base + 0.26}
-        w={backW}
-        d={backD}
-        h={h - 0.12}
-        radius={0.07}
-        material={SADDLE_LEATHER}
-      />
-      {[-1, 1].map((side) => (
-        <SoftBox
-          key={side}
-          x={x + (alongNS ? 0 : side * (planW / 2 - 0.07))}
-          z={z + (alongNS ? side * (planD / 2 - 0.07) : 0)}
-          y={base + 0.2}
-          w={alongNS ? planW - 0.05 : 0.13}
-          d={alongNS ? 0.13 : planD - 0.05}
-          h={0.35}
-          radius={0.055}
-          material={SADDLE_LEATHER}
-        />
-      ))}
-      {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
-        <Cyl
-          key={`leg-${sx}-${sz}`}
-          x={x + sx * (planW / 2 - 0.13)}
-          z={z + sz * (planD / 2 - 0.13)}
-          y={base}
-          r={0.022}
-          h={0.19}
-          material={BRONZE}
-          segments={16}
-        />
-      )))}
-    </group>
-  );
+  const rotation = face === "s" ? Math.PI : face === "w" ? Math.PI / 2 : face === "e" ? -Math.PI / 2 : 0;
+  return <InteriorMoodProp palette={palette} id="linen-lounge-chair" xCm={x * 100} zCm={z * 100} base={base} rotation={rotation} />;
 }
 
 export function CoffeeTable({
@@ -464,28 +354,12 @@ export function CoffeeTable({
   x: number;
   z: number;
 }) {
-  const { w, d, h } = FURN.coffee;
-  return (
-    <group>
-      <SoftBox x={x} z={z} y={base + h - 0.085} w={w} d={d} h={0.085} radius={0.1} material={palette.stone} />
-      {[-1, 1].map((side) => (
-        <Cyl
-          key={side}
-          x={x + side * w * 0.23}
-          z={z}
-          y={base}
-          r={0.13}
-          h={h - 0.085}
-          segments={32}
-          material={BRONZE}
-        />
-      ))}
-    </group>
-  );
+  return <InteriorMoodProp palette={palette} id="oak-coffee-table" xCm={x * 100} zCm={z * 100} base={base} />;
 }
 
 export function BarStool({
   base,
+  palette,
   x,
   z,
 }: {
@@ -494,15 +368,7 @@ export function BarStool({
   x: number;
   z: number;
 }) {
-  const { w, d, h } = FURN.stool;
-  return (
-    <group>
-      <Cyl x={x} z={z} y={base} r={0.175} h={0.025} material={BRONZE} segments={40} />
-      <Cyl x={x} z={z} y={base} r={0.032} h={h - 0.08} material={BRONZE} segments={24} />
-      <Cyl x={x} z={z} y={base + 0.21} r={0.16} h={0.018} material={BRONZE} segments={28} />
-      <SoftBox x={x} z={z} y={base + h - 0.08} w={w} d={d} h={0.08} radius={0.07} material={SADDLE_LEATHER} />
-    </group>
-  );
+  return <InteriorMoodProp palette={palette} id="oak-counter-stool" xCm={x * 100} zCm={z * 100} base={base} />;
 }
 
 export function Pendant({

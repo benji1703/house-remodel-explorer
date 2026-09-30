@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import * as THREE from "three";
 import { house, type ZoneId } from "@/data/house";
 import { walkSettings, walkStarts } from "@/data/walkthrough";
-import { canWalkAt, moveWalkPosition } from "@/lib/walkCollision";
+import { canWalkAt, moveWalkPosition, walkFloorAt } from "@/lib/walkCollision";
 import { CX, CZ } from "../rooms/shared";
 
 type Action = "forward" | "back" | "left" | "right" | "turnLeft" | "turnRight";
@@ -25,10 +25,11 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
 }) {
   const { camera, gl, invalidate } = useThree();
   const angles = useRef({ yaw: 0, pitch: 0 });
+  const velocity = useRef(new THREE.Vector2());
   const keyboard = useRef(new Set<string>());
   const rotation = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
   const clear = useCallback(() => {
-    keyboard.current.clear(); clearInput(input);
+    keyboard.current.clear(); velocity.current.set(0, 0); clearInput(input);
   }, [input]);
   const reset = useCallback(() => {
     const start = walkStarts[zone];
@@ -135,16 +136,22 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
     rotation.current.set(angles.current.pitch, angles.current.yaw, 0);
     camera.quaternion.setFromEuler(rotation.current);
     const forward = axis("forward", "back"), side = axis("right", "left");
-    if (forward || side) {
-      // FPS exploration ignores furnishings; architecture still constrains movement.
-      const scale = walkSettings.speedCmPerSecond / 100 * dt / Math.hypot(forward, side);
-      const { yaw } = angles.current;
-      const dx = (side * Math.cos(yaw) - forward * Math.sin(yaw)) * scale;
-      const dz = (-forward * Math.cos(yaw) - side * Math.sin(yaw)) * scale;
-      const [x, z] = moveWalkPosition(camera.position.x + CX, camera.position.z + CZ, dx, dz,
+    const speed = walkSettings.speedCmPerSecond / 100;
+    const length = Math.hypot(forward, side) || 1;
+    const { yaw } = angles.current;
+    const targetX = (side * Math.cos(yaw) - forward * Math.sin(yaw)) * speed / length;
+    const targetZ = (-forward * Math.cos(yaw) - side * Math.sin(yaw)) * speed / length;
+    const blend = 1 - Math.exp(-12 * dt);
+    velocity.current.x += (targetX - velocity.current.x) * blend;
+    velocity.current.y += (targetZ - velocity.current.y) * blend;
+    if (velocity.current.lengthSq() > 0.00001) {
+      const [x, z] = moveWalkPosition(camera.position.x + CX, camera.position.z + CZ,
+        velocity.current.x * dt, velocity.current.y * dt,
         (x, z) => canWalkAt(x, z, allDoorsOpen, doorStates));
-      camera.position.set(x - CX, camera.position.y, z - CZ);
-    }
+      const height = walkFloorAt(x, z) + walkSettings.eyeHeightCm / 100;
+      camera.position.set(x - CX, THREE.MathUtils.damp(camera.position.y, height, 12, dt), z - CZ);
+      invalidate();
+    } else velocity.current.set(0, 0);
     if (pressed.size) invalidate();
   }, -1);
   return null;
@@ -158,7 +165,7 @@ export function WalkControls({ input, onReset }: { input: RefObject<WalkInput>; 
   ];
   return <div className={padOpen ? "walk-controls is-pad-open" : "walk-controls"} aria-label="Interactive house controls">
     <div className="walk-help">
-      <strong>Explore the house</strong>
+      <strong>Explore inside & outside</strong>
       <span className="walk-desktop-hint">WASD to move · drag to look</span>
       <span className="walk-touch-hint">Hold arrows to move · drag to look</span>
       <div className="walk-help-actions">

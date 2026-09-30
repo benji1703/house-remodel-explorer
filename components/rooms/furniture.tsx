@@ -20,7 +20,7 @@ export const FURN = {
   nightstand: { w: 0.45, d: 0.4, h: 0.55 },
   wardrobe: { w: 1.8, d: 0.6, h: 2.1 },
   dresser: { w: 1.2, d: 0.5, h: 0.85 },
-  sofa3: { w: 2.2, d: 0.9, h: 0.75, back: 0.4 },
+  sofa3: { w: 2.2, d: 1.02, h: 0.86, back: 0.46 },
   lounge: { w: 0.85, d: 0.9, h: 0.7, back: 0.4 },
   coffee: { w: 1.2, d: 0.7, h: 0.4 },
   stool: { w: 0.4, d: 0.4, h: 0.7 },
@@ -311,7 +311,7 @@ export function Dresser({
   return <Cabinet base={base} palette={palette} x={x} z={z} w={planW} d={planD} h={h} fronts={2} frontAxis={along === "z" ? "x" : "z"} />;
 }
 
-/** Tailored sofa, retaining the editable 220 × 90 × 75 cm body. */
+/** Cloud-inspired track-arm sofa, with loose linen cushions and a low base. */
 export function Sofa({
   base,
   palette,

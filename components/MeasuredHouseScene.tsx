@@ -30,7 +30,7 @@ import { LightingRig } from "./scene/LightingRig";
 import { LightingPlanMarkers } from "./scene/LightingPlanMarkers";
 import { dampSceneValue } from "@/lib/dampSceneValue";
 import { RoomDetail, SceneQualityProvider, ShadowRefreshProvider } from "./scene/SceneDetail";
-import { SceneFirstFrame, SceneLoading, ScenePending } from "./scene/SceneLoading";
+import { SceneFirstFrame, SceneLightingFrame, SceneLoading, ScenePending } from "./scene/SceneLoading";
 import { RenderBudget } from "./scene/RenderBudget";
 import { getDaylight } from "@/lib/daylight";
 import { EXT_THICKNESS, INT_THICKNESS, exteriorOpenings, partitions, openingKind, type Opening } from "@/data/structuralWalls";
@@ -46,6 +46,8 @@ type Props = {
   showMeasurements?: boolean;
   onCameraAzimuth?: (radians: number) => void;
   sunHour?: number;
+  lightingRevision?: number;
+  onLightingReady?: (revision: number) => void;
   houseLightsOn?: boolean;
   allDoorsOpen?: boolean;
   doorStates?: Record<string, boolean>;
@@ -71,7 +73,7 @@ type Props = {
 const ORBIT_TARGET: [number, number, number] = [-1.2, 0.7, 0.4];
 // Minimum change (~0.5°) before we bother lifting a new azimuth value up.
 const AZIMUTH_EPSILON = 0.0087;
-const CAMERA_TRANSITION_MS = 260;
+const CAMERA_TRANSITION_MS = 750;
 
 type CameraFlight = {
   startedAt: number;
@@ -346,7 +348,7 @@ function CameraDirector({
     const flight = flightRef.current;
     if (!flight) return;
     const progress = reducedMotion.current ? 1 : Math.min(1, (performance.now() - flight.startedAt) / CAMERA_TRANSITION_MS);
-    const eased = 1 - (1 - progress) ** 3;
+    const eased = progress * progress * progress * (progress * (progress * 6 - 15) + 10);
     camera.position.lerpVectors(flight.fromPosition, flight.toPosition, eased);
     const target = flight.controls?.target ?? interpolatedTarget.current;
     target.lerpVectors(flight.fromTarget, flight.toTarget, eased);
@@ -922,6 +924,8 @@ function SceneContent({
   showMeasurements = false,
   onCameraAzimuth,
   sunHour = 13.5,
+  lightingRevision,
+  onLightingReady,
   houseLightsOn = true,
   allDoorsOpen = true,
   doorStates = {},
@@ -1206,6 +1210,7 @@ function SceneContent({
       />
       <KeyboardOrbitBridge controlsRef={controlsRef} />
       </>}
+      <SceneLightingFrame revision={lightingRevision ?? 0} onReady={onLightingReady} />
       <SceneFirstFrame onReady={onReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
     </>
   );

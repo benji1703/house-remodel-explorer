@@ -3310,3 +3310,7 @@ body.has-lightbox { overflow: hidden; }
   .stage-toolbar { left: auto; max-width: calc(100% - 20px); }
   .stage-toolbar .segmented button { padding: 8px 9px; }
 }
+
+/* Preserve the scene while its next lighting frame is prepared. Controls stay above the cover. */
+.lighting-update-cover { position: absolute; inset: 0; z-index: 4; background: #f3ede8ed; display: grid; place-items: center; }
+.lighting-update-cover .loading-state { background: transparent; }

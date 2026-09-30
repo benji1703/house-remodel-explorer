@@ -20,7 +20,7 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
     const materials = new Map<THREE.Material, THREE.MeshStandardMaterial>();
     object.traverse((node) => {
       if (!(node instanceof THREE.Mesh)) return;
-      if (id === "kitchen-preparation" && (node.name === "Mood bread crust" || node.name === "Mood bread scoring")) {
+      if (id === "kitchen-preparation" && ((node.material as THREE.Material).name === "Mood bread crust" || (node.material as THREE.Material).name === "Mood bread scoring")) {
         node.visible = false;
         return;
       }
@@ -31,7 +31,8 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
         const sourceName = source.name.toLowerCase();
         const surface = sourceName.includes("woven") ? palette.woven
           : sourceName.includes("linen") ? palette.upholstery
-          : sourceName.includes("oak") ? palette.oak : null;
+          : sourceName.includes("oak") ? palette.oak
+          : sourceName.includes("stoneware") ? palette.stone : null;
         const material = surface instanceof THREE.MeshStandardMaterial ? cloneSurfaceMaterial(surface) : source.clone();
         material.name = source.name;
         if (surface) material.color.copy(source.color);
@@ -41,24 +42,39 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
           material.roughness = 0.96;
           material.side = THREE.DoubleSide;
         }
+        if (sourceName.includes("stoneware")) {
+          material.roughness = sourceName.includes("chalk") ? 0.58 : 0.82;
+          material.metalness = 0;
+        }
+        if (sourceName.includes("brass")) {
+          material.metalness = 0.85;
+          material.roughness = 0.32;
+        }
         if (source.name === "Mood lamp diffuser") {
           material.emissive.set("#ffc283");
-          material.emissiveIntensity = glow * 1.4;
+          material.emissiveIntensity = 0;
         }
         materials.set(source, material);
       }
       node.material = materials.get(source)!;
     });
     return { object, materials: [...materials.values()] };
-  }, [scene, id, palette.oak, palette.upholstery, palette.woven, glow]);
+  }, [scene, id, palette.oak, palette.upholstery, palette.woven, palette.stone]);
   useEffect(() => () => materials.forEach((material) => material.dispose()), [materials]);
+  useEffect(() => {
+    object.traverse(node => {
+      if (node instanceof THREE.Mesh && node.material instanceof THREE.MeshStandardMaterial && node.material.name === "Mood lamp diffuser") {
+        node.material.emissiveIntensity = glow * 1.4;
+      }
+    });
+  }, [object, glow]);
   useEffect(() => {
     refreshShadows();
     return refreshShadows;
   }, [object, refreshShadows]);
   return <>
     <primitive object={object} dispose={null} />
-    {glow > 0 && <FixtureDownlight name="reading-floor-lamp-light" position={[0, 1.25, 0]} intensity={glow * 2.4} distance={2.4} />}
+    {id === "reading-lamp" && <FixtureDownlight name="reading-floor-lamp-light" position={[0, 1.25, 0]} intensity={glow * 2.4} distance={2.4} />}
   </>;
 }
 

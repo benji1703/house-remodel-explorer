@@ -1,0 +1,45 @@
+// Verify feedback paints before a coalesced lighting update and existing assets stay loaded.
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const {chromium}=createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE||'playwright');
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const directory=process.env.RENDER_ARTIFACT_DIR||'/tmp/house-lighting-transitions';
+fs.mkdirSync(directory,{recursive:true});
+const errors=[];
+try {
+  const page=await browser.newPage({viewport:{width:1440,height:960},reducedMotion:'reduce'});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(`${process.env.RENDER_BASE_URL||'http://localhost:3000'}/?view=model&camera=room&zone=central-core&gardenQA=1`,{waitUntil:'domcontentloaded'});
+  await page.waitForFunction(()=>window.__gardenQA?.lighting().settings&&!document.querySelector('.is-model-loading')&&!document.querySelector('[data-lighting-loading]'));
+  await page.waitForFunction(()=>window.__gardenQA.interiors().every(p=>p.loaded));
+  await page.getByRole('button',{name:'Controls',exact:true}).click({noWaitAfter:true});
+  const range=page.locator('#sun-hour');
+  await range.focus();
+  await range.press('Home');
+  await page.locator('[data-lighting-loading]').waitFor({state:'visible'});
+  await page.screenshot({path:`${directory}/lighting-loader.png`});
+  await range.press('End');
+  await range.press('ArrowLeft');
+  const latest=Number(await range.inputValue());
+  assert.equal(latest,23.75,'Scrubber responds while a lighting update is pending');
+  assert.equal(await page.locator('.three-stage').getAttribute('aria-busy'),'true');
+  await page.waitForFunction(hour=>window.__gardenQA.lighting().settings.hour===hour&&!document.querySelector('[data-lighting-loading]'),latest);
+  const night=await page.evaluate(()=>window.__gardenQA.lighting());
+  await page.getByRole('button',{name:'Soft daylight',exact:true}).click({noWaitAfter:true});
+  await page.waitForFunction(()=>window.__gardenQA.lighting().settings.hour===13.5&&!document.querySelector('[data-lighting-loading]'));
+  const day=await page.evaluate(()=>window.__gardenQA.lighting());
+  assert.deepEqual(night.sources.map(s=>[s.name,s.type,s.castShadow]),day.sources.map(s=>[s.name,s.type,s.castShadow]),'Lighting changes preserve the compiled light/shadow layout');
+  const lights=page.getByRole('group',{name:'House lights',exact:true});
+  await lights.getByRole('button',{name:'Off',exact:true}).click({noWaitAfter:true});
+  await page.waitForFunction(()=>window.__gardenQA.lighting().settings.lightsOn===false&&!document.querySelector('[data-lighting-loading]'));
+  const off=await page.evaluate(()=>window.__gardenQA.lighting());
+  assert.ok(off.sources.every(s=>s.intensity===0));
+  assert.deepEqual(day.sources.map(s=>s.name),off.sources.map(s=>s.name),'Switching off keeps fixture resources mounted');
+  await lights.getByRole('button',{name:'On',exact:true}).click({noWaitAfter:true});
+  await page.waitForFunction(()=>window.__gardenQA.lighting().settings.lightsOn===true&&!document.querySelector('[data-lighting-loading]'));
+  assert.ok((await page.evaluate(()=>window.__gardenQA.interiors())).every(p=>p.loaded),'Furnishings remain loaded during lighting changes');
+  assert.equal(await page.locator('.three-stage').getAttribute('aria-busy'),'false');
+  assert.deepEqual(errors,[]);
+  console.log(JSON.stringify({passed:true,latestHour:latest,stableFixtureCount:day.sources.length,errors}));
+} finally {await browser.close();}

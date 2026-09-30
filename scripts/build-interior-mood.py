@@ -174,29 +174,8 @@ def export(name):
         bpy.ops.export_scene.gltf(filepath=str(OUT/(name+('-light' if light else '')+'.glb')),export_format='GLB',export_yup=True,export_materials='EXPORT',export_extras=True)
     print('EXPORTED',name,flush=True)
 
-clear()
-# Sofa faces west. All details rest on its existing seat/back/arm.
-def scatter_pillow(name, center, size, material, lean):
-    obj = sphere(name, center, size, material, True)
-    obj.rotation_euler.y = lean
-    # Welt follows the broad, softly squared face of the west-facing cushion.
-    path=[]
-    for i in range(97):
-        a=i*math.tau/96
-        dy=math.copysign(abs(math.cos(a))**.52,math.cos(a))*size[1]/2
-        dz=math.copysign(abs(math.sin(a))**.52,math.sin(a))*size[2]/2
-        path.append((center[0]+dy*math.sin(lean),center[1]+dy*math.cos(lean),center[2]+dz))
-    tube(name+' stitched welt',path,.10,material)
-scatter_pillow('Sage linen scatter cushion',(13,69,-55),(17,36,42),SAGE,.18)
-scatter_pillow('Oat linen scatter cushion',(13,69,53),(17,37,42),OAT,.24)
-scatter_pillow('Tobacco lumbar cushion',(-2,61,8),(14,22,42),RUST,.13)
-def sofa_throw(u,v):
-    # Drape across the seat and over the west edge, without crossing the floor.
-    x=-12+u
-    drop=max(0,(-x-36)/16)
-    return (x,52.5-28*drop+.65*math.sin(v*.45+u*.1),-67+v)
-cloth('Relaxed oat throw',78,44,sofa_throw,OAT)
-export('sofa-linen')
+# Sofa and its styling are maintained by scripts/build-tailored-sofa.mjs.
+
 
 clear()
 # Origin is the coffee-table top; radius fits its 120 x 70 cm surface.
@@ -322,21 +301,4 @@ for x in [-34,34]: box('Solid oak slab leg',(x,17,0),(9,34,54),OAK,1)
 export('oak-coffee-table')
 
 
-clear()
-# Tailored two-seat linen sofa; exact existing 90 x 220 cm plan envelope,
-# 75 cm upholstered body, facing west. Loose styling remains a separate asset.
-SOFA_LINEN = mat('Mood linen sofa ivory', (.73,.67,.56), .96)
-SOFA_WELT = mat('Mood linen stitched welt', (.54,.48,.38), 1)
-box('Sofa upholstered lower rail',(0,24,0),(90,22,220),SOFA_LINEN,7)
-box('Low upholstered sofa back',(36,51,0),(18,48,220),SOFA_LINEN,6)
-for side in [-1,1]:
-    box('Rounded upholstered arm',(-3,43,side*102),(84,36,16),SOFA_LINEN,6)
-    box('Independent relaxed seat cushion',(-8,44,side*46.5),(69,15,91),SOFA_LINEN,5)
-    box('Loose upholstered back cushion',(22,59,side*46.5),(18,31,90),SOFA_LINEN,5)
-    # Subtle stitched piping along each visible front seat edge.
-    tube('Seat cushion front welt',[(-42.2,45,side*46.5+z) for z in [-38,-30,-10,10,30,38]],.13,SOFA_WELT)
-    tube('Back cushion upper welt',[(21,74.3,side*46.5+z) for z in [-36,-20,0,20,36]],.12,SOFA_WELT)
-for sx in [-1,1]:
-    for sz in [-1,1]:
-        lathe('Recessed oak sofa foot',(sx*33,0,sz*96),[(0,0),(2.3,0),(2.7,13),(0,13)],OAK,24)
-export('tailored-linen-sofa')
+# Regenerate both sofa quality profiles with node scripts/build-tailored-sofa.mjs.

@@ -100,7 +100,7 @@ export function GardenDiagnostics() {
           }
           if (object.userData.hingedDoorLeaf) doors.push({ angle: object.rotation.y, maximum: object.userData.openAngle });
         });
-        return { fixtures, sources, doors, shadowsEnabled: state.gl.shadowMap.enabled };
+        return { fixtures, sources, doors, shadowsEnabled: state.gl.shadowMap.enabled, settings: state.scene.getObjectByName("lighting-state")?.userData };
       },
       snapshot: () => ({
         renderer: state.gl.getContext().getParameter(state.gl.getContext().RENDERER),

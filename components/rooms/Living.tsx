@@ -16,7 +16,7 @@ export function Living({ base, palette, furnitureEditing, lightsOn = true, night
     <group>
       <InteriorMoodProp palette={palette} id="living-rug" {...interiorStyling.livingRug} base={base + 0.002} />
 
-      {/* Sofa on east side, sits facing west toward terrace. 220×90 cm. */}
+      {/* Sofa on east side, sits facing west toward terrace. 220×102 cm. */}
       <EditableFurniture id="living-sofa" editing={furnitureEditing} x={6.7} z={6.1} base={base} swapPlanAxes>
         <Sofa base={base} palette={palette} x={6.7} z={6.1} face="w" />
         <InteriorMoodProp palette={palette} id="sofa-linen" xCm={670} zCm={610} base={base} />

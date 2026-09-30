@@ -1,5 +1,6 @@
-import { house } from "../data/house";
+import { designAssumptions, house } from "../data/house";
 import { exteriorOpenings, partitions, EXT_THICKNESS, INT_THICKNESS } from "../data/structuralWalls";
+import { landscapeGround } from "../data/landscape";
 import { walkSettings } from "../data/walkthrough";
 
 const radius = walkSettings.radiusCm / 100;
@@ -10,14 +11,10 @@ const walls = [
 
 /** Plan coordinates in metres, using the same runs/openings as the renderer. */
 export function canWalkAt(x: number, z: number, allDoorsOpen: boolean, doorStates: Record<string, boolean>) {
-  // Indoor walkthrough: the measured floor polygon is the navigation boundary.
-  let inside = false;
-  const points = house.footprint;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const [xi, zi] = points[i], [xj, zj] = points[j];
-    if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) inside = !inside;
-  }
-  if (!inside) return false;
+  // The proposed rendered terrain is an exploration limit, not a surveyed plot.
+  const [cx, , cz] = landscapeGround.centerCm;
+  const [width, depth] = landscapeGround.sizeCm;
+  if (Math.abs(x - cx / 100) > width / 200 - radius || Math.abs(z - cz / 100) > depth / 200 - radius) return false;
   for (const wall of walls) {
     const dx = wall.b[0] - wall.a[0], dz = wall.b[1] - wall.a[1];
     const length = Math.hypot(dx, dz);
@@ -43,4 +40,15 @@ export function moveWalkPosition(x: number, z: number, dx: number, dz: number, a
     if (allowed(x, z + dz / steps)) z += dz / steps;
   }
   return [x, z] as const;
+}
+
+/** Eye height follows existing rendered slabs and the proposed gravel datum. */
+export function walkFloorAt(x: number, z: number) {
+  const zone = house.zones.find(zone => x >= zone.x && x <= zone.x + zone.width && z >= zone.z && z <= zone.z + zone.depth);
+  if (zone) return zone.level;
+  if (x >= 0.2 && x <= 3.4 && z >= 3.4 && z <= 8.4) return 0.08;
+  const width = designAssumptions.masterPergola.widthCm / 100;
+  const depth = designAssumptions.masterPergola.depthCm / 100;
+  if (x >= -width - 0.18 && x <= -0.18 && Math.abs(z - 10) <= depth / 2) return 0.06;
+  return landscapeGround.centerCm[1] / 100;
 }

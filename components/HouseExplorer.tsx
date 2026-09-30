@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLightingTransition } from "@/lib/useLightingTransition";
 import { usePathname, useSearchParams } from "next/navigation";
 import { lazy, Suspense, startTransition, useCallback, useEffect, useRef, useState, useTransition, type KeyboardEvent as ReactKeyboardEvent, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
@@ -149,8 +150,7 @@ export function HouseExplorer() {
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
   // Keep server markup deterministic, then make the live local clock the
   // default presentation after hydration. Curated study times remain selectable.
-  const [sunHour, setSunHour] = useState<number>(lightingScenes[0].hour);
-  const [houseLightsOn, setHouseLightsOn] = useState(true);
+  const { hour: sunHour, lightsOn: houseLightsOn, previewHour, previewLightsOn, revision: lightingRevision, updating: lightingUpdating, changeLighting, lightingReady } = useLightingTransition(lightingScenes[0].hour, true);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
   const [kitchenView, setKitchenView] = useState<KitchenView>("entrance");
@@ -179,10 +179,10 @@ export function HouseExplorer() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const now = new Date();
-      setSunHour(now.getHours() + now.getMinutes() / 60);
+      changeLighting(now.getHours() + now.getMinutes() / 60, true);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [changeLighting]);
 
   usePanelFocus(detailRef, compact && sheetOpen && (view === "model" || view === "references"), () => setSheetOpen(false), true, stageRef);
   usePanelFocus(experienceRef, view === "model" && experienceOpen, () => setExperienceOpen(false), compact, stageRef);
@@ -262,12 +262,12 @@ export function HouseExplorer() {
   const moodImageIndex = Math.min(moodImageByBoard[selectedMood] ?? 0, Math.max(moodImageCount - 1, 0));
   const heroMoodImage = activeMood.images[moodImageIndex] ?? activeMood.images[0];
   const moodIndexLabel = `${moodImageIndex + 1} / ${moodImageCount}`;
-  const sunTime = `${String(Math.floor(sunHour)).padStart(2, "0")}:${String(Math.round((sunHour % 1) * 60)).padStart(2, "0")}`;
-  const sunPhase = sunHour < 5.5 || sunHour >= 20.5 ? "Night" : sunHour < 8 ? "Early light" : sunHour < 12 ? "Morning" : sunHour < 16 ? "High sun" : sunHour < 18.5 ? "Golden hour" : "Blue hour";
+  const sunTime = `${String(Math.floor(previewHour)).padStart(2, "0")}:${String(Math.round((previewHour % 1) * 60)).padStart(2, "0")}`;
+  const sunPhase = previewHour < 5.5 || previewHour >= 20.5 ? "Night" : previewHour < 8 ? "Early light" : previewHour < 12 ? "Morning" : previewHour < 16 ? "High sun" : previewHour < 18.5 ? "Golden hour" : "Blue hour";
 
   const useLocalTime = () => {
     const now = new Date();
-    setSunHour(now.getHours() + now.getMinutes() / 60);
+    changeLighting(now.getHours() + now.getMinutes() / 60, previewLightsOn);
   };
 
   const setEveryDoor = (open: boolean) => {
@@ -637,7 +637,7 @@ export function HouseExplorer() {
         >
           {view === "model" && designMode && cameraMode !== "walk" && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
           {modelVisited && (
-            <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model"} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
+            <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model" || lightingUpdating} aria-busy={lightingUpdating} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
                 {webglSupport === true && (
                   <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
                   <Suspense fallback={<LoadingState />}>
@@ -653,6 +653,8 @@ export function HouseExplorer() {
                       showMeasurements={showMeasurements}
                       onCameraAzimuth={updateCompass}
                       sunHour={sunHour}
+                      lightingRevision={lightingRevision}
+                      onLightingReady={lightingReady}
                       houseLightsOn={houseLightsOn}
                       allDoorsOpen={allDoorsOpen}
                       doorStates={doorStates}
@@ -681,6 +683,7 @@ export function HouseExplorer() {
                 {webglSupport === null && <LoadingState />}
             </div>
           )}
+          {view === "model" && lightingUpdating && modelReady && webglSupport === true && <div className="lighting-update-cover" data-lighting-loading="true"><LoadingState title="Finding the light" detail="Updating your view." /></div>}
           {view === "model" && (
             <>
               <p id="model-keyboard-help" className="sr-only">Explore mode: W A S D move, arrow keys turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
@@ -849,8 +852,8 @@ export function HouseExplorer() {
                   </div>
                   <div className="lighting-scenes" role="group" aria-label="Lighting scenes">
                     {lightingScenes.map((scene) => <button key={scene.id} type="button"
-                      aria-pressed={sunHour === scene.hour && houseLightsOn}
-                      onClick={() => { setSunHour(scene.hour); setHouseLightsOn(true); }}
+                      aria-pressed={previewHour === scene.hour && previewLightsOn}
+                      onClick={() => changeLighting(scene.hour, true)}
                     >{scene.label}</button>)}
                   </div>
                   <label className="sun-scrubber" htmlFor="sun-hour">
@@ -861,8 +864,8 @@ export function HouseExplorer() {
                       min="0"
                       max="24"
                       step="0.25"
-                      value={sunHour}
-                      onChange={(event) => setSunHour(Number(event.target.value))}
+                      value={previewHour}
+                      onChange={(event) => changeLighting(Number(event.target.value), previewLightsOn, 180)}
                       aria-valuetext={`${sunPhase}, ${sunTime}`}
                     />
                     <span className="sun-ticks"><i>00</i><i>06</i><i>12</i><i>18</i><i>24</i></span>
@@ -870,8 +873,8 @@ export function HouseExplorer() {
                   <div className="door-control light-control">
                     <span><b>House lights</b><small>Interior and exterior practicals</small></span>
                     <div className="door-control-buttons light-control-buttons" role="group" aria-label="House lights">
-                      <button type="button" className={houseLightsOn ? "is-active" : ""} aria-pressed={houseLightsOn} onClick={() => setHouseLightsOn(true)}>On</button>
-                      <button type="button" className={!houseLightsOn ? "is-active" : ""} aria-pressed={!houseLightsOn} onClick={() => setHouseLightsOn(false)}>Off</button>
+                      <button type="button" className={previewLightsOn ? "is-active" : ""} aria-pressed={previewLightsOn} onClick={() => changeLighting(previewHour, true)}>On</button>
+                      <button type="button" className={!previewLightsOn ? "is-active" : ""} aria-pressed={!previewLightsOn} onClick={() => changeLighting(previewHour, false)}>Off</button>
                     </div>
                   </div>
                   <div className="door-control">

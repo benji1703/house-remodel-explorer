@@ -10,8 +10,8 @@ export type InteriorAssetSpec = {
 export const interiorAssets = {
   'linen-lounge-chair': { label: 'Curved linen lounge chair with oak feet', reference: 'mood-living-improved.png' },
   'oak-coffee-table': { label: 'Solid oak coffee table with slab legs', reference: 'mood-living-18.jpeg' },
-  'tailored-linen-sofa': { label: 'Tailored linen sofa with separate seat cushions and stitched edges', reference: 'mood-living-08.jpeg' },
-  'sofa-linen': { label: 'Sage cushions and a relaxed linen throw', reference: 'mood-living-08.jpeg' },
+  'tailored-linen-sofa': { label: 'Cloud-inspired track-arm sofa with deep loose cushions and sewn welts', reference: 'mood-living-08.jpeg' },
+  'sofa-linen': { label: 'Soft square sage/oat pillows and a draped linen throw', reference: 'mood-living-08.jpeg' },
   'coffee-still-life': { label: 'Art books, olive branches and stoneware', reference: 'mood-living-18.jpeg', detailOnly: true },
   'kitchen-preparation': { label: 'Oak board, sourdough, linen and breakfast ceramics', reference: 'mood-kitchen-improved.png', detailOnly: true },
   'kitchen-herbs': { label: 'Kitchen herbs in hand-thrown terracotta', reference: 'mood-kitchen-improved.png', detailOnly: true },

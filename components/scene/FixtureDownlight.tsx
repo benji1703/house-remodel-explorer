@@ -17,7 +17,7 @@ export function FixtureDownlight({ name, position, intensity, distance }: {
     <primitive object={target} />
     <spotLight name={name} position={position} target={target} color="#ffe0b5"
       intensity={intensity} distance={distance} decay={2} angle={1.05} penumbra={0.7}
-      castShadow={intensity > 0} shadow-mapSize-width={256} shadow-mapSize-height={256}
+      castShadow shadow-mapSize-width={256} shadow-mapSize-height={256}
       shadow-camera-near={0.03} shadow-camera-far={distance} shadow-bias={-0.0001} shadow-normalBias={0.008} />
   </>;
 }

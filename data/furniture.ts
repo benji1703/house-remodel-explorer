@@ -5,7 +5,7 @@ export type FurnitureDimensions = {
 };
 
 export const furnitureCatalog = [
-  { id: "living-sofa", uuid: "2d6cd4dc-7fd9-4fbe-8e5e-d1d73c56f9a1", label: "Living sofa", room: "Living", dimensions: { widthCm: 220, depthCm: 90, heightCm: 75 } },
+  { id: "living-sofa", uuid: "2d6cd4dc-7fd9-4fbe-8e5e-d1d73c56f9a1", label: "Cloud-style linen sofa", room: "Living", dimensions: { widthCm: 220, depthCm: 102, heightCm: 86 } },
   { id: "living-coffee-table", uuid: "b8ca8bd2-44d5-4ba6-859d-47e81198d8d9", label: "Coffee table", room: "Living", dimensions: { widthCm: 120, depthCm: 70, heightCm: 40 } },
   { id: "living-lounge-chair", uuid: "75fb86b1-819a-499a-9a58-92369eb119f6", label: "Lounge chair", room: "Living", dimensions: { widthCm: 85, depthCm: 90, heightCm: 70 } },
   { id: "master-bed", uuid: "91454cf0-6155-4d15-8457-feb463b891ca", label: "Master bed", room: "Master bedroom", dimensions: { widthCm: 160, depthCm: 200, heightCm: 55 } },

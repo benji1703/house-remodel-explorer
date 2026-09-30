@@ -1,7 +1,7 @@
 "use client";
 
 import { useProgress } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LoadingState } from "../loading/LoadingState";
 
@@ -20,6 +20,26 @@ export function SceneFirstFrame({ onReady, enabled = true }: { onReady: () => vo
       if (frame.current !== null) cancelAnimationFrame(frame.current);
     };
   }, []);
+  return null;
+}
+
+/** Wait for the requested lighting revision to reach the rendered canvas. */
+export function SceneLightingFrame({ revision, onReady }: { revision: number; onReady?: (revision: number) => void }) {
+  const invalidate = useThree(state => state.invalidate);
+  const sent = useRef(false);
+  const frame = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    sent.current = false;
+    invalidate();
+    return () => { if (frame.current !== null) cancelAnimationFrame(frame.current); };
+  }, [revision, invalidate]);
+  useFrame(() => {
+    if (sent.current || !onReady) return;
+    sent.current = true;
+    frame.current = requestAnimationFrame(() => {
+      frame.current = requestAnimationFrame(() => onReady(revision));
+    });
+  });
   return null;
 }
 

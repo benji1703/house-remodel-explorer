@@ -24,7 +24,7 @@ export function canWalkAt(x: number, z: number, allDoorsOpen: boolean, doorState
     if (along < -clearance || along > length + clearance || across >= clearance) continue;
     const passage = wall.openings.some((opening, index) =>
       opening.sill === 0 && !opening.fixed &&
-      (opening.style === "sliding" || (doorStates[`${wall.prefix}-${index}`] ?? allDoorsOpen)) &&
+      (doorStates[`${wall.prefix}-${index}`] ?? allDoorsOpen) &&
       Math.abs(along - opening.at) < opening.width / 2 - radius - 0.035,
     );
     if (!passage) return false;

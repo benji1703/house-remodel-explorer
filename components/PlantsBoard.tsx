@@ -42,7 +42,7 @@ export function PlantsBoard({ onExplore }: { onExplore: () => void }) {
       <section className="plants-grid" aria-label="Planting palette">
         {plantReferences.map((plant, index) => (
           <article className="plant-card" id={`plant-${index}`} key={plant.botanical}>
-            <figure><Image src={plant.image} alt={`${plant.name} (${plant.botanical}) in a proposed Villa Nehama garden setting. ${plant.placement}`} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized /><span>{String(index + 1).padStart(2, "0")}</span></figure>
+            <figure><Image src={plant.image} alt={`${plant.name} (${plant.botanical}) in a proposed Villa Nehama garden setting. ${plant.placement}`} fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw" unoptimized /><span className="plant-card-number">{String(index + 1).padStart(2, "0")}</span></figure>
             <div className="plant-card-copy">
               <p>{plant.role}</p>
               <h3>{plant.name}</h3>

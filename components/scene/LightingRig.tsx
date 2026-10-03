@@ -91,6 +91,8 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
   const room = cameraMode === "room" ? house.zones.find(zone => zone.id === selectedZone) : undefined;
   const contactPosition: [number, number, number] = exterior ? [0, gardenLighting.contactElevationCm / 100, 0]
     : room ? [room.x + room.width / 2 - CX, room.level + 0.003, room.z + room.depth / 2 - CZ] : [0, 0.103, 0];
+  const exteriorContactResolution = quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution;
+  const contactResolution = exterior ? compact ? Math.min(exteriorContactResolution, profile.contactResolution) : exteriorContactResolution : profile.contactResolution;
   return (
     <>
       <group name="lighting-state" userData={{ hour: sunHour, lightsOn: houseLightsOn }} />
@@ -122,7 +124,7 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
       {housePracticals && houseLightingFixtures.filter(fixture => cameraMode !== "room" || fixture.zone === selectedZone || (["central-core", "north-extension"].includes(selectedZone) && ["central-core", "north-extension"].includes(fixture.zone))).map((fixture) => (
         <PracticalFixture key={fixture.id} fixture={fixture} level={practicalLevel} quality={quality} compact={compact} />
       ))}
-      {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={contactPosition} scale={exterior ? gardenLighting.contactSpanCm / 100 : room ? interiorLighting.roomContactSpanCm / 100 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 1.4 : 2} far={exterior ? gardenLighting.contactFarCm / 100 : interiorLighting.roomContactFarCm / 100} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
+      {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={contactPosition} scale={exterior ? gardenLighting.contactSpanCm / 100 : room ? interiorLighting.roomContactSpanCm / 100 : 17} resolution={contactResolution} blur={exterior ? 1.3 : quality === "high" ? 1.4 : 2} far={exterior ? gardenLighting.contactFarCm / 100 : interiorLighting.roomContactFarCm / 100} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
     </>
   );
 });

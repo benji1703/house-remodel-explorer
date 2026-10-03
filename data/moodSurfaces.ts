@@ -25,7 +25,7 @@ export const moodSurfaces = {
     color: "#c1a17b", detail: 0.8, space: "object",
   },
   oak: {
-    image: "/textures/door-oak-albedo.jpg",
+    image: "/textures/door-oak-albedo.webp",
     referenceImage: "/references/moods/mood-kitchen-16.jpeg",
     crop: [0, 0, 1, 1], sampleCm: [72, 118],
     color: "#fffaf2", detail: 0.94, space: "world", albedo: true,
@@ -36,7 +36,7 @@ export const moodSurfaces = {
     color: "#ded0b9", detail: 0.85, space: "object",
   },
   plaster: {
-    image: "/textures/lime-plaster-albedo.jpg",
+    image: "/textures/lime-plaster-albedo.webp",
     referenceImage: "/references/moods/mood-living-14.jpeg",
     crop: [0, 0, 1, 1], sampleCm: [225, 225],
     color: "#fffaf3", detail: 0.78, space: "world", albedo: true,
@@ -50,13 +50,13 @@ export const moodSurfaces = {
     mineralFinish: { reliefMm: 0.45, roughness: [0.46, 0.68], illuminationLod: 4.8 },
   },
   linen: {
-    image: "/textures/linen-washed-albedo.jpg",
+    image: "/textures/linen-washed-albedo.webp",
     referenceImage: "/references/moods/mood-living-08.jpeg",
     crop: [0, 0, 1, 1], sampleCm: [38, 38],
     color: "#fffdf9", detail: 0.96, space: "object", albedo: true,
   },
   woven: {
-    image: "/textures/chair-rush-albedo.jpg",
+    image: "/textures/chair-rush-albedo.webp",
     referenceImage: "/references/moods/mood-kitchen-06.jpeg",
     crop: [0, 0, 1, 1], sampleCm: [42, 42],
     color: "#fffaf0", detail: 0.95, space: "object", albedo: true,

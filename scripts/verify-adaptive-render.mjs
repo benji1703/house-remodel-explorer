@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 const { chromium, webkit } = createRequire(import.meta.url)(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.RENDER_BASE_URL || 'http://localhost:3000';
-const directory = 'artifacts/safari-performance';
+const directory = process.env.RENDER_ARTIFACT_DIR || 'artifacts/safari-performance';
 fs.mkdirSync(directory, { recursive: true });
 const report = { cases: [], errors: [] };
 const snapshot = (page) => page.evaluate(() => window.__gardenQA.snapshot());
@@ -25,6 +25,22 @@ async function settle(page) {
   await page.waitForTimeout(2600);
   await idle(page);
 }
+async function observeMovingBudget(page, position, target, maximum) {
+  return page.evaluate(async ({ position, target, maximum }) => {
+    window.__gardenQA.camera(position, target);
+    const started = performance.now();
+    return new Promise(resolve => {
+      const check = () => {
+        const scene = window.__gardenQA.snapshot();
+        if (scene.dpr <= maximum || performance.now() - started > 2000) resolve(scene);
+        else requestAnimationFrame(check);
+      };
+      // Observe during the same frame sequence, before a 240ms idle restore
+      // can happen between an evaluate response and Playwright polling.
+      requestAnimationFrame(check);
+    });
+  }, { position, target, maximum });
+}
 const targets = [['webkit', webkit, false], ['chromium', chromium, false], ['webkit-mobile', webkit, true], ['chromium-mobile', chromium, true]]
   .filter(([name]) => !process.env.RENDER_BROWSERS || process.env.RENDER_BROWSERS.split(',').includes(name));
 for (const [name, engine, mobile] of targets) {
@@ -32,11 +48,11 @@ for (const [name, engine, mobile] of targets) {
   try {
     const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1440, height: 960 }, deviceScaleFactor: mobile ? 3 : 2, isMobile: mobile, hasTouch: mobile, reducedMotion: 'reduce' });
     const landing = await context.newPage();
-    await landing.goto(base);
+    await landing.goto(`${base}/?view=plan`);
     await landing.locator('.app-body.is-plan').waitFor();
     assert.equal(await landing.locator('canvas').count(), 0, `${name}: landing plan avoids allocating WebGL`);
     assert.equal(await landing.getByRole('button', { name: 'House', exact: true }).isVisible(), true, `${name}: 3D remains easy to enter`);
-    report.cases.push({ name: `${name}-plan-first`, passed: true, canvasCount: 0 });
+    report.cases.push({ name: `${name}-explicit-plan`, passed: true, canvasCount: 0 });
     await landing.close();
     const page = await context.newPage();
     page.on('pageerror', (error) => report.errors.push({ browser: name, message: error.message }));
@@ -74,12 +90,19 @@ for (const [name, engine, mobile] of targets) {
 
     // The actual OrbitControls zoom path, with no route change, restores detail.
     await page.evaluate(() => window.__gardenQA.camera([-10.5, 4.2, -5.3], [-8, 0.8, -2.5]));
+    // High-tier plant models stream only after their projected-size threshold
+    // is crossed. Frame idleness is not a load signal: WebKit can stop drawing
+    // while GLTFLoader is still fetching/decoding the requested tier.
+    try {
+      await page.waitForFunction(() => window.__gardenQA?.snapshot().lod.high > 0, null, { timeout: 30000 });
+    } catch {
+      const state = await snapshot(page);
+      throw new Error(`${name}: zoom did not render high-detail geometry within 30s (LOD ${JSON.stringify(state.lod)}; plant GLBs ${JSON.stringify(state.assets.filter((asset) => /models\/landscape\/.*\.glb/.test(asset.url)).map((asset) => asset.url))})`);
+    }
     await settle(page);
     const close = await snapshot(page);
     assert.ok(close.lod.high > 0, `${name}: zoom loads the high-detail geometry tier`);
-    await page.evaluate(() => window.__gardenQA.camera([-9.8, 4.2, -5.3], [-8, 0.8, -2.5]));
-    await page.waitForFunction(max => window.__gardenQA.snapshot().dpr <= max, compactDevice ? 0.95 : 1.3, { timeout: 2000 });
-    const moving = await snapshot(page);
+    const moving = await observeMovingBudget(page, [-9.8, 4.2, -5.3], [-8, 0.8, -2.5], compactDevice ? 0.95 : 1.3);
     assert.ok(moving.dpr <= (compactDevice ? 0.95 : 1.3), `${name}: interaction has a smaller pixel budget (${moving.dpr}x)`);
     await page.waitForTimeout(1100);
     assert.equal((await snapshot(page)).dpr, overview.dpr, `${name}: full resolution returns after interaction`);
@@ -116,8 +139,8 @@ for (const [name, engine, mobile] of targets) {
     await page.goto(`${base}/?view=model&camera=plan&zone=central-core&gardenQA=1`);
     await settle(page);
     assert.equal((await snapshot(page)).cameraType, 'OrthographicCamera', `${name}: top view remains available`);
-    await page.evaluate(() => window.__gardenQA.camera([0, 19.5, 0.01], [0, 0, 0]));
-    await page.waitForFunction(max => window.__gardenQA.snapshot().dpr <= max, compactDevice ? 0.95 : 1.3, { timeout: 2000 });
+    const planMoving = await observeMovingBudget(page, [0, 19.5, 0.01], [0, 0, 0], compactDevice ? 0.95 : 1.3);
+    assert.ok(planMoving.dpr <= (compactDevice ? 0.95 : 1.3), `${name}: orthographic interaction adapts resolution`);
     await page.waitForTimeout(800);
     assert.equal((await snapshot(page)).dpr, overview.dpr, `${name}: orthographic zoom restores resolution`);
     await page.locator('canvas').first().evaluate((element) => element.dispatchEvent(new Event('webglcontextlost', { cancelable: true })));

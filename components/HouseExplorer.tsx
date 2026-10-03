@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useLightingTransition } from "@/lib/useLightingTransition";
+import { useSceneTransition } from "@/lib/useSceneTransition";
 import { usePathname, useSearchParams } from "next/navigation";
 import { lazy, Suspense, startTransition, useCallback, useEffect, useRef, useState, useTransition, type KeyboardEvent as ReactKeyboardEvent, type TouchEvent } from "react";
 import { house, statusCopy, type ZoneId } from "@/data/house";
@@ -117,7 +118,7 @@ export function HouseExplorer() {
       ? zoneParam
       : "central-core";
 
-  const navigate = (
+  const navigate = useCallback((
     next: { view?: View; zone?: ZoneId; mood?: MoodBoardId; floor?: FloorFinish; camera?: CameraMode; garden?: GardenView },
     mode: "push" | "replace" = "push",
   ) => {
@@ -139,7 +140,7 @@ export function HouseExplorer() {
     // for a server navigation before the camera can respond.
     if (mode === "replace") window.history.replaceState(null, "", url);
     else window.history.pushState(null, "", url);
-  };
+  }, [searchParams, pathname, floorFinish, view, cameraMode, selectedZone]);
 
   const [designMode, setDesignMode] = useState(true);
   const [quality, setQuality] = useState<"high" | "light">("high");
@@ -148,7 +149,7 @@ export function HouseExplorer() {
   // every Plan → House switch can exhaust Safari's context budget on iPhone.
   const [modelVisited, setModelVisited] = useState(view === "model");
   const [modelReady, setModelReady] = useState(false);
-  const [sceneTransition, setSceneTransition] = useState<string | null>(null);
+  const { revision: presentationRevision, updating: sceneUpdating, title: sceneLoadingTitle, detail: sceneLoadingDetail, changeScene, sceneReady, cancelScene } = useSceneTransition();
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
@@ -159,7 +160,7 @@ export function HouseExplorer() {
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
   const [kitchenView, setKitchenView] = useState<KitchenView>("entrance");
   const [kitchenAppliances, setKitchenAppliances] = useState({ fridge: false, dishwasher: false });
-  const toggleKitchenAppliance = (id: "fridge" | "dishwasher") => setKitchenAppliances((previous) => ({ ...previous, [id]: !previous[id] }));
+  const toggleKitchenAppliance = useCallback((id: "fridge" | "dishwasher") => setKitchenAppliances((previous) => ({ ...previous, [id]: !previous[id] })), []);
   const [cameraRevision, setCameraRevision] = useState(0);
   const [furnitureSizes, setFurnitureSizes] = useState<FurnitureSizeOverrides>({});
   const [removedFurniture, setRemovedFurniture] = useState<FurnitureId[]>([]);
@@ -173,29 +174,12 @@ export function HouseExplorer() {
   const [experienceOpen, setExperienceOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [refsPending, startRefsTransition] = useTransition();
-  const [sceneUpdatePending, startSceneUpdate] = useTransition();
-  const sceneTransitionFrame = useRef<number | null>(null);
   const stageRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLElement>(null);
   const moodHeroButtonRef = useRef<HTMLButtonElement>(null);
   const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLElement>(null);
   const furnitureRef = useRef<HTMLElement>(null);
-
-  const transitionScene = useCallback((label: string, update: () => void) => {
-    if (sceneTransitionFrame.current !== null) cancelAnimationFrame(sceneTransitionFrame.current);
-    setSceneTransition(label);
-    // Let the progress pill paint before React reconciles a large scene mode.
-    sceneTransitionFrame.current = requestAnimationFrame(() => {
-      sceneTransitionFrame.current = null;
-      startSceneUpdate(update);
-    });
-  }, [startSceneUpdate]);
-  const finishSceneTransition = useCallback(() => setSceneTransition(null), []);
-
-  useEffect(() => () => {
-    if (sceneTransitionFrame.current !== null) cancelAnimationFrame(sceneTransitionFrame.current);
-  }, []);
 
   usePanelFocus(detailRef, compact && sheetOpen && (view === "model" || view === "references"), () => setSheetOpen(false), true, stageRef);
   usePanelFocus(experienceRef, view === "model" && experienceOpen, () => setExperienceOpen(false), compact, stageRef);
@@ -291,9 +275,9 @@ export function HouseExplorer() {
     setDoorStates({});
   };
 
-  const toggleDoor = (id: string) => {
+  const toggleDoor = useCallback((id: string) => {
     setDoorStates((current) => ({ ...current, [id]: !(current[id] ?? allDoorsOpen) }));
-  };
+  }, [allDoorsOpen]);
 
   const selectedFurnitureSize = furnitureDimensions(selectedFurnitureId, furnitureSizes);
 
@@ -444,6 +428,7 @@ export function HouseExplorer() {
   };
 
   const selectMoodBoard = (id: MoodBoardId) => {
+    cancelScene();
     startRefsTransition(() => {
       navigate({ view: "references", mood: id }, "replace");
     });
@@ -455,16 +440,16 @@ export function HouseExplorer() {
     });
   };
 
-  const returnToHouse = () => {
-    navigate(compact
-      ? { view: "model", zone: selectedZone, camera: "room" }
-      : { view: "model", camera: "overview" }, "replace");
-    if (cameraMode === "overview") setCameraRevision((revision) => revision + 1);
+  const returnToHouse = useCallback(() => {
+    changeScene("Loading the whole house", "Preparing the full-house 3D overview.", () => {
+      navigate({ view: "model", camera: "overview" }, "replace");
+      if (cameraMode === "overview") setCameraRevision((revision) => revision + 1);
+    });
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
-  };
+  }, [changeScene, navigate, cameraMode]);
 
-  const goToView = (next: View) => {
+  const goToView = useCallback((next: View) => {
     setMoodLightboxOpen(false);
     setSheetOpen(false);
     setExperienceOpen(false);
@@ -473,16 +458,32 @@ export function HouseExplorer() {
       returnToHouse();
       return;
     }
+    cancelScene();
     if (next === view) return;
     navigate(next === "references" ? { view: next, mood: selectedMood } : { view: next }, "replace");
-  };
+  }, [returnToHouse, view, navigate, selectedMood, cancelScene]);
 
-  const selectRoom = (id: ZoneId) => {
+  const selectRoom = useCallback((id: ZoneId) => {
     setSheetOpen(false);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
-    if ((cameraMode === "room" || cameraMode === "walk") && selectedZone === id) setCameraRevision((revision) => revision + 1);
-    navigate({ view: "model", zone: id, camera: cameraMode === "walk" ? "walk" : "room" }, "replace");
+    const label = house.zones.find(zone => zone.id === id)?.label ?? "room";
+    changeScene(`Loading ${label.toLowerCase()}`, "Preparing the room, its materials and light.", () => {
+      if ((cameraMode === "room" || cameraMode === "walk") && selectedZone === id) setCameraRevision((revision) => revision + 1);
+      navigate({ view: "model", zone: id, camera: cameraMode === "walk" ? "walk" : "room" }, "replace");
+    });
+  }, [changeScene, cameraMode, selectedZone, navigate]);
+
+  const showPlan = useCallback(() => goToView("plan"), [goToView]);
+  const selectFurniture = useCallback((id: FurnitureId) => {
+    if (cameraMode === "walk") return;
+    setSelectedFurnitureId(id);
+    if (!compact) setFurnitureEditorOpen(true);
+    setExportStatus("");
+  }, [cameraMode, compact]);
+  const changeQuality = (next: "high" | "light") => {
+    if (next === quality && !sceneUpdating) return;
+    changeScene(next === "high" ? "Loading high detail" : "Preparing faster rendering", "Updating materials and the rendering budget.", () => setQuality(next));
   };
 
   const planFallback = (
@@ -581,6 +582,7 @@ export function HouseExplorer() {
         aria-label={`Open ${active.label} mood references`}
         onClick={() => {
           setSheetOpen(false);
+          cancelScene();
           navigate({ view: "references", mood: active.id });
         }}
       >
@@ -637,7 +639,7 @@ export function HouseExplorer() {
               className="ghost-button"
               aria-label="Toggle rendering detail"
               aria-pressed={quality === "light"}
-              onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
+              onClick={() => changeQuality(quality === "high" ? "light" : "high")}
             >
               {quality === "high" ? compact ? "Detail: High" : "Detail: Very High" : "Detail: Balanced"}
             </button>
@@ -653,20 +655,20 @@ export function HouseExplorer() {
           className={`stage is-${view}`}
           aria-label={view === "model" ? "House" : view === "plan" ? "Measured plan" : view === "references" ? "Mood" : view === "materials" ? "Materials" : view === "sourcebook" ? "Product sourcebook" : "Plants"}
         >
-          {view === "model" && designMode && cameraMode !== "walk" && <button type="button" className="garden-view-button" onClick={() => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); }}>Explore the garden ↗</button>}
+          {view === "model" && designMode && cameraMode !== "walk" && <button type="button" className="garden-view-button" onClick={() => changeScene("Loading the garden", "Preparing planting and the outdoor view.", () => { navigate({ camera: "garden", zone: "central-core" }, "replace"); setCameraRevision((r) => r + 1); })}>Explore the garden ↗</button>}
           {modelVisited && (
-            <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model" || lightingUpdating} aria-busy={lightingUpdating} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
+            <div className="three-stage" aria-hidden={view !== "model"} inert={view !== "model" || lightingUpdating} aria-busy={modelLoading || lightingUpdating || sceneUpdating} style={view === "model" ? undefined : { visibility: "hidden", pointerEvents: "none" }}>
                 {webglSupport === true && (
                   <SceneBoundary fallback={planFallback} onUnavailable={handleSceneUnavailable}>
-                  <Suspense fallback={<LoadingState />}>
+                  <Suspense fallback={<LoadingState title="Loading the 3D viewer" detail="Downloading the viewer before your full house appears." />}>
                     <MeasuredHouseScene
                       active={view === "model"}
                       selectedZone={selectedZone}
                       onSelectZone={selectRoom}
-                      onShowPlan={() => goToView("plan")}
                       onUnavailable={handleSceneUnavailable}
                       onRevealChange={setModelReady}
-                      onPresentationReady={finishSceneTransition}
+                      onPresentationReady={sceneReady}
+                      presentationRevision={presentationRevision}
                       designMode={designMode}
                       quality={quality}
                       compact={compact}
@@ -689,33 +691,29 @@ export function HouseExplorer() {
                       furnitureSizes={furnitureSizes}
                       removedFurniture={removedFurniture}
                       selectedFurnitureId={furnitureEditorOpen ? selectedFurnitureId : undefined}
-                      onSelectFurniture={(id) => {
-                        if (cameraMode === "walk") return;
-                        setSelectedFurnitureId(id);
-                        if (!compact) setFurnitureEditorOpen(true);
-                        setExportStatus("");
-                      }}
+                      onSelectFurniture={selectFurniture}
                     />
                   </Suspense>
                   </SceneBoundary>
                 )}
                 {webglSupport === false && planFallback}
-                {webglSupport === null && <LoadingState />}
+                {webglSupport === null && <LoadingState title="Loading the 3D viewer" detail="Preparing the full-house view." />}
+                {modelLoading && <div className="scene-loading-actions"><a href="?view=plan" className="loading-plan-link" onClick={(event) => { event.preventDefault(); showPlan(); }}>Explore the 2D plan <span aria-hidden="true">↗</span></a></div>}
             </div>
           )}
-          {view === "model" && lightingUpdating && modelReady && webglSupport === true && <div className="lighting-update-cover" data-lighting-loading="true"><LoadingState title="Finding the light" detail="Updating your view." /></div>}
-          {view === "model" && sceneTransition && modelReady && webglSupport === true && <div className="scene-transition-status" role="status" aria-live="polite" aria-busy={sceneUpdatePending}><LoadingState compact title={sceneTransition} detail="Preparing this view." /></div>}
+          {view === "model" && lightingUpdating && modelReady && webglSupport === true && <div className="lighting-update-cover" data-lighting-loading="true"><LoadingState title="Updating daylight and shadows" detail="Your lighting change is loading. The house will reappear when the new light is ready." /></div>}
+          {view === "model" && sceneUpdating && modelReady && webglSupport === true && <div className="scene-transition-status"><LoadingState compact title={sceneLoadingTitle} detail={sceneLoadingDetail} /></div>}
           {view === "model" && (
             <>
               <p id="model-keyboard-help" className="sr-only">Explore mode: W A S D move, arrow keys turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
-              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{cameraMode === "walk" ? `Interactive house view, starting in ${active.label}` : cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
+              <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{modelLoading ? "Loading your full-house 3D view. Downloading materials and preparing lighting. You can open the 2D plan while this loads." : cameraMode === "walk" ? `Interactive house view, starting in ${active.label}` : cameraMode === "room" ? `${active.label} room view` : cameraMode === "plan" ? "House top view" : cameraMode === "garden" ? "Mediterranean garden · proposed planting" : "Whole house overview"}</p>
               <div className="stage-toolbar" hidden={webglSupport === false} role="group" aria-label="Model controls">
                 <div className="segmented">
                   <button
                     type="button"
                     className={!designMode ? "is-active" : ""}
                     aria-pressed={!designMode}
-                    onClick={() => transitionScene("Opening the survey shell", () => setDesignMode(false))}
+                    onClick={() => { if (designMode || sceneUpdating) changeScene("Loading the survey shell", "Preparing the measured walls and openings.", () => setDesignMode(false)); }}
                   >
                     {compact ? "Shell" : "Survey shell"}
                   </button>
@@ -723,14 +721,14 @@ export function HouseExplorer() {
                     type="button"
                     className={designMode ? "is-active" : ""}
                     aria-pressed={designMode}
-                    onClick={() => transitionScene("Adding the finished details", () => setDesignMode(true))}
+                    onClick={() => { if (!designMode || sceneUpdating) changeScene("Loading the finished house", "Preparing materials, furniture and light.", () => setDesignMode(true)); }}
                   >
                     {compact ? "Finishes" : "With finishes"}
                   </button>
                 </div>
                 {webglSupport === true && <button type="button" className={cameraMode === "walk" ? "toolbar-chip walk-trigger is-active" : "toolbar-chip walk-trigger"} aria-pressed={cameraMode === "walk"} onClick={() => {
                   setExperienceOpen(false); setFurnitureEditorOpen(false); setSheetOpen(false);
-                  transitionScene(cameraMode === "walk" ? "Returning to the whole house" : "Opening explore mode", () => navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace"));
+                  changeScene(cameraMode === "walk" ? "Loading the whole house" : "Loading explore mode", cameraMode === "walk" ? "Preparing the full-house overview." : "Preparing the rooms and movement controls.", () => navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace"));
                 }}>Explore</button>}
                 {webglSupport === true && cameraMode !== "walk" && (
                   <>
@@ -871,6 +869,14 @@ export function HouseExplorer() {
                       </button>
                     </div>
                   </div>
+                  <fieldset className="quality-control">
+                    <legend>Rendering detail</legend>
+                    <div className="quality-options">
+                      <button type="button" aria-pressed={quality === "high"} onClick={() => changeQuality("high")}>{compact ? "High" : "Very High"}</button>
+                      <button type="button" aria-pressed={quality === "light"} onClick={() => changeQuality("light")}>Faster</button>
+                    </div>
+                    <p>{quality === "high" ? "Full material detail. Resolution adapts while you move, then sharpens when you stop." : "A smaller rendering budget for smoother exploration on slower devices."}</p>
+                  </fieldset>
                   <div className="lighting-scenes" role="group" aria-label="Lighting scenes">
                     {lightingScenes.map((scene) => <button key={scene.id} type="button"
                       aria-pressed={previewHour === scene.hour && previewLightsOn}
@@ -933,9 +939,11 @@ export function HouseExplorer() {
                               returnToHouse();
                               return;
                             }
-                            navigate({ camera: mode }, "replace");
-                            if (mode === "walk") { setExperienceOpen(false); setFurnitureEditorOpen(false); }
-                            if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
+                            changeScene(`Loading ${mode === "walk" ? "explore mode" : `${mode} view`}`, "Preparing your viewpoint and its details.", () => {
+                              navigate({ camera: mode }, "replace");
+                              if (mode === "walk") { setExperienceOpen(false); setFurnitureEditorOpen(false); }
+                              if (cameraMode === mode) setCameraRevision((revision) => revision + 1);
+                            });
                           }}
                         >
                           {mode === "overview" ? "House" : mode === "garden" ? "Garden" : mode === "room" ? "Room" : mode === "walk" ? "Explore" : "Plan"}
@@ -947,7 +955,7 @@ export function HouseExplorer() {
                     <legend>Floor finish</legend>
                     <div className="finish-options">
                       {([['oak', 'Oak parquet'], ['sand-microtopping', 'Light beige microcement']] as const).map(([id, label]) => (
-                        <button key={id} type="button" aria-pressed={floorFinish === id} onClick={() => navigate({ floor: id }, "replace")}>
+                        <button key={id} type="button" aria-pressed={floorFinish === id} onClick={() => { if (floorFinish !== id || sceneUpdating) changeScene("Loading the floor finish", "Preparing the selected material and its shadows.", () => navigate({ floor: id }, "replace")); }}>
                           <span className={`finish-swatch is-${id}`} aria-hidden="true" />
                           <span>{label}</span>
                         </button>
@@ -990,19 +998,19 @@ export function HouseExplorer() {
               )}
               {cameraMode === "garden" && webglSupport === true && (
                 <div className="kitchen-view-strip" role="group" aria-label="Garden viewpoints">
-                  <button type="button" aria-pressed={gardenView === "exterior"} onClick={() => { navigate({ garden: "exterior" }, "replace"); setCameraRevision(r => r + 1); }}>Full exterior</button>
-                  <button type="button" aria-pressed={gardenView === "hero"} onClick={() => { navigate({ garden: "hero" }, "replace"); setCameraRevision(r => r + 1); }}>Olive garden</button>
-                  <button type="button" aria-pressed={gardenView === "arrival"} onClick={() => { navigate({ garden: "arrival" }, "replace"); setCameraRevision(r => r + 1); }}>Terrace approach</button>
-                  <button type="button" onClick={() => navigate({ camera: "plan" })}>Top view</button>
+                  <button type="button" aria-pressed={gardenView === "exterior"} onClick={() => changeScene("Loading the exterior", "Preparing the full exterior view.", () => { navigate({ garden: "exterior" }, "replace"); setCameraRevision(r => r + 1); })}>Full exterior</button>
+                  <button type="button" aria-pressed={gardenView === "hero"} onClick={() => changeScene("Loading the olive garden", "Preparing planting and the garden view.", () => { navigate({ garden: "hero" }, "replace"); setCameraRevision(r => r + 1); })}>Olive garden</button>
+                  <button type="button" aria-pressed={gardenView === "arrival"} onClick={() => changeScene("Loading the terrace", "Preparing the terrace approach.", () => { navigate({ garden: "arrival" }, "replace"); setCameraRevision(r => r + 1); })}>Terrace approach</button>
+                  <button type="button" onClick={() => changeScene("Loading the top view", "Preparing the whole-house plan view.", () => navigate({ camera: "plan" }))}>Top view</button>
                 </div>
               )}
               {cameraMode === "room" && selectedZone === "north-extension" && webglSupport === true && (
                 <div className="kitchen-view-strip" role="group" aria-label="Kitchen viewpoints">
                   {kitchenViews.map((shot, index) => (
-                    <button key={shot.id} type="button" aria-pressed={kitchenView === shot.id} onClick={() => {
+                    <button key={shot.id} type="button" aria-pressed={kitchenView === shot.id} onClick={() => changeScene("Loading the kitchen view", "Preparing your kitchen viewpoint.", () => {
                       setKitchenView(shot.id);
                       setCameraRevision((revision) => revision + 1);
-                    }}><span>0{index + 1}</span>{shot.label}</button>
+                    })}><span>0{index + 1}</span>{shot.label}</button>
                   ))}
                 </div>
               )}
@@ -1223,7 +1231,7 @@ export function HouseExplorer() {
 
           {view === "materials" && <MaterialsBoard />}
           {view === "sourcebook" && <ProductSourcebook />}
-          {view === "plants" && <PlantsBoard onExplore={() => { setDesignMode(true); navigate({ view: "model", camera: "garden", garden: "exterior", zone: "central-core" }); }} />}
+          {view === "plants" && <PlantsBoard onExplore={() => changeScene("Loading the garden", "Preparing planting and the full exterior view.", () => { setDesignMode(true); navigate({ view: "model", camera: "garden", garden: "exterior", zone: "central-core" }); })} />}
         </section>
 
         {view === "model" && (
@@ -1236,6 +1244,7 @@ export function HouseExplorer() {
                 aria-pressed={(cameraMode === "room" || cameraMode === "walk") && selectedZone === zone.id}
                 onClick={() => {
                   if (selectedZone === zone.id && cameraMode === "room") {
+                    cancelScene();
                     setSheetOpen(true);
                     return;
                   }
@@ -1311,7 +1320,7 @@ export function HouseExplorer() {
             aria-current={view === entry.id ? "page" : undefined}
             onClick={() => goToView(entry.id)}
           >
-            <span>{entry.label}</span>
+            <span>{entry.id === "sourcebook" ? "Products" : entry.label}</span>
           </button>
         ))}
       </nav>

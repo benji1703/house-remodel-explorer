@@ -37,6 +37,9 @@ export const mobileHighLightingProfile: LightingProfile = {
   transmission: false, localLights: true, maxLocalShadows: 2,
 };
 
+/** Adapt motion pixels on slower phones; retain full textures and filtered shadows. */
+export const mobileMotionBudget = { sampleFrames: 8, slowFrameMs: 28, minimumDpr: 0.65 } as const;
+
 /** Proposed practical fixtures, in plan centimetres. Shared by the runtime
  * lights and the orthographic lighting plan markers. */
 export const houseLightingFixtures = [

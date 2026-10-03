@@ -7,6 +7,7 @@ import { LoadingState } from "../loading/LoadingState";
 
 /** Signal after an actual scene frame, rather than when the WebGL context exists. */
 export function SceneFirstFrame({ onReady, enabled = true }: { onReady?: () => void; enabled?: boolean }) {
+  const invalidate = useThree(state => state.invalidate);
   const frame = useRef<number | null>(null);
   const sent = useRef(false);
   useFrame(() => {
@@ -16,10 +17,11 @@ export function SceneFirstFrame({ onReady, enabled = true }: { onReady?: () => v
   });
   useLayoutEffect(() => {
     sent.current = false;
+    invalidate();
     return () => {
       if (frame.current !== null) cancelAnimationFrame(frame.current);
     };
-  }, []);
+  }, [enabled, invalidate]);
   return null;
 }
 
@@ -54,7 +56,6 @@ export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boo
   const [assets, setAssets] = useState(() => useProgress.getState());
   const [revealed, setRevealed] = useState(false);
   const [detailsVisible, setDetailsVisible] = useState(false);
-  const [slow, setSlow] = useState(false);
 
   useEffect(() => {
     let update: ReturnType<typeof setTimeout>;
@@ -82,12 +83,6 @@ export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boo
     return () => clearTimeout(timer);
   }, [assets.active]);
 
-  useEffect(() => {
-    if (revealed) return;
-    const timer = setTimeout(() => setSlow(true), 12000);
-    return () => clearTimeout(timer);
-  }, [revealed]);
-
   const covered = !revealed || !ready;
   useEffect(() => {
     if (covered) {
@@ -110,17 +105,23 @@ export function SceneLoading({ ready, onShowPlan, onRevealChange }: { ready: boo
 
   useEffect(() => () => onRevealChange?.(false), [onRevealChange]);
 
-  const progress = assets.active && assets.total > 0 && assets.progress < 100 ? assets.progress : undefined;
+  const filesPending = assets.active && assets.total > 0 && assets.loaded < assets.total;
+  const progress = filesPending ? assets.loaded / assets.total * 100 : undefined;
+  const progressLabel = filesPending ? `${assets.loaded} of ${assets.total} scene files loaded`
+    : ready ? "View rendered · opening the house" : "Preparing the first 3D frame";
   return <>
     <div ref={coverRef} className={`scene-loading-cover${covered ? "" : " is-revealed"}`} aria-hidden={!covered} inert={!covered}>
       <LoadingState
-        title={assets.active ? "Bringing the house into view" : ready ? "Setting the scene" : "Opening your house"}
-        detail={slow ? "Still preparing the view. You can explore the plan while you wait." : assets.active ? "Preparing materials, furnishings and planting." : "Finding the light. Making room for the details."}
+        active={covered}
+        title={filesPending ? "Loading materials and furnishings" : ready ? "Your house is ready" : "Rendering your 3D view"}
+        detail={filesPending ? "Downloading the room materials, furniture and planting. The first visit can take longer on your phone." : "Building the house and preparing its lighting. Your view will appear after the first frame renders."}
         progress={progress}
+        progressLabel={progressLabel}
       >
+        {covered && assets.errors.length > 0 && <p className="loading-wait-note">Some files could not load. Check your connection or open the 2D plan.</p>}
         {onShowPlan && <button type="button" className="loading-plan-link" onClick={onShowPlan}>Explore the 2D plan <span aria-hidden="true">↗</span></button>}
       </LoadingState>
     </div>
-    {!covered && detailsVisible && <LoadingState compact title="Adding the finer details" detail="You can keep exploring." progress={progress} />}
+    {!covered && detailsVisible && <LoadingState compact title="Loading the finer details" detail="The house is ready; you can keep exploring." progress={progress} progressLabel={filesPending ? progressLabel : "Preparing the remaining details"} />}
   </>;
 }

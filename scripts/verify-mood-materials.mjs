@@ -19,12 +19,12 @@ const expectedImages = {
 };
 const expectedTextures = {
   clay: '/references/moods/mood-terrace-08.jpeg',
-  oak: '/textures/door-oak-albedo.jpg',
+  oak: '/textures/door-oak-albedo.webp',
   travertine: '/references/moods/mood-kitchen-detail.jpeg',
-  plaster: '/textures/lime-plaster-albedo.jpg',
+  plaster: '/textures/lime-plaster-albedo.webp',
   mineral: '/references/moods/mood-living-14.jpeg',
-  linen: '/textures/linen-washed-albedo.jpg',
-  woven: '/textures/chair-rush-albedo.jpg',
+  linen: '/textures/linen-washed-albedo.webp',
+  woven: '/textures/chair-rush-albedo.webp',
 };
 async function settle(page) {
   await page.waitForFunction(() => window.__gardenQA?.snapshot().target && !document.querySelector('.is-model-loading'));

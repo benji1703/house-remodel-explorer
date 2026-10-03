@@ -23,7 +23,7 @@ try {
   assert.equal(await page.locator('.detail h2').count(), 0, 'room data must wait for the model');
   assert.equal(await page.locator('.stage-hud').evaluate(element => getComputedStyle(element).visibility), 'hidden');
   await page.screenshot({ path: `${directory}/initial.png` });
-  assert.equal(await page.getByRole('button', { name: 'Explore the 2D plan' }).count(), 1);
+  assert.equal(await page.getByRole('link', { name: 'Explore the 2D plan' }).count(), 1);
   const revealState = page.evaluate(() => new Promise(resolve => {
     const cover = document.querySelector('.scene-loading-cover');
     const observer = new MutationObserver(() => {
@@ -74,15 +74,38 @@ try {
   await page.goto(`${base}/?view=plants`);
   await page.locator('.plants-board, .plants-view').first().waitFor().catch(() => {});
   await page.screenshot({ path: `${directory}/mobile-plants.png` });
+  for (const [view, selector] of [['materials', '.material-pin figure'], ['plants', '.plant-card figure']]) {
+    const imagePage = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    let releaseImages;
+    const imagesHeld = new Promise(resolve => { releaseImages = resolve; });
+    await imagePage.route(/\.(jpe?g|png|webp)(\?.*)?$/, async route => { await imagesHeld; await route.abort().catch(() => {}); });
+    try {
+      await imagePage.goto(`${base}/?view=${view}`, { waitUntil: 'domcontentloaded' });
+      const figure = imagePage.locator(selector).first();
+      await figure.scrollIntoViewIfNeeded();
+      const placeholder = figure.locator('.image-loading-placeholder');
+      await placeholder.waitFor();
+      const slot = await figure.boundingBox();
+      const skeleton = await placeholder.boundingBox();
+      assert.ok(Math.abs(slot.width - skeleton.width) < 2 && Math.abs(slot.height - skeleton.height) < 2,
+        `${view}: image skeleton must fill its reserved image slot`);
+      assert.equal(await placeholder.evaluate(element => getComputedStyle(element).backdropFilter), 'none');
+      releaseImages();
+      const failure = figure.getByText('Image unavailable', { exact: true });
+      await failure.waitFor();
+      assert.ok((await failure.boundingBox()).width > 100, `${view}: image failure must not inherit a tiny number badge`);
+      await imagePage.screenshot({ path: `${directory}/${view}-image-fallback.png` });
+    } finally { releaseImages(); await imagePage.close(); }
+  }
   const escape = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   let unblock;
   const blocked = new Promise(resolve => { unblock = resolve; });
   await escape.route(/\.(glb|jpe?g|png|webp)(\?.*)?$/, async route => { await blocked; await route.continue().catch(() => {}); });
   await escape.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
   assert.equal(await escape.locator('.stage.is-model').count(), 1, 'iPhone-sized default route opens the full-house 3D view');
-  await escape.getByRole('button', { name: 'Explore the 2D plan' }).waitFor({ timeout: 60000 });
+  await escape.getByRole('link', { name: 'Explore the 2D plan' }).waitFor({ timeout: 60000 });
   await escape.screenshot({ path: `${directory}/mobile-loading.png` });
-  await escape.getByRole('button', { name: 'Explore the 2D plan' }).click();
+  await escape.getByRole('link', { name: 'Explore the 2D plan' }).click();
   await escape.getByRole('heading', { name: 'The measured plan', exact: true }).waitFor();
   unblock();
   await escape.close();

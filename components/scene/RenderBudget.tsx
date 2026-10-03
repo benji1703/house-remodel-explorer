@@ -2,14 +2,14 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { lightingProfiles, mobileHighLightingProfile } from "@/data/lighting";
+import { lightingProfiles, mobileHighLightingProfile, mobileMotionBudget } from "@/data/lighting";
 import * as THREE from "three";
 
 /** Spend pixels on the settled image; cache sun shadows until a caster changes.
  * Transmission is intentionally disabled by the presentation profile: even a
  * tiny wine bottle otherwise renders the entire house into another framebuffer.
  */
-export function RenderBudget({ quality, active }: { quality: "high" | "light"; active: boolean }) {
+export function RenderBudget({ quality, compact, active }: { quality: "high" | "light"; compact: boolean; active: boolean }) {
   const { get, size, setDpr, invalidate, setFrameloop } = useThree();
   const previousCamera = useMemo(() => new THREE.Matrix4(), []);
   const previousProjection = useMemo(() => new THREE.Matrix4(), []);
@@ -18,12 +18,11 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
   const shadowEligible = useMemo(() => new WeakSet<THREE.SpotLight>(), []);
   const lightPosition = useMemo(() => new THREE.Vector3(), []);
   const moving = useRef(false);
+  const motionSample = useRef({ frames: 0, milliseconds: 0, dpr: 0 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const casterCount = useRef(-1);
-  const compactDevice = window.matchMedia("(max-width: 800px)").matches
-    || window.matchMedia("(pointer: coarse)").matches;
-  const profile = quality === "high" && compactDevice ? mobileHighLightingProfile : lightingProfiles[quality];
-  const pixelBudget = quality === "light" && compactDevice ? 450_000 : profile.idlePixelBudget;
+  const profile = quality === "high" && compact ? mobileHighLightingProfile : lightingProfiles[quality];
+  const pixelBudget = quality === "light" && compact ? 450_000 : profile.idlePixelBudget;
   const idleDpr = Math.min(window.devicePixelRatio || 1, profile.dpr[1],
     Math.sqrt(pixelBudget / Math.max(1, size.width * size.height)));
 
@@ -46,14 +45,27 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
     };
   }, [active, get, idleDpr, setDpr, setFrameloop, invalidate]);
 
-  useFrame(({ camera, gl, scene }) => {
+  useFrame(({ camera, gl, scene }, delta) => {
     camera.updateMatrixWorld();
     if (!previousCamera.equals(camera.matrixWorld) || !previousProjection.equals(camera.projectionMatrix)) {
       previousCamera.copy(camera.matrixWorld);
       previousProjection.copy(camera.projectionMatrix);
       if (!moving.current) {
         moving.current = true;
-        setDpr(Math.min(idleDpr, profile.movingDpr));
+        motionSample.current = { frames: 0, milliseconds: 0, dpr: Math.min(idleDpr, profile.movingDpr) };
+        setDpr(motionSample.current.dpr);
+      } else if (compact && delta > 0) {
+        const sample = motionSample.current;
+        sample.frames++;
+        sample.milliseconds += Math.min(delta, 0.1) * 1000;
+        if (sample.frames >= mobileMotionBudget.sampleFrames) {
+          if (sample.milliseconds / sample.frames > mobileMotionBudget.slowFrameMs) {
+            const next = Math.max(Math.min(idleDpr, mobileMotionBudget.minimumDpr), sample.dpr * 0.85);
+            if (next < sample.dpr) { sample.dpr = next; setDpr(next); }
+          }
+          sample.frames = 0;
+          sample.milliseconds = 0;
+        }
       }
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => {

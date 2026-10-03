@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls, OrthographicCamera, useTexture } from "@react-three/drei";
-import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { memo, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { FurnitureId, FurnitureSizeOverrides } from "@/data/furniture";
@@ -67,7 +67,8 @@ type Props = {
   onUnavailable?: () => void;
   onShowPlan?: () => void;
   onRevealChange?: (revealed: boolean) => void;
-  onPresentationReady?: () => void;
+  presentationRevision?: number;
+  onPresentationReady?: (revision: number) => void;
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -724,6 +725,7 @@ function WallRun({
     clone.opacity = 1;
     clone.depthWrite = true;
     clone.side = THREE.DoubleSide;
+    clone.forceSinglePass = true;
     return clone;
   }, [focusZone, material]);
 
@@ -732,20 +734,45 @@ function WallRun({
     return () => displayMaterial.dispose();
   }, [displayMaterial, material]);
 
+  useLayoutEffect(() => {
+    // A wall hidden for a room cutaway must reappear when returning to the
+    // whole-house shell, where no obstruction fade runs.
+    if (!focusZone && groupRef.current) {
+      groupRef.current.visible = true;
+      obstructedRef.current = false;
+      groupRef.current.traverse(object => {
+        if (!(object instanceof THREE.Mesh)) return;
+        object.castShadow = true;
+        object.receiveShadow = true;
+      });
+    }
+  }, [focusZone]);
+
   useFrame(({ camera, invalidate }, delta) => {
     if (!focusZone || displayMaterial === material) return;
-    const firstMesh = groupRef.current?.children.find((object): object is THREE.Mesh => object instanceof THREE.Mesh);
+    const group = groupRef.current;
+    const firstMesh = group?.children.find((object): object is THREE.Mesh => object instanceof THREE.Mesh);
     const activeMaterial = firstMesh?.material;
     if (!(activeMaterial instanceof THREE.Material)) return;
     const cameraPlan: PlanPoint = [camera.position.x + CX, camera.position.z + CZ];
     const obstructed = wallObstructsZone(a, b, cameraPlan, focusZone);
-    activeMaterial.opacity = dampSceneValue(activeMaterial.opacity, obstructed ? 0.055 : 1, 12, delta, invalidate);
-    const transparent = activeMaterial.opacity < 0.999;
-    if (activeMaterial.transparent !== transparent) {
-      activeMaterial.transparent = transparent;
-      activeMaterial.needsUpdate = true;
+    if (!group) return;
+    if (!obstructed && !group.visible) {
+      // Bring a fully faded wall back before its opacity starts easing upward.
+      group.visible = true;
+      invalidate();
     }
-    activeMaterial.depthWrite = !obstructed;
+    activeMaterial.opacity = dampSceneValue(activeMaterial.opacity, obstructed ? 0 : 1, 12, delta, invalidate);
+    // Keep the transparent shader variant stable during the obstruction fade;
+    // only update fixed-function depth state when the wall is fully opaque.
+    activeMaterial.depthWrite = activeMaterial.opacity >= 0.999;
+    if (obstructed && activeMaterial.opacity === 0 && group.visible) {
+      // Fully remove the obstruction after the fade to avoid see-through wall
+      // planes over furniture and floors. Invalidate once so shadow caches
+      // observe the visibility change on their next frame.
+      group.visible = false;
+      invalidate();
+    }
     if (obstructed === obstructedRef.current) return;
     obstructedRef.current = obstructed;
     groupRef.current?.traverse((object) => {
@@ -937,6 +964,7 @@ function SceneContent({
   lightingRevision,
   onLightingReady,
   onPresentationReady,
+  presentationRevision = 0,
   houseLightsOn = true,
   allDoorsOpen = true,
   doorStates = {},
@@ -995,12 +1023,12 @@ function SceneContent({
     moodSurfaces.linen.image,
     moodSurfaces.woven.image,
     moodSurfaces.mineral.image,
-    `/textures/herringbone-parquet-diff-${floorResolution}.jpg`,
+    `/textures/herringbone-parquet-diff-${floorResolution}.webp`,
     `/textures/herringbone-parquet-normal-${floorResolution}.jpg`,
     `/textures/herringbone-parquet-rough-${floorResolution}.jpg`,
     "/textures/jerusalem-stone-ai.jpg",
   ]);
-  const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? 16 : 4);
+  const textureAnisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), quality === "high" ? compact ? 8 : 16 : 4);
   const textureSet = useMemo(
     () => ({
       plaster: prepareTexture(plasterSource, [1, 1], textureAnisotropy),
@@ -1226,12 +1254,12 @@ function SceneContent({
       </>}
       <SceneLightingFrame revision={lightingRevision ?? 0} onReady={onLightingReady} />
       <SceneFirstFrame onReady={onReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
-      <SceneFirstFrame key={`${designMode ? "finished" : "shell"}-${cameraMode}`} onReady={onPresentationReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
+      <SceneFirstFrame key={`${presentationRevision}-${designMode}-${cameraMode}-${quality}-${floorFinish}`} onReady={() => onPresentationReady?.(presentationRevision)} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
     </>
   );
 }
 
-export function MeasuredHouseScene(props: Props) {
+export const MeasuredHouseScene = memo(function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
   const profile = quality === "high" && props.compact ? mobileHighLightingProfile : lightingProfiles[quality];
   const walkInput = useRef<WalkInput>(createWalkInput());
@@ -1282,11 +1310,16 @@ export function MeasuredHouseScene(props: Props) {
       <Suspense fallback={<ScenePending onPending={handlePending} />}>
         <SceneContent {...props} walkInput={walkInput} onReady={handleReady} landscapeReady={landscapeReady} onLandscapeReady={setLandscapeReady} />
       </Suspense>
-      <RenderBudget quality={quality} active={props.active} />
+      <RenderBudget quality={quality} compact={props.compact} active={props.active} />
       <GardenDiagnostics />
     </Canvas>
     {props.cameraMode === "walk" && props.active && presentable && <WalkControls input={walkInput} onReset={() => { walkInput.current.reset?.(); }} />}
-    <SceneLoading ready={presentable} onShowPlan={props.onShowPlan} onRevealChange={props.onRevealChange} />
+    <SceneLoading ready={presentable} onRevealChange={props.onRevealChange} />
     </>
   );
-}
+}, (previous, next) => {
+  // Keep cached assets, but skip scene reconciliation while browsing other tabs.
+  if (!previous.active && !next.active) return true;
+  const keys = Object.keys(next) as (keyof Props)[];
+  return keys.length === Object.keys(previous).length && keys.every(key => Object.is(previous[key], next[key]));
+});

@@ -61,7 +61,7 @@ export function MaterialsBoard() {
                 priority={index < 4}
                 unoptimized
               />
-              <span>{String(index + 1).padStart(2, "0")}</span>
+              <span className="material-pin-number">{String(index + 1).padStart(2, "0")}</span>
             </figure>
             <div className="material-pin-copy">
               <p>{material.family}</p>

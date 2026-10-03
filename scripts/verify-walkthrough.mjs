@@ -49,6 +49,12 @@ try {
   const blurred = (await snapshot(page)).camera;
   await page.waitForTimeout(250); await page.keyboard.up('w');
   assert.ok(distance(blurred, (await snapshot(page)).camera) < 0.001, 'Focus loss clears movement');
+  await canvas.focus();
+  await page.keyboard.down('w'); await page.waitForTimeout(150);
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  const hidden = (await snapshot(page)).camera;
+  await page.waitForTimeout(250); await page.keyboard.up('w');
+  assert.ok(distance(hidden, (await snapshot(page)).camera) < .001, 'Page visibility changes clear held movement');
   await page.getByRole('button', { name: 'Reset position', exact: true }).click();
   assert.ok(distance(start, (await snapshot(page)).camera) < 0.001, 'Reset returns to entrance');
   const rect = await canvas.boundingBox();
@@ -57,6 +63,15 @@ try {
   await page.mouse.down(); await page.mouse.move(rect.x + rect.width / 2 + 100, rect.y + rect.height / 2 + 30, { steps: 10 }); await page.mouse.up();
   assert.ok(distance(beforeLook, (await snapshot(page)).direction) > 0.1, 'Drag looks around');
   assert.ok(page.url().includes('camera=walk'), 'Dragging does not select a room');
+  await canvas.evaluate(element => element.addEventListener('pointerdown', event => { window.__walkTestPointer = event.pointerId; }, { once: true }));
+  await page.mouse.down();
+  await page.mouse.move(rect.x + rect.width / 2 + 130, rect.y + rect.height / 2 + 40);
+  await canvas.evaluate(element => element.dispatchEvent(new PointerEvent('pointercancel', { pointerId: window.__walkTestPointer })));
+  await page.waitForTimeout(100);
+  const cancelledLook = (await snapshot(page)).direction;
+  await page.mouse.move(rect.x + rect.width / 2 + 180, rect.y + rect.height / 2 + 65);
+  await page.mouse.up(); await page.waitForTimeout(150);
+  assert.ok(distance(cancelledLook, (await snapshot(page)).direction) < .001, 'Cancelled look drag must stop changing the camera');
   await page.getByRole('button', { name: 'Reset position', exact: true }).click();
   // Cross the sofa's footprint, which used to trap the first-person camera.
   await page.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`); await ready(page);
@@ -148,6 +163,12 @@ try {
   assert.ok(distance(before, (await snapshot(mobile)).camera) > 0.1, 'Touch control moves camera');
   const after = (await snapshot(mobile)).camera; await mobile.waitForTimeout(250);
   assert.ok(distance(after, (await snapshot(mobile)).camera) < .001, 'Touch release stops');
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: button.x + 22, y: button.y + 22 }] });
+  await mobile.waitForTimeout(200);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+  const cancelledTouch = (await snapshot(mobile)).camera;
+  await mobile.waitForTimeout(250);
+  assert.ok(distance(cancelledTouch, (await snapshot(mobile)).camera) < .001, 'Cancelled touch must clear held movement');
   assert.equal(await mobile.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Mobile controls fit viewport');
   await mobile.screenshot({ path: `${directory}/mobile.png` });
   report.cases.push('mobile touch movement, release and layout'); await mobile.close();

@@ -1,19 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Newsreader } from "next/font/google";
+import localFont from "next/font/local";
 import { site, siteUrl } from "@/data/site";
 import "./globals.css";
 
-const display = Newsreader({
+const display = localFont({
+  src: [
+    { path: "../public/fonts/newsreader-latin-variable.woff2", weight: "200 800", style: "normal" },
+    { path: "../public/fonts/newsreader-latin-italic-variable.woff2", weight: "200 800", style: "italic" },
+  ],
   variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  display: "optional",
+  adjustFontFallback: "Times New Roman",
+  fallback: ["Times New Roman", "serif"],
 });
 
-const sans = Figtree({
+const sans = localFont({
+  src: "../public/fonts/figtree-latin-variable.woff2",
+  weight: "300 900",
+  style: "normal",
   variable: "--font-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "optional",
+  adjustFontFallback: "Arial",
+  fallback: ["Arial", "sans-serif"],
 });
 
 const absoluteUrl = siteUrl();

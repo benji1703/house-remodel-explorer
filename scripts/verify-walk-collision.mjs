@@ -20,6 +20,11 @@ try {
   assert.equal(canWalkAt(7.6, 6.8, true, {}), true, 'Open bedroom doorway');
   assert.equal(canWalkAt(7.6, 6.8, false, {}), false, 'Closed bedroom doorway');
   assert.equal(canWalkAt(7.6, 6.8, false, { 'int-0-0': true }), true, 'Individual door overrides global state');
+  // Exact centre of the ensuite pocket door in partition int-2, opening 1.
+  assert.equal(canWalkAt(3.4, 11.3, true, {}), true, 'Open ensuite pocket door permits passage');
+  assert.equal(canWalkAt(3.4, 11.3, false, {}), false, 'Closed ensuite pocket door blocks passage');
+  assert.equal(canWalkAt(3.4, 11.3, false, { 'int-2-1': true }), true, 'Pocket door individual open override permits passage');
+  assert.equal(canWalkAt(3.4, 11.3, true, { 'int-2-1': false }), false, 'Pocket door individual closed override blocks passage');
   assert.equal(canWalkAt(7.6, 7.4, true, {}), false, 'Solid partition');
   assert.equal(canWalkAt(7.6, 6.4, true, {}), false, 'Jamb includes body radius');
   assert.equal(canWalkAt(3.4, 6.1, true, {}), false, 'Fixed full-height glazing');
@@ -41,5 +46,5 @@ try {
   assert.ok(z > 7.9, 'Movement slides along wall');
   assert.equal(canWalkAt(5.35, 2.42, true, {}), true, 'Kitchen island remains passable in FPS');
   assert.equal(canWalkAt(6.7, 6.1, true, {}), true, 'Sofa remains passable in FPS');
-  console.log('Passed: seven spawns, doors, overrides, jambs, glazing, terrace, garden, terrain limits, tunnelling, sliding and furniture.');
+  console.log('Passed: seven spawns, hinged and sliding doors with global/individual state, jambs, glazing, terrace, garden, terrain limits, tunnelling, sliding and furniture.');
 } finally { fs.rmSync(temporary, { recursive: true, force: true }); }

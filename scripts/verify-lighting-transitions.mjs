@@ -31,8 +31,8 @@ try {
   const day=await page.evaluate(()=>window.__gardenQA.lighting());
   const practicals=sources=>sources.filter(s=>s.type==='SpotLight'||s.type==='PointLight').map(s=>[s.name,s.type]);
   assert.deepEqual(practicals(night.sources),practicals(day.sources),'Practical fixtures stay mounted across lighting changes');
-  assert.ok(night.sources.every(s=>s.type!=='RectAreaLight'),'Window bounce fades out at night');
-  assert.ok(day.sources.some(s=>s.type==='RectAreaLight'),'Daylight enters through the modeled windows');
+  assert.ok(!night.sources.some(s=>s.type==='RectAreaLight'),'Window bounce is absent at night');
+  assert.ok(day.sources.some(s=>s.type==='RectAreaLight'&&s.intensity>0),'Daylight enters through the modeled windows');
   const lights=page.getByRole('group',{name:'House lights',exact:true});
   await lights.getByRole('button',{name:'Off',exact:true}).click({noWaitAfter:true});
   await page.waitForFunction(()=>window.__gardenQA.lighting().settings.lightsOn===false&&!document.querySelector('[data-lighting-loading]'));

@@ -142,7 +142,7 @@ export function HouseExplorer() {
   };
 
   const [designMode, setDesignMode] = useState(true);
-  const [quality, setQuality] = useState<"high" | "light">("light");
+  const [quality, setQuality] = useState<"high" | "light">("high");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   // Keep the WebGL renderer after the first house visit. Recreating it on
   // every Plan → House switch can exhaust Safari's context budget on iPhone.
@@ -223,12 +223,10 @@ export function HouseExplorer() {
   useEffect(() => {
     if (!modelVisited) return;
     const timer = window.setTimeout(() => {
-      const isSmall = window.matchMedia("(max-width: 800px)").matches
-        || window.matchMedia("(pointer: coarse)").matches;
       const saveData =
         "connection" in navigator &&
         Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData);
-      if (isSmall || saveData) setQuality("light");
+      if (saveData) setQuality("light");
       setWebglSupport(supportsWebGL());
     }, 0);
     return () => window.clearTimeout(timer);
@@ -236,10 +234,15 @@ export function HouseExplorer() {
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 800px)");
-    const sync = () => setCompact(media.matches);
+    const coarse = window.matchMedia("(pointer: coarse)");
+    const sync = () => setCompact(media.matches || coarse.matches);
     sync();
     media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
+    coarse.addEventListener("change", sync);
+    return () => {
+      media.removeEventListener("change", sync);
+      coarse.removeEventListener("change", sync);
+    };
   }, []);
 
   useEffect(() => {
@@ -618,7 +621,7 @@ export function HouseExplorer() {
               aria-pressed={quality === "light"}
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Detail: High" : "Detail: Balanced"}
+              {quality === "high" ? compact ? "Detail: High" : "Detail: Very High" : "Detail: Balanced"}
             </button>
           )}
         </div>
@@ -647,6 +650,7 @@ export function HouseExplorer() {
                       onRevealChange={setModelReady}
                       designMode={designMode}
                       quality={quality}
+                      compact={compact}
                       showMeasurements={showMeasurements}
                       onCameraAzimuth={updateCompass}
                       sunHour={sunHour}

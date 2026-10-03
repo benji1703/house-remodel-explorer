@@ -104,6 +104,7 @@ try {
       await setQuality(page, 'high');
       await ready(page);
       await sofaCamera(page);
+      await ready(page); // Let OrbitControls damping settle before comparing quality changes.
       for (const quality of ['high', 'light']) {
         const before = await page.evaluate(() => window.__gardenQA.snapshot());
         await setQuality(page, quality);
@@ -127,7 +128,7 @@ try {
       watch(mobile, `${browserName}-mobile`);
       await mobile.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`);
       await ready(mobile);
-      assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'true');
+      assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'false');
       await capture(mobile, `${browserName}-mobile`, 3, 1.05);
       // Context loss must retain the accessible 2D plan, with room navigation.
       await mobile.locator('canvas').first().evaluate(canvas => canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true })));

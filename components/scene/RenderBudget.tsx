@@ -2,7 +2,7 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { lightingProfiles } from "@/data/lighting";
+import { lightingProfiles, mobileHighLightingProfile } from "@/data/lighting";
 import * as THREE from "three";
 
 /** Spend pixels on the settled image; cache sun shadows until a caster changes.
@@ -10,7 +10,6 @@ import * as THREE from "three";
  * tiny wine bottle otherwise renders the entire house into another framebuffer.
  */
 export function RenderBudget({ quality, active }: { quality: "high" | "light"; active: boolean }) {
-  const profile = lightingProfiles[quality];
   const { get, size, setDpr, invalidate, setFrameloop } = useThree();
   const previousCamera = useMemo(() => new THREE.Matrix4(), []);
   const previousProjection = useMemo(() => new THREE.Matrix4(), []);
@@ -23,6 +22,7 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
   const casterCount = useRef(-1);
   const compactDevice = window.matchMedia("(max-width: 800px)").matches
     || window.matchMedia("(pointer: coarse)").matches;
+  const profile = quality === "high" && compactDevice ? mobileHighLightingProfile : lightingProfiles[quality];
   const pixelBudget = quality === "light" && compactDevice ? 450_000 : profile.idlePixelBudget;
   const idleDpr = Math.min(window.devicePixelRatio || 1, profile.dpr[1],
     Math.sqrt(pixelBudget / Math.max(1, size.width * size.height)));

@@ -35,7 +35,7 @@ import { RenderBudget } from "./scene/RenderBudget";
 import { getDaylight } from "@/lib/daylight";
 import { EXT_THICKNESS, INT_THICKNESS, exteriorOpenings, partitions, openingKind, type Opening } from "@/data/structuralWalls";
 import { FirstPersonController, WalkControls, createWalkInput, type WalkInput } from "./scene/FirstPersonControls";
-import { lightingProfiles } from "@/data/lighting";
+import { lightingProfiles, mobileHighLightingProfile } from "@/data/lighting";
 
 type Props = {
   active: boolean;
@@ -43,6 +43,7 @@ type Props = {
   onSelectZone: (id: ZoneId) => void;
   designMode: boolean;
   quality: "high" | "light";
+  compact: boolean;
   showMeasurements?: boolean;
   onCameraAzimuth?: (radians: number) => void;
   sunHour?: number;
@@ -928,6 +929,7 @@ function SceneContent({
   onSelectZone,
   designMode,
   quality,
+  compact,
   showMeasurements = false,
   onCameraAzimuth,
   sunHour = 13.5,
@@ -1074,7 +1076,7 @@ function SceneContent({
 
   return (
     <>
-      <LightingRig geometryRevision={geometryRevision} designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
+      <LightingRig geometryRevision={geometryRevision} designMode={designMode} quality={quality} compact={compact} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
       {designMode && <MediterraneanLandscape palette={palette} quality={quality} cameraMode={cameraMode} onReady={onLandscapeReady} />}
       <FootprintSurface material={palette.ground} elevation={0.002} />
@@ -1228,7 +1230,7 @@ function SceneContent({
 
 export function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
-  const profile = lightingProfiles[quality];
+  const profile = quality === "high" && props.compact ? mobileHighLightingProfile : lightingProfiles[quality];
   const walkInput = useRef<WalkInput>(createWalkInput());
   useEffect(() => {
     if (props.cameraMode !== "walk") walkInput.current.pose = undefined;
@@ -1245,7 +1247,7 @@ export function MeasuredHouseScene(props: Props) {
     <Canvas
       frameloop={props.active ? "demand" : "never"}
       dpr={profile.dpr}
-      shadows={quality === "high" ? "soft" : "basic"}
+      shadows="soft"
       // The initial camera matches CameraDirector's composed dollhouse view so
       // there is no low-angle flash while controls mount.
       camera={{ position: [-13.8, 16.4, -10.4], fov: 36, near: 0.1, far: 200 }}

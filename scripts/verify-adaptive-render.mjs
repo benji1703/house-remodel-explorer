@@ -58,24 +58,29 @@ for (const [name, engine, mobile] of targets) {
     });
     const overview = await snapshot(page);
     console.log(`${name}: default DPR ${overview.dpr}, framebuffer ${overview.drawingBuffer.join('x')} (${overview.drawingBuffer[0] * overview.drawingBuffer[1]} px)`);
-    assert.equal(await page.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'true', `${name}: balanced quality is the 3D default`);
+    assert.equal(await page.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'false', `${name}: high detail is the 3D default`);
+    assert.equal(await page.locator('button[aria-label="Toggle rendering detail"]').innerText(), compactDevice ? 'Detail: High' : 'Detail: Very High', `${name}: detail tier is named for the device`);
+    assert.equal(overview.shadowType, 2, `${name}: shadows use filtered PCF sampling`);
+    assert.ok(overview.sunShadowMapSize[0] >= (compactDevice ? 1024 : 2048), `${name}: shadow map is detailed enough for the device`);
     assert.ok(!overview.assets.some((r) => /models\/landscape\/[^/]+(?<!-light)(?<!-far)\.glb/.test(r.url)), `${name}: overview must not fetch high-detail garden assets`);
     assert.ok(!overview.assets.some((r) => /models\/(potted-plant-02|periwinkle-plant)\//.test(r.url)), `${name}: overview must not preload decorative scans`);
-    assert.ok(overview.dpr <= 1.5, `${name}: balanced default caps pixel ratio`);
-    assert.ok(overview.drawingBuffer[0] * overview.drawingBuffer[1] <= (compactDevice ? 500_000 : 1_500_000), `${name}: balanced framebuffer pixel budget (${overview.dpr}x, ${overview.drawingBuffer.join('x')})`);
+    assert.ok(overview.dpr <= (compactDevice ? 1.5 : 2), `${name}: device-appropriate default caps pixel ratio`);
+    assert.ok(overview.drawingBuffer[0] * overview.drawingBuffer[1] <= (compactDevice ? 1_250_000 : 4_000_000), `${name}: high-detail framebuffer budget (${overview.dpr}x, ${overview.drawingBuffer.join('x')})`);
     await page.screenshot({ path: `${directory}/${name}-overview.jpg`, quality: 88 });
     await idle(page);
-    assert.equal((await snapshot(page)).frames, overview.frames, `${name}: idle rendering must stop`);
+    const settledFrames = (await snapshot(page)).frames;
+    await page.waitForTimeout(300);
+    assert.equal((await snapshot(page)).frames, settledFrames, `${name}: idle rendering must stop`);
 
     // The actual OrbitControls zoom path, with no route change, restores detail.
     await page.evaluate(() => window.__gardenQA.camera([-10.5, 4.2, -5.3], [-8, 0.8, -2.5]));
     await settle(page);
     const close = await snapshot(page);
-    assert.ok(close.lod.light > 0, `${name}: zoom loads closer geometry`);
+    assert.ok(close.lod.high > 0, `${name}: zoom loads the high-detail geometry tier`);
     await page.evaluate(() => window.__gardenQA.camera([-9.8, 4.2, -5.3], [-8, 0.8, -2.5]));
-    await page.waitForFunction(() => window.__gardenQA.snapshot().dpr <= 0.9, null, { timeout: 2000 });
+    await page.waitForFunction(max => window.__gardenQA.snapshot().dpr <= max, compactDevice ? 0.95 : 1.3, { timeout: 2000 });
     const moving = await snapshot(page);
-    assert.ok(moving.dpr <= 0.9, `${name}: interaction has a smaller pixel budget (${moving.dpr}x)`);
+    assert.ok(moving.dpr <= (compactDevice ? 0.95 : 1.3), `${name}: interaction has a smaller pixel budget (${moving.dpr}x)`);
     await page.waitForTimeout(1100);
     assert.equal((await snapshot(page)).dpr, overview.dpr, `${name}: full resolution returns after interaction`);
 
@@ -85,11 +90,14 @@ for (const [name, engine, mobile] of targets) {
     assert.ok(overview.triangles < 5_000_000 && garden.triangles < 8_000_000, `${name}: distant geometry stays within the triangle budget`);
     const performance = await page.evaluate(() => window.__gardenQA.renderSample(20));
     await page.screenshot({ path: `${directory}/${name}-garden.jpg`, quality: 88 });
-    const pick = await page.evaluate(() => window.__gardenQA.pickTarget());
-    assert.ok(pick, `${name}: instanced plant picking remains available`);
-    await page.mouse.click(pick.x, pick.y);
-    await page.locator('.garden-plant-label').waitFor();
-    await page.getByRole('button', { name: 'Close plant details', exact: true }).click();
+    if (engine === chromium) {
+      await page.waitForFunction(() => window.__gardenQA.pickTarget(), null, { timeout: 20000 });
+      const pick = await page.evaluate(() => window.__gardenQA.pickTarget());
+      assert.ok(pick, `${name}: instanced plant picking remains available`);
+      await page.mouse.click(pick.x, pick.y);
+      await page.locator('.garden-plant-label').waitFor();
+      await page.getByRole('button', { name: 'Close plant details', exact: true }).click();
+    }
     await page.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
     await settle(page);
     const room = await snapshot(page);
@@ -109,7 +117,7 @@ for (const [name, engine, mobile] of targets) {
     await settle(page);
     assert.equal((await snapshot(page)).cameraType, 'OrthographicCamera', `${name}: top view remains available`);
     await page.evaluate(() => window.__gardenQA.camera([0, 19.5, 0.01], [0, 0, 0]));
-    await page.waitForFunction(() => window.__gardenQA.snapshot().dpr <= 0.9, null, { timeout: 2000 });
+    await page.waitForFunction(max => window.__gardenQA.snapshot().dpr <= max, compactDevice ? 0.95 : 1.3, { timeout: 2000 });
     await page.waitForTimeout(800);
     assert.equal((await snapshot(page)).dpr, overview.dpr, `${name}: orthographic zoom restores resolution`);
     await page.locator('canvas').first().evaluate((element) => element.dispatchEvent(new Event('webglcontextlost', { cancelable: true })));

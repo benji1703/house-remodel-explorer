@@ -16,18 +16,26 @@ export type LightingProfile = {
 /** Rendering budgets are architectural presentation policy, separate from JSX. */
 export const lightingProfiles = {
   high: {
-    dpr: [1, 2], shadowMap: 2048, environmentResolution: 128, contactResolution: 768,
-    idlePixelBudget: 4_000_000, movingDpr: 1.25,
-    transmission: false, localLights: true, maxLocalShadows: 6,
+    dpr: [1, 1.8], shadowMap: 2048, environmentResolution: 128, contactResolution: 512,
+    idlePixelBudget: 3_200_000, movingDpr: 1.05,
+    transmission: false, localLights: true, maxLocalShadows: 3,
   },
   light: {
-    // Balanced rendering is the default on all devices. Keep the resting and
-    // interaction framebuffers small; high detail stays available on demand.
-    dpr: [0.75, 1.15], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
+    // Balanced rendering keeps its textures modest but still uses filtered,
+    // adequately sized shadow maps to avoid visibly pixelated silhouettes.
+    dpr: [0.75, 1.15], shadowMap: 1024, environmentResolution: 16, contactResolution: 192,
     idlePixelBudget: 1_350_000, movingDpr: 0.85,
     transmission: false, localLights: false, maxLocalShadows: 3,
   },
 } satisfies Record<"high" | "light", LightingProfile>;
+
+/** Full material/geometry detail on iPhone, with a mobile-safe shadow and
+ * framebuffer budget. Desktop high remains the very-high presentation tier. */
+export const mobileHighLightingProfile: LightingProfile = {
+  dpr: [0.75, 1.5], shadowMap: 1024, environmentResolution: 32, contactResolution: 384,
+  idlePixelBudget: 1_250_000, movingDpr: 0.9,
+  transmission: false, localLights: true, maxLocalShadows: 2,
+};
 
 /** Proposed practical fixtures, in plan centimetres. Shared by the runtime
  * lights and the orthographic lighting plan markers. */

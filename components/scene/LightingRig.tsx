@@ -7,12 +7,13 @@ import type { Daylight } from "@/lib/daylight";
 import { SkyDome } from "./SkyDome";
 import { house } from "@/data/house";
 import { CX, CZ } from "../rooms/shared";
-import { gardenLighting, houseLightingFixtures, interiorLighting, interiorWindowLights, lightingProfiles, type HouseLightingFixture } from "@/data/lighting";
+import { gardenLighting, houseLightingFixtures, interiorLighting, interiorWindowLights, lightingProfiles, mobileHighLightingProfile, type HouseLightingFixture } from "@/data/lighting";
 
 export type LightingRigProps = {
   geometryRevision: number;
   designMode: boolean;
   quality: "high" | "light";
+  compact: boolean;
   landscapeReady: "high" | "light" | null;
   kitchenRoom: boolean;
   cameraMode: "overview" | "room" | "plan" | "garden" | "walk";
@@ -27,7 +28,7 @@ export type LightingRigProps = {
 
 /** Every direct source is at its bulb/diffuser and gets one cached shadow map.
  * A spotlight uses one map instead of the six faces needed by a point light. */
-function PracticalFixture({ fixture, level, quality }: { fixture: HouseLightingFixture; level: number; quality: "high" | "light" }) {
+function PracticalFixture({ fixture, level, quality, compact }: { fixture: HouseLightingFixture; level: number; quality: "high" | "light"; compact: boolean }) {
   const floor = house.zones.find(zone => zone.id === fixture.zone)?.level ?? 0;
   const wall = fixture.kind === "wall";
   const rotation = Math.atan2(fixture.normal[0], fixture.normal[1]);
@@ -48,24 +49,24 @@ function PracticalFixture({ fixture, level, quality }: { fixture: HouseLightingF
     <spotLight name={fixture.id} target={target} position={wall ? [0, -0.071, 0.085] : [0, -0.045, 0]}
       color={fixture.color} intensity={level * fixture.intensity} distance={fixture.rangeCm / 100} decay={2}
       angle={wall ? 0.9 : 1.05} penumbra={0.65} castShadow
-      shadow-mapSize-width={quality === "high" ? 512 : 256} shadow-mapSize-height={quality === "high" ? 512 : 256}
+      shadow-mapSize-width={quality === "high" ? compact ? 512 : 1024 : 256} shadow-mapSize-height={quality === "high" ? compact ? 512 : 1024 : 256}
       shadow-camera-near={0.04} shadow-camera-far={fixture.rangeCm / 100} shadow-bias={-0.0001} shadow-normalBias={0.012} />
   </group>;
 }
 
 /** One lighting boundary: quality policy, daylight probe and shadow budget live together. */
-export const LightingRig = memo(function LightingRig({ geometryRevision, designMode, quality, landscapeReady, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
-  const profile = lightingProfiles[quality];
+export const LightingRig = memo(function LightingRig({ geometryRevision, designMode, quality, compact, landscapeReady, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
+  const profile = quality === "high" && compact ? mobileHighLightingProfile : lightingProfiles[quality];
   const garden = cameraMode === "garden";
-  // Focus the same 2048 map on the room being inspected: finer contact edges
-  // without allocating a 4096/8192 framebuffer on Safari.
+  // Focus the sun shadow map on the active room/walk zone. A tighter fit keeps
+  // furniture shadows smooth on mobile without allocating huge map textures.
   const shadowTarget = useMemo(() => {
     const target = new THREE.Object3D();
     const zone = house.zones.find((entry) => entry.id === selectedZone);
-    if (cameraMode === "room" && zone) target.position.set(zone.x + zone.width / 2 - CX, 0, zone.z + zone.depth / 2 - CZ);
+    if ((cameraMode === "room" || cameraMode === "walk") && zone) target.position.set(zone.x + zone.width / 2 - CX, 0, zone.z + zone.depth / 2 - CZ);
     return target;
   }, [cameraMode, selectedZone]);
-  const shadowSpan = cameraMode === "room" ? 5 : 13;
+  const shadowSpan = cameraMode === "room" ? 5 : cameraMode === "walk" ? 7.5 : 13;
 
   // Overview and garden are both exterior presentations. Keeping this policy
   // separate from the route name prevents overview from falling back to the
@@ -119,7 +120,7 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
           color={interiorLighting.windowColor} intensity={sun.daylight * interiorLighting.windowIntensity} />
       ))}
       {housePracticals && houseLightingFixtures.filter(fixture => cameraMode !== "room" || fixture.zone === selectedZone || (["central-core", "north-extension"].includes(selectedZone) && ["central-core", "north-extension"].includes(fixture.zone))).map((fixture) => (
-        <PracticalFixture key={fixture.id} fixture={fixture} level={practicalLevel} quality={quality} />
+        <PracticalFixture key={fixture.id} fixture={fixture} level={practicalLevel} quality={quality} compact={compact} />
       ))}
       {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={contactPosition} scale={exterior ? gardenLighting.contactSpanCm / 100 : room ? interiorLighting.roomContactSpanCm / 100 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 1.4 : 2} far={exterior ? gardenLighting.contactFarCm / 100 : interiorLighting.roomContactFarCm / 100} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
     </>

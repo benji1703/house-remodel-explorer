@@ -37,7 +37,7 @@ try {
  await page.close();
  const mobile=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,reducedMotion:'reduce'});
  const mp=await mobile.newPage();mp.on('pageerror',e=>report.errors.push(e.message));await mp.goto(url);await mp.waitForFunction(()=>window.__gardenQA);await mp.waitForTimeout(5000);
- check(await mp.getByRole('button',{name:'Toggle rendering detail'}).getAttribute('aria-pressed')==='true','Mobile did not use light quality');
+ check(await mp.getByRole('button',{name:'Toggle rendering detail'}).getAttribute('aria-pressed')==='false','Mobile did not default to high detail');
  report.mobile={snapshot:await mp.evaluate(()=>window.__gardenQA.snapshot()),perf:await mp.evaluate(()=>window.__gardenQA.renderSample(45)),overflow:await mp.evaluate(()=>document.documentElement.scrollWidth>innerWidth)};
  const client=await mobile.newCDPSession(mp);const mb=await mp.evaluate(()=>window.__gardenQA.snapshot().camera);
  await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:170,y:390}]});

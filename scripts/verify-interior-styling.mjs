@@ -101,9 +101,9 @@ try {
   watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
   await settle(mobile);
-  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'),'false');
   const snapshot=await mobile.evaluate(()=>window.__gardenQA.snapshot());
-  assert.ok(snapshot.assets.some(p=>p.url.includes('kitchen-preparation-light.glb')),'Mobile receives light assets');
+  assert.ok(snapshot.assets.some(p=>p.url.includes('kitchen-preparation.glb')),'Mobile receives high-detail kitchen styling');
   assert.ok(!snapshot.assets.some(p=>/models\/interior\/(bed-|bath-)/.test(p.url)),'Unvisited room props are not loaded');
   await mobile.screenshot({path:`${directory}/mobile-kitchen.png`});
   report.cases.push({name:'mobile-kitchen',snapshot});

@@ -122,6 +122,14 @@ export function GardenDiagnostics() {
           return counts;
         })(),
         clearAlpha: state.gl.getClearAlpha(),
+        shadowType: state.gl.shadowMap.type,
+        sunShadowMapSize: (() => {
+          let size: number[] = [];
+          state.scene.traverse((object) => {
+            if (object instanceof THREE.DirectionalLight && object.castShadow) size = object.shadow.mapSize.toArray();
+          });
+          return size;
+        })(),
         camera: state.get().camera.position.toArray(),
         target: (state.get().controls as unknown as { target?: THREE.Vector3 } | null)?.target?.toArray() ?? null,
         direction: state.get().camera.getWorldDirection(new THREE.Vector3()).toArray(),

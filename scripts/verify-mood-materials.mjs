@@ -80,7 +80,7 @@ try {
   watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
   await inspect(mobile, 'mobile-kitchen', ['oak', 'travertine', 'plaster', 'woven']);
-  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'false');
   await mobile.close();
   assert.deepEqual(report.errors, [], 'No browser or shader errors');
   report.passed = true;

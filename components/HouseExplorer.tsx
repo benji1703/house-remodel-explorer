@@ -97,9 +97,9 @@ export function HouseExplorer() {
   const viewParam = searchParams.get("view");
   const zoneParam = searchParams.get("zone");
   const moodParam = searchParams.get("mood");
-  // Start with the fast, measured plan. The 3D house is an explicit choice, so
-  // phones and lower-power laptops never allocate a WebGL scene on first visit.
-  const view: View = isView(viewParam) ? viewParam : "plan";
+  // Open directly into the whole-house overview. The measured plan remains
+  // available as a deliberate, lightweight alternative.
+  const view: View = isView(viewParam) ? viewParam : "model";
   const cameraParam = searchParams.get("camera");
   const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan" || cameraParam === "garden" || cameraParam === "walk"
     ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
@@ -148,6 +148,7 @@ export function HouseExplorer() {
   // every Plan → House switch can exhaust Safari's context budget on iPhone.
   const [modelVisited, setModelVisited] = useState(view === "model");
   const [modelReady, setModelReady] = useState(false);
+  const [sceneTransition, setSceneTransition] = useState<string | null>(null);
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
@@ -172,12 +173,29 @@ export function HouseExplorer() {
   const [experienceOpen, setExperienceOpen] = useState(false);
   const [compact, setCompact] = useState(false);
   const [refsPending, startRefsTransition] = useTransition();
+  const [sceneUpdatePending, startSceneUpdate] = useTransition();
+  const sceneTransitionFrame = useRef<number | null>(null);
   const stageRef = useRef<HTMLElement>(null);
   const detailRef = useRef<HTMLElement>(null);
   const moodHeroButtonRef = useRef<HTMLButtonElement>(null);
   const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLElement>(null);
   const furnitureRef = useRef<HTMLElement>(null);
+
+  const transitionScene = useCallback((label: string, update: () => void) => {
+    if (sceneTransitionFrame.current !== null) cancelAnimationFrame(sceneTransitionFrame.current);
+    setSceneTransition(label);
+    // Let the progress pill paint before React reconciles a large scene mode.
+    sceneTransitionFrame.current = requestAnimationFrame(() => {
+      sceneTransitionFrame.current = null;
+      startSceneUpdate(update);
+    });
+  }, [startSceneUpdate]);
+  const finishSceneTransition = useCallback(() => setSceneTransition(null), []);
+
+  useEffect(() => () => {
+    if (sceneTransitionFrame.current !== null) cancelAnimationFrame(sceneTransitionFrame.current);
+  }, []);
 
   usePanelFocus(detailRef, compact && sheetOpen && (view === "model" || view === "references"), () => setSheetOpen(false), true, stageRef);
   usePanelFocus(experienceRef, view === "model" && experienceOpen, () => setExperienceOpen(false), compact, stageRef);
@@ -648,6 +666,7 @@ export function HouseExplorer() {
                       onShowPlan={() => goToView("plan")}
                       onUnavailable={handleSceneUnavailable}
                       onRevealChange={setModelReady}
+                      onPresentationReady={finishSceneTransition}
                       designMode={designMode}
                       quality={quality}
                       compact={compact}
@@ -685,6 +704,7 @@ export function HouseExplorer() {
             </div>
           )}
           {view === "model" && lightingUpdating && modelReady && webglSupport === true && <div className="lighting-update-cover" data-lighting-loading="true"><LoadingState title="Finding the light" detail="Updating your view." /></div>}
+          {view === "model" && sceneTransition && modelReady && webglSupport === true && <div className="scene-transition-status" role="status" aria-live="polite" aria-busy={sceneUpdatePending}><LoadingState compact title={sceneTransition} detail="Preparing this view." /></div>}
           {view === "model" && (
             <>
               <p id="model-keyboard-help" className="sr-only">Explore mode: W A S D move, arrow keys turn, drag to look, Escape releases focus. Orbit 3D view: arrow keys orbit, plus and minus zoom. Shift and arrow keys pan when available. Use the room list or Plan view for a two-dimensional alternative.</p>
@@ -695,7 +715,7 @@ export function HouseExplorer() {
                     type="button"
                     className={!designMode ? "is-active" : ""}
                     aria-pressed={!designMode}
-                    onClick={() => setDesignMode(false)}
+                    onClick={() => transitionScene("Opening the survey shell", () => setDesignMode(false))}
                   >
                     {compact ? "Shell" : "Survey shell"}
                   </button>
@@ -703,14 +723,14 @@ export function HouseExplorer() {
                     type="button"
                     className={designMode ? "is-active" : ""}
                     aria-pressed={designMode}
-                    onClick={() => setDesignMode(true)}
+                    onClick={() => transitionScene("Adding the finished details", () => setDesignMode(true))}
                   >
                     {compact ? "Finishes" : "With finishes"}
                   </button>
                 </div>
                 {webglSupport === true && <button type="button" className={cameraMode === "walk" ? "toolbar-chip walk-trigger is-active" : "toolbar-chip walk-trigger"} aria-pressed={cameraMode === "walk"} onClick={() => {
                   setExperienceOpen(false); setFurnitureEditorOpen(false); setSheetOpen(false);
-                  navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace");
+                  transitionScene(cameraMode === "walk" ? "Returning to the whole house" : "Opening explore mode", () => navigate({ camera: cameraMode === "walk" ? "overview" : "walk" }, "replace"));
                 }}>Explore</button>}
                 {webglSupport === true && cameraMode !== "walk" && (
                   <>

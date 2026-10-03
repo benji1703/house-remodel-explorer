@@ -6,13 +6,13 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { LoadingState } from "../loading/LoadingState";
 
 /** Signal after an actual scene frame, rather than when the WebGL context exists. */
-export function SceneFirstFrame({ onReady, enabled = true }: { onReady: () => void; enabled?: boolean }) {
+export function SceneFirstFrame({ onReady, enabled = true }: { onReady?: () => void; enabled?: boolean }) {
   const frame = useRef<number | null>(null);
   const sent = useRef(false);
   useFrame(() => {
     if (sent.current || !enabled) return;
     sent.current = true;
-    frame.current = requestAnimationFrame(onReady);
+    if (onReady) frame.current = requestAnimationFrame(onReady);
   });
   useLayoutEffect(() => {
     sent.current = false;

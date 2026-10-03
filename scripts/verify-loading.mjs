@@ -15,7 +15,8 @@ try {
   let release;
   const assetsHeld = new Promise(resolve => { release = resolve; });
   await page.route(/\.(glb|jpe?g|png|webp)(\?.*)?$/, async route => { await assetsHeld; await route.continue(); });
-  await page.goto(`${base}/?view=model&camera=room&zone=central-core&gardenQA=1`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${base}/?camera=overview&gardenQA=1`, { waitUntil: 'domcontentloaded' });
+  assert.equal(await page.locator('.stage.is-model').count(), 1, 'the default route opens the full-house 3D view');
   await page.locator('.scene-loading-cover:not(.is-revealed)').waitFor({ timeout: 60000 });
   assert.equal(await page.locator('.app-body.is-model-loading').count(), 1);
   assert.equal(await page.locator('.detail-loading').count(), 1);
@@ -42,6 +43,17 @@ try {
   assert.equal(await page.locator('.scene-loading-cover').evaluate(element => getComputedStyle(element).visibility), 'hidden');
   assert.equal(await page.locator('.detail-loading').count(), 0);
   assert.equal(await page.locator('.stage-hud').evaluate(element => getComputedStyle(element).visibility), 'visible');
+  await page.getByRole('button', { name: 'Survey shell', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('button[aria-pressed="true"].is-active')?.textContent?.trim() === 'Survey shell');
+  await page.waitForFunction(() => !document.querySelector('.scene-transition-status'), undefined, { timeout: 60000 });
+  await page.getByRole('button', { name: 'With finishes', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('button[aria-pressed="true"].is-active')?.textContent?.trim() === 'With finishes');
+  await page.waitForFunction(() => !document.querySelector('.scene-transition-status'), undefined, { timeout: 60000 });
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
+  await page.getByText('Interactive house view', { exact: false }).waitFor({ timeout: 10000 });
+  await page.waitForFunction(() => !document.querySelector('.scene-transition-status'), undefined, { timeout: 60000 });
+  await page.getByRole('button', { name: 'Explore', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('.scene-transition-status') === null, undefined, { timeout: 60000 });
   await page.waitForTimeout(1800);
   await page.screenshot({ path: `${directory}/ready.png` });
   const frame = await page.evaluate(() => window.__gardenQA.snapshot().frames);
@@ -66,7 +78,8 @@ try {
   let unblock;
   const blocked = new Promise(resolve => { unblock = resolve; });
   await escape.route(/\.(glb|jpe?g|png|webp)(\?.*)?$/, async route => { await blocked; await route.continue().catch(() => {}); });
-  await escape.goto(`${base}/?view=model`, { waitUntil: 'domcontentloaded' });
+  await escape.goto(`${base}/`, { waitUntil: 'domcontentloaded' });
+  assert.equal(await escape.locator('.stage.is-model').count(), 1, 'iPhone-sized default route opens the full-house 3D view');
   await escape.getByRole('button', { name: 'Explore the 2D plan' }).waitFor({ timeout: 60000 });
   await escape.screenshot({ path: `${directory}/mobile-loading.png` });
   await escape.getByRole('button', { name: 'Explore the 2D plan' }).click();
@@ -93,5 +106,5 @@ try {
   releaseDirectGarden();
   await directGarden.locator('.app-body:not(.is-model-loading)').waitFor({ timeout: 60000 });
   await directGarden.close();
-  console.log('Loading reveal, hidden labels and notes, progressive garden, cached revisit, reduced motion, idle rendering: passed');
+  console.log('Default 3D view, loading reveal, finished/explore transitions, hidden labels and notes, progressive garden, cached revisit, reduced motion, idle rendering: passed');
 } finally { await browser.close(); }

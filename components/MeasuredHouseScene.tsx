@@ -67,6 +67,7 @@ type Props = {
   onUnavailable?: () => void;
   onShowPlan?: () => void;
   onRevealChange?: (revealed: boolean) => void;
+  onPresentationReady?: () => void;
 };
 
 // Matches OrbitControls' target below; shared so the azimuth tracker orbits
@@ -935,6 +936,7 @@ function SceneContent({
   sunHour = 13.5,
   lightingRevision,
   onLightingReady,
+  onPresentationReady,
   houseLightsOn = true,
   allDoorsOpen = true,
   doorStates = {},
@@ -1224,6 +1226,7 @@ function SceneContent({
       </>}
       <SceneLightingFrame revision={lightingRevision ?? 0} onReady={onLightingReady} />
       <SceneFirstFrame onReady={onReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
+      <SceneFirstFrame key={`${designMode ? "finished" : "shell"}-${cameraMode}`} onReady={onPresentationReady} enabled={!designMode || cameraMode !== "garden" || landscapeReady === quality} />
     </>
   );
 }

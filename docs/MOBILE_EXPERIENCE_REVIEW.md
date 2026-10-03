@@ -68,16 +68,20 @@ materials verifier now waits for mood materials before
 checking them and only expects shared architectural surfaces in Faster mode;
 fine textiles and clay props are checked in High mode.
 
-There are still two measured Safari limitations. On WebKit desktop, the adaptive
-render check did not reach high-detail planting within 30 seconds. Its WebKit
-phone case closed during the run, and the browser logged a failed access check
-for one far-detail plant GLB. Both Chromium adaptive cases pass, including High
-planting. Separately, the phone-emulated normal-motion trace recorded a 775 ms
-maximum WebKit frame gap versus 66.7 ms in Chromium. These development-server
-and host-GPU measurements are diagnostic, not physical-iPhone benchmarks.
-Controls caused zero extra scene frames in three openings, but that does not
-establish smooth WebKit movement. A physical iPhone and Safari run is still
-needed before calling mobile movement smooth.
+The four-engine adaptive batch is not green in WebKit. Its desktop case once
+failed to reach high-detail planting within 30 seconds and its phone case closed
+during the run with a far-detail GLB access error. In an isolated desktop
+replay, WebKit did reach the high-detail tier (66 visible plant instances) with
+no context loss, but logged an access check failure for a different far-detail
+plant GLB. This intermittent difference leaves Safari plant streaming open;
+both Chromium adaptive cases pass, including High planting.
+
+Separately, the phone-emulated normal-motion trace recorded a 775 ms maximum
+WebKit frame gap versus 66.7 ms in Chromium. These development-server and
+host-GPU measurements are diagnostic, not physical-iPhone benchmarks. Controls
+caused zero extra scene frames in three openings, but that does not establish
+smooth WebKit movement. A physical iPhone and Safari run is still needed before
+calling mobile movement smooth.
 
 These browser tests run on a Mac with phone emulation. They do not measure a
 physical iPhone's GPU, memory, Safari thermal behavior or VoiceOver. The work

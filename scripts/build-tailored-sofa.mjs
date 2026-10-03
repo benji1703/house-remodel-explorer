@@ -1,7 +1,8 @@
 // RH Cloud Track Arm-inspired design study, adapted to this room.
 // Silhouette reference: https://rh.com/us/en/cloud-sofa
 // Metres at the GLB boundary: 220 × 102 cm, low frame with loose down-like cushions.
-// This procedural exporter maintains the sofa assets when local Blender is unavailable.
+// Base geometry builder. Finish with build-sofa-textiles.py for Blender cloth,
+// baked contact shading and the final high/light exports.
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { Document, NodeIO } = require(process.env.GLTF_TRANSFORM_MODULE || '/tmp/house-render-qa/node_modules/@gltf-transform/core');
@@ -12,8 +13,8 @@ const out = 'public/models/interior';
 const colors = {
   ivory: ['Mood linen sofa ivory', [.94,.925,.89,1]],
   welt: ['Mood linen sewn welt', [.81,.795,.75,1]],
-  sage: ['Mood linen sage pillow', [.58,.61,.51,1]],
-  oat: ['Mood linen oat pillow', [.84,.81,.73,1]],
+  sage: ['Mood linen sage pillow', [.28,.32,.235,1]],
+  oat: ['Mood linen oat pillow', [.64,.59,.49,1]],
   wood: ['Mood oak recessed sofa foot', [.19,.13,.085,1]],
 };
 function build(light, styling) {
@@ -21,8 +22,14 @@ function build(light, styling) {
   function add(g, material, center=[0,0,0], rotation=[0,0,0]) {
     const transform = new THREE.Matrix4().compose(new THREE.Vector3(...center), new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1,1,1));
     g.applyMatrix4(transform);
-    const p = g.attributes.position, uv = new Float32Array(p.count*2);
-    for(let i=0;i<p.count;i++) {uv[i*2]=p.getX(i);uv[i*2+1]=p.getZ(i);}
+    const p = g.attributes.position, n = g.attributes.normal, uv = new Float32Array(p.count*2);
+    // Physical, dominant-axis UVs also give upright cushions a fine weave.
+    // Projecting every face onto XZ stretched the bump into vertical stripes.
+    for(let i=0;i<p.count;i++) {
+      const axis=[Math.abs(n.getX(i)),Math.abs(n.getY(i)),Math.abs(n.getZ(i))];
+      uv[i*2]=axis[0]>Math.max(axis[1],axis[2])?p.getZ(i):p.getX(i);
+      uv[i*2+1]=axis[1]>Math.max(axis[0],axis[2])?p.getZ(i):p.getY(i);
+    }
     g.setAttribute('uv', new THREE.BufferAttribute(uv,2));
     if(!groups.has(material)) groups.set(material,[]);
     groups.get(material).push(g);
@@ -85,18 +92,8 @@ function build(light, styling) {
       soft(center,size,.058,material,rotation,'pillow',center[2]*7);
       welt(center,size[1]-.001,size[2]-.001,'yz',material,rotation,.058);
     }
-    // A fine linen throw follows the arm, seat and front edge, with natural folds.
-    const rows=light?24:48,cols=light?30:64,positions=[],indices=[];
-    for(let i=0;i<=rows;i++) for(let j=0;j<=cols;j++) {
-      const u=i/rows,v=j/cols,x=-.56+u*.83,z=-1.12+v*.58;
-      const armRise=.14*THREE.MathUtils.smoothstep(-z,.84,.94);
-      const outerDrop=.35*THREE.MathUtils.smoothstep(-z,1.045,1.13);
-      const frontDrop=.28*THREE.MathUtils.smoothstep(-x,.44,.56);
-      const folds=.007*Math.sin(v*36+u*5)+.003*Math.sin(v*66-u*8);
-      positions.push(x+.003*Math.sin(v*27),.537+armRise-outerDrop-frontDrop+folds,z);
-      if(i<rows&&j<cols) {const n=i*(cols+1)+j;indices.push(n,n+cols+1,n+1,n+1,n+cols+1,n+cols+2);}
-    }
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();add(g,'oat');
+    // The throw is authored against these exact cushions in Blender, rather
+    // than approximating their shape with independent intersecting planes.
   }
   const doc=new Document(),scene=doc.createScene(styling?'Soft linen pillow styling':'Cloud-inspired track-arm sofa'),buffer=doc.createBuffer();
   for(const [id,chunks] of groups) {

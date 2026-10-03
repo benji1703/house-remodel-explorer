@@ -15,7 +15,8 @@ export function createTextileBump() {
   }
   const map = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
   map.wrapS = map.wrapT = THREE.RepeatWrapping;
-  map.repeat.set(5, 5);
+  // Metric UVs: about one millimetre per weave, rather than coarse ribbing.
+  map.repeat.set(32, 32);
   map.magFilter = THREE.LinearFilter;
   map.minFilter = THREE.LinearMipmapLinearFilter;
   map.generateMipmaps = true;

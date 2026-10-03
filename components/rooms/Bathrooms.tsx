@@ -1,7 +1,7 @@
 "use client";
 
 import { RoundedBox, useGLTF } from "@react-three/drei";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { InteriorMoodProp } from "./InteriorMoodProps";
 import { interiorStyling } from "@/data/interiorStyling";
 import { moodFixtures } from "@/data/moodFixtures";
@@ -10,6 +10,7 @@ import { Blk, Cyl, CX, CZ, SoftBox, WallAttachment } from "./shared";
 import type { Palette } from "./shared";
 import { WallMirror } from "./LuxuryDetails";
 import { ensuiteProposal } from "@/data/ensuite";
+import { useShadowRefresh } from "../scene/SceneDetail";
 
 /**
  * Built-to-measure sanitaryware. Geometry stays inside the surveyed room
@@ -83,6 +84,7 @@ function wallRotation(against: Wall) {
 }
 
 function ToiletAsset() {
+  const refreshShadows = useShadowRefresh();
   const { scene } = useGLTF(moodFixtures.toilet.asset);
   const instance = useMemo(() => {
     const object = scene.clone(true);
@@ -94,6 +96,10 @@ function ToiletAsset() {
     });
     return object;
   }, [scene]);
+  useEffect(() => {
+    refreshShadows();
+    return refreshShadows;
+  }, [instance, refreshShadows]);
   return <primitive object={instance} dispose={null} />;
 }
 

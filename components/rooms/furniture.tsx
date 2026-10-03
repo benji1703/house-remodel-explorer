@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { Blk, Cyl, CX, CZ, SoftBox } from "./shared";
 import type { Palette } from "./shared";
-import { useSceneDetail } from "../scene/SceneDetail";
+import { useSceneDetail, useShadowRefresh } from "../scene/SceneDetail";
 import { InteriorMoodProp } from "./InteriorMoodProps";
 import { FixtureDownlight } from "../scene/FixtureDownlight";
 import { designAssumptions } from "@/data/house";
@@ -50,7 +50,9 @@ for (let i = 0; i < duvetPositions.count; i++) {
   const x = duvetPositions.getX(i), z = duvetPositions.getZ(i);
   const sideDrop = Math.max(0, (Math.abs(x) - 0.70) / 0.13);
   const footDrop = Math.max(0, (-z - 0.60) / 0.14);
-  const folds = Math.sin(x * 19 + z * 6) * 0.006 + Math.sin(z * 25 - x * 5) * 0.004;
+  const crease = Math.exp(-(((x - 0.34) / 0.30) ** 2) - (((z + 0.35) / 0.38) ** 2));
+  const folds = Math.sin(x * 14 + z * 3) * 0.003 + Math.sin(z * 19 - x * 4) * 0.002
+    + crease * 0.008 * Math.sin(x * 34 + z * 18);
   const turnedEdge = Math.exp(-(((z - 0.63) / 0.07) ** 2)) * 0.045;
   duvetPositions.setY(i, 0.035 + folds + turnedEdge - sideDrop ** 2 * 0.15 - footDrop ** 2 * 0.10);
 }
@@ -482,6 +484,7 @@ function ScannedPlant({
   scale: number;
   rotation?: [number, number, number];
 }) {
+  const refreshShadows = useShadowRefresh();
   const { scene } = useGLTF(src);
   const instance = useMemo(() => {
     const clone = scene.clone(true);
@@ -514,6 +517,11 @@ function ScannedPlant({
       }
     });
   }, [instance]);
+
+  useEffect(() => {
+    refreshShadows();
+    return refreshShadows;
+  }, [instance, refreshShadows]);
 
   return (
     <primitive

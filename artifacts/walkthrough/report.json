@@ -1,0 +1,17 @@
+{
+  "errors": [],
+  "cases": [
+    "FPS passes through furniture at stable eye height",
+    "desktop input, focus cleanup, room doors, exterior exit, garden floor and return",
+    "north-extension: walk entry and mood textures",
+    "central-core: walk entry and mood textures",
+    "southwest-room: walk entry and mood textures",
+    "east-upper-room: walk entry and mood textures",
+    "east-lower-room: walk entry and mood textures",
+    "service-core: walk entry and mood textures",
+    "ensuite: walk entry and mood textures",
+    "orbit and orthographic plan transitions",
+    "mobile touch movement, release and layout"
+  ],
+  "passed": true
+}

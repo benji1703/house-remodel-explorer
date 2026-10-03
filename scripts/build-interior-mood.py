@@ -6,11 +6,13 @@ are exported; cloth relief is supplied by the shared runtime textile material.
 """
 import bpy
 import math
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'public/models/interior'
 OUT.mkdir(parents=True, exist_ok=True)
+SELECTED = set(filter(None, os.environ.get('INTERIOR_ASSETS', '').split(',')))
 
 def mat(name, color, rough=0.8, metal=0):
     m = bpy.data.materials.new(name)
@@ -138,9 +140,16 @@ def sprigs(x,y,z,height=40,count=5):
             for side in [-1,1]:
                 ang=a+side*1.15+j*.55; length=height*.13
                 tip=(p[0]+math.cos(ang)*length,p[1]+length*.36,p[2]+math.sin(ang)*length)
-                midleaf=tuple((p[k]+tip[k])/2 for k in range(3))
-                off=(-math.sin(ang)*length*.16, .3, math.cos(ang)*length*.16)
-                mesh('Olive lanceolate leaf',[p,tuple(midleaf[k]+off[k] for k in range(3)),tip,tuple(midleaf[k]-off[k] for k in range(3)),(midleaf[0],midleaf[1]+.35,midleaf[2])],[(0,1,4),(1,2,4),(2,3,4),(3,0,4)],LEAF)
+                vertices=[]
+                for segment in range(9):
+                    u=segment/8
+                    width=math.sin(u*math.pi)**.8*length*.115
+                    for across in [-1,0,1]:
+                        vertices.append((p[0]+(tip[0]-p[0])*u-math.sin(ang)*width*across,
+                            p[1]+(tip[1]-p[1])*u+math.sin(u*math.pi)*length*(.035+.035*(1-abs(across))),
+                            p[2]+(tip[2]-p[2])*u+math.cos(ang)*width*across))
+                faces=[(s*3+k,(s+1)*3+k,(s+1)*3+k+1,s*3+k+1) for s in range(8) for k in range(2)]
+                mesh('Curved olive lanceolate leaf',vertices,faces,LEAF)
 
 def book(x,y,z,w,d,h,material,angle=0):
     box('Linen-bound book pages',(x,y+h/2,z),(w-.5,h-.4,d-.6),PAPER,.12,angle)
@@ -153,6 +162,8 @@ def mug(x,y,z):
     tube('Mug handle',[(x+3.5+2.4*math.sin(t*math.pi),y+6.8-5*t,z) for t in [i/18 for i in range(19)]],.55,CREAM)
 
 def export(name):
+    if SELECTED and name not in SELECTED:
+        return
     # Merge by material: one render call per finish, not per leaf or book.
     bpy.ops.object.select_all(action='DESELECT')
     groups={}

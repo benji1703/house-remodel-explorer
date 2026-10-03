@@ -34,7 +34,7 @@ const LINEN = new THREE.MeshPhysicalMaterial({
   sheenColor: new THREE.Color("#fff8ec"),
   sheenRoughness: 0.86,
   bumpMap: createTextileBump(),
-  bumpScale: 0.0008,
+  bumpScale: 0.00022,
 });
 const SHEER = new THREE.MeshPhysicalMaterial({
   color: "#f7f0e4",
@@ -42,7 +42,7 @@ const SHEER = new THREE.MeshPhysicalMaterial({
   sheen: 0.6,
   sheenColor: new THREE.Color("#fff9ef"),
   bumpMap: LINEN.bumpMap,
-  bumpScale: 0.0006,
+  bumpScale: 0.00012,
   side: THREE.DoubleSide,
 });
 const TV_FRAME = new THREE.MeshPhysicalMaterial({ color: "#191a17", metalness: 0.45, roughness: 0.22, clearcoat: 0.6 });

@@ -1,12 +1,14 @@
 "use client";
 
 import { useGLTF } from "@react-three/drei";
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
+import { useShadowRefresh } from "../scene/SceneDetail";
 import * as THREE from "three";
 import { CX, CZ, type Palette } from "./shared";
 import { moodFixtures } from "@/data/moodFixtures";
 
 function OliveAsset({ palette, light }: { palette: Palette; light: boolean }) {
+  const refreshShadows = useShadowRefresh();
   const { scene } = useGLTF(moodFixtures.olivePot.asset.replace(".glb", light ? "-light.glb" : ".glb"));
   const instance = useMemo(() => {
     const clone = scene.clone(true);
@@ -20,6 +22,10 @@ function OliveAsset({ palette, light }: { palette: Palette; light: boolean }) {
     });
     return clone;
   }, [scene, palette.terracotta]);
+  useEffect(() => {
+    refreshShadows();
+    return refreshShadows;
+  }, [instance, refreshShadows]);
   return <primitive object={instance} dispose={null} />;
 }
 

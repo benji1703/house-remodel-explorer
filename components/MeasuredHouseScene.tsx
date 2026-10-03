@@ -469,6 +469,13 @@ function buildPalette(
     clearcoatRoughness: 0.88,
     envMapIntensity: 0.72,
   });
+  // Keep grain variation within a matte-oiled finish: multiplying a dark
+  // roughness texel by 0.9 otherwise produces polished, mirror-like patches.
+  oakFloor.onBeforeCompile = shader => {
+    shader.fragmentShader = shader.fragmentShader.replace("#include <roughnessmap_fragment>",
+      "#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor, 0.72, 0.96);");
+  };
+  oakFloor.customProgramCacheKey = () => "matte-oak-floor-v1";
   const greenery = finish("#789064", 0.82, 0, 0.025);
   const mineralWall = new THREE.MeshPhysicalMaterial({
     roughness: 0.94,
@@ -512,7 +519,7 @@ function buildPalette(
     upholstery: applyMoodSurface(new THREE.MeshPhysicalMaterial({
       roughness: 0.96, sheen: 0.5, sheenRoughness: 0.85,
       sheenColor: new THREE.Color("#fff7eb"), envMapIntensity: 0.65,
-      bumpMap: textures.textileBump, bumpScale: 0.0007, side: THREE.DoubleSide,
+      bumpMap: textures.textileBump, bumpScale: 0.00022, side: THREE.DoubleSide,
     }), textures.linen, "linen"),
     woven: applyMoodSurface(new THREE.MeshPhysicalMaterial({
       roughness: 0.91, sheen: 0.12, sheenRoughness: 0.94, envMapIntensity: 0.7,
@@ -530,8 +537,8 @@ function buildPalette(
       "southwest-room": roomFloor,
       "east-upper-room": roomFloor,
       "east-lower-room": roomFloor,
-      "service-core": roomFloor,
-      ensuite: roomFloor,
+      "service-core": sandFloor,
+      ensuite: sandFloor,
     } as Record<ZoneId, THREE.Material>,
   };
 }
@@ -959,6 +966,9 @@ function SceneContent({
   }, []);
   useEffect(() => () => {
     if (shadowRefreshFrame.current !== null) cancelAnimationFrame(shadowRefreshFrame.current);
+    // Strict Mode replays mount effects. A cancelled request must not leave
+    // the batch marked pending, or later asset arrivals never recapture AO.
+    shadowRefreshFrame.current = null;
   }, []);
   const floorResolution = quality === "high" ? "2k" : "1k";
   const [
@@ -1220,6 +1230,9 @@ export function MeasuredHouseScene(props: Props) {
   const { designMode, quality, onUnavailable } = props;
   const profile = lightingProfiles[quality];
   const walkInput = useRef<WalkInput>(createWalkInput());
+  useEffect(() => {
+    if (props.cameraMode !== "walk") walkInput.current.pose = undefined;
+  }, [props.cameraMode]);
 
   const [ready, setReady] = useState(false);
   const [landscapeReady, setLandscapeReady] = useState<"high" | "light" | null>(null);

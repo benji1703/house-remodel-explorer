@@ -9,7 +9,8 @@ const { MeshoptDecoder, MeshoptEncoder } = require('/tmp/house-render-qa/node_mo
 await Promise.all([MeshoptDecoder.ready, MeshoptEncoder.ready]);
 const { dequantize } = require('/tmp/house-render-qa/node_modules/@gltf-transform/functions');
 const io = new NodeIO().registerExtensions([EXTMeshoptCompression, KHRMeshQuantization]).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
-for (const id of ['bed-linen', 'linen-lounge-chair']) {
+const selected = (process.env.INTERIOR_ASSETS || 'bed-linen,linen-lounge-chair').split(',');
+for (const id of selected) {
   for (const light of [false, true]) {
     const file = `public/models/interior/${id}${light ? '-light' : ''}.glb`;
     const doc = await io.read(file);
@@ -42,6 +43,19 @@ for (const id of ['bed-linen', 'linen-lounge-chair']) {
         primitive.setIndices(accessor('Soft lumbar indices', 'SCALAR', geometry.index.array));
         geometry.dispose();
       }
+    }
+    // The former refiner deleted cushion UVs, leaving cloned fabric bump maps
+    // sampling a constant point. Repair old exports as well as new cushions.
+    for (const mesh of doc.getRoot().listMeshes()) for (const primitive of mesh.listPrimitives()) {
+      if (!primitive.getMaterial().getName().toLowerCase().includes('linen') || primitive.getAttribute('TEXCOORD_0')) continue;
+      const p = primitive.getAttribute('POSITION').getArray(), n = primitive.getAttribute('NORMAL').getArray();
+      const uv = new Float32Array(p.length / 3 * 2);
+      for (let i = 0; i < p.length / 3; i++) {
+        const axis = [Math.abs(n[i * 3]), Math.abs(n[i * 3 + 1]), Math.abs(n[i * 3 + 2])];
+        uv[i * 2] = axis[0] > Math.max(axis[1], axis[2]) ? p[i * 3 + 2] : p[i * 3];
+        uv[i * 2 + 1] = axis[1] > Math.max(axis[0], axis[2]) ? p[i * 3 + 2] : p[i * 3 + 1];
+      }
+      primitive.setAttribute('TEXCOORD_0', doc.createAccessor('Metric linen UV').setType('VEC2').setArray(uv).setBuffer(buffer));
     }
     // Drop replaced accessors rather than carrying orphaned buffers into the web asset.
     for (const accessor of doc.getRoot().listAccessors()) if (accessor.listParents().length === 1) accessor.dispose();

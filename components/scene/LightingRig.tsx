@@ -7,7 +7,7 @@ import type { Daylight } from "@/lib/daylight";
 import { SkyDome } from "./SkyDome";
 import { house } from "@/data/house";
 import { CX, CZ } from "../rooms/shared";
-import { gardenLighting, houseLightingFixtures, interiorLighting, lightingProfiles, type HouseLightingFixture } from "@/data/lighting";
+import { gardenLighting, houseLightingFixtures, interiorLighting, interiorWindowLights, lightingProfiles, type HouseLightingFixture } from "@/data/lighting";
 
 export type LightingRigProps = {
   geometryRevision: number;
@@ -54,7 +54,7 @@ function PracticalFixture({ fixture, level, quality }: { fixture: HouseLightingF
 }
 
 /** One lighting boundary: quality policy, daylight probe and shadow budget live together. */
-export const LightingRig = memo(function LightingRig({ geometryRevision, designMode, quality, landscapeReady, kitchenRoom, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
+export const LightingRig = memo(function LightingRig({ geometryRevision, designMode, quality, landscapeReady, cameraMode, selectedZone, floorFinish, removedFurniture, furnitureSignature, sunHour, houseLightsOn, sun }: LightingRigProps) {
   const profile = lightingProfiles[quality];
   const garden = cameraMode === "garden";
   // Focus the same 2048 map on the room being inspected: finer contact edges
@@ -87,6 +87,9 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
   // Point fixtures are cheap and remain essential in the light quality profile:
   // omitting them made an evening overview read as a completely unlit house.
   const housePracticals = designMode;
+  const room = cameraMode === "room" ? house.zones.find(zone => zone.id === selectedZone) : undefined;
+  const contactPosition: [number, number, number] = exterior ? [0, gardenLighting.contactElevationCm / 100, 0]
+    : room ? [room.x + room.width / 2 - CX, room.level + 0.003, room.z + room.depth / 2 - CZ] : [0, 0.103, 0];
   return (
     <>
       <group name="lighting-state" userData={{ hour: sunHour, lightsOn: houseLightsOn }} />
@@ -98,8 +101,8 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
         // the warm/cool directionality instead of a uniform brown ambient wash.
         <Environment key={`daylight-${exterior}`} resolution={profile.environmentResolution} frames={1} environmentIntensity={Math.max(0.08, sun.daylight) * (exterior ? gardenLighting.environmentIntensity : interiorLighting.environment)}>
           <color attach="background" args={[exterior ? "#9c8e80" : interiorLighting.environmentColor]} />
-          <Lightformer form="rect" intensity={2.1} color="#fff4e5" scale={[18, 5, 1]} position={[12, 15, -8]} />
-          <Lightformer form="rect" intensity={1.15} color="#fff9ef" scale={[20, 16, 1]} position={[0, 14, 0]} rotation-x={Math.PI / 2} />
+          <Lightformer form="rect" intensity={2.1} color={exterior ? "#fff4e5" : "#f5f7ff"} scale={[18, 5, 1]} position={[12, 15, -8]} />
+          <Lightformer form="rect" intensity={1.15} color={exterior ? "#fff9ef" : "#ffffff"} scale={[20, 16, 1]} position={[0, 14, 0]} rotation-x={Math.PI / 2} />
           <Lightformer form="rect" intensity={0.62} color="#eee0cb" scale={[20, 20, 1]} position={[0, -8, 0]} rotation-x={-Math.PI / 2} />
           <Lightformer form="rect" intensity={1.5} color="#fff1d2" scale={[7, 4, 1]} position={[0, 2, -7]} rotation-y={Math.PI} />
         </Environment>
@@ -109,10 +112,16 @@ export const LightingRig = memo(function LightingRig({ geometryRevision, designM
       <primitive object={shadowTarget} />
       <directionalLight target={shadowTarget} position={designMode ? [sun.position[0] + shadowTarget.position.x, sun.position[1], sun.position[2] + shadowTarget.position.z] : [9, 13, 6]} intensity={designMode ? sun.intensity * (garden ? gardenLighting.directMultiplier : 0.82) : 2.3} color={designMode ? garden ? gardenSun : sun.color : "#fff1dc"} castShadow shadow-mapSize-width={profile.shadowMap} shadow-mapSize-height={profile.shadowMap} shadow-camera-left={-shadowSpan} shadow-camera-right={shadowSpan} shadow-camera-top={shadowSpan} shadow-camera-bottom={-shadowSpan} shadow-camera-far={45} shadow-bias={garden ? -0.00018 : -0.00025} shadow-normalBias={garden ? 0.012 : 0.025} shadow-radius={quality === "high" ? 1.7 : 1} />
       <directionalLight position={designMode ? [9, 6, 7] : [-8, 6, -6]} intensity={designMode ? exterior ? sun.daylight * (gardenLighting.fillBase + gardenLighting.fillDaylight) : sun.daylight * interiorLighting.directionalFill : 0.55} color={designMode ? exterior ? "#d0c5b5" : "#fff5e5" : "#d8d1c5"} />
+      {designMode && !exterior && sun.daylight > 0.001 && cameraMode !== "plan" && interiorWindowLights.filter(light => cameraMode !== "room" || light.zone === selectedZone || (["central-core", "north-extension"].includes(selectedZone) && ["central-core", "north-extension"].includes(light.zone ?? ""))).map(light => (
+        <rectAreaLight key={light.id} name={light.id}
+          position={[light.positionCm[0] / 100 - CX, light.positionCm[1] / 100, light.positionCm[2] / 100 - CZ]}
+          rotation-y={light.rotation} width={light.widthCm / 100} height={light.heightCm / 100}
+          color={interiorLighting.windowColor} intensity={sun.daylight * interiorLighting.windowIntensity} />
+      ))}
       {housePracticals && houseLightingFixtures.filter(fixture => cameraMode !== "room" || fixture.zone === selectedZone || (["central-core", "north-extension"].includes(selectedZone) && ["central-core", "north-extension"].includes(fixture.zone))).map((fixture) => (
         <PracticalFixture key={fixture.id} fixture={fixture} level={practicalLevel} quality={quality} />
       ))}
-      {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={exterior ? [0, gardenLighting.contactElevationCm / 100, 0] : kitchenRoom ? [-0.2, 0.103, -4.0] : [0, 0.103, 0]} scale={exterior ? gardenLighting.contactSpanCm / 100 : kitchenRoom ? 6 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 2.5 : 2.6} far={exterior ? gardenLighting.contactFarCm / 100 : 2.4} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
+      {designMode && <ContactShadows name="scene-contact-shadows" userData={{ geometryRevision }} frames={1} key={`${geometryRevision}-${floorFinish}-${cameraMode}-${quality}-${landscapeReady}-${selectedZone}-${removedFurniture.join(",")}-${furnitureSignature}`} position={contactPosition} scale={exterior ? gardenLighting.contactSpanCm / 100 : room ? interiorLighting.roomContactSpanCm / 100 : 17} resolution={exterior ? quality === "high" ? gardenLighting.highContactResolution : gardenLighting.lightContactResolution : profile.contactResolution} blur={exterior ? 1.3 : quality === "high" ? 1.4 : 2} far={exterior ? gardenLighting.contactFarCm / 100 : interiorLighting.roomContactFarCm / 100} opacity={exterior ? gardenLighting.contactOpacity : interiorLighting.contactOpacity} color="#62594f" />}
     </>
   );
 });

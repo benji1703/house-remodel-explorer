@@ -82,7 +82,32 @@ try {
   await page.evaluate(() => window.__gardenQA.camera([1.25, 1.75, 1.6], [1.25, 1.75, .6]));
   await canvas.focus(); await page.keyboard.down('d'); await page.waitForTimeout(800); await page.keyboard.up('d');
   assert.ok((await snapshot(page)).camera[0] < 1.7, 'Solid partition blocks passage');
-  report.cases.push('desktop input, focus cleanup, drag look, reset, open door, closed door, wall collision');
+  // The east kitchen entry is an exterior opening. Closing it must keep the
+  // camera inside; reopening it lets the walk cross onto proposed gravel.
+  await page.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`); await ready(page);
+  await page.getByRole('button', { name: 'Controls', exact: true }).click();
+  await page.getByRole('group', { name: 'Set all doors' }).getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('button', { name: 'Close controls', exact: true }).click();
+  await page.evaluate(() => window.__gardenQA.camera([1.5, 1.85, -2.9], [2.5, 1.85, -2.9]));
+  await canvas.focus(); await page.keyboard.down('d'); await page.waitForTimeout(900); await page.keyboard.up('d');
+  assert.ok((await snapshot(page)).camera[0] < 1.7, 'Closed exterior entry blocks garden access');
+  await page.getByRole('button', { name: 'Controls', exact: true }).click();
+  await page.getByRole('group', { name: 'Set all doors' }).getByRole('button', { name: 'Open', exact: true }).click();
+  await page.getByRole('button', { name: 'Close controls', exact: true }).click();
+  await page.evaluate(() => window.__gardenQA.camera([1.5, 1.85, -2.9], [2.5, 1.85, -2.9]));
+  await canvas.focus(); await page.keyboard.down('d');
+  await page.waitForFunction(() => window.__gardenQA.snapshot().camera[0] > 2.25, null, { timeout: 10000 });
+  await page.keyboard.up('d'); await page.waitForTimeout(800);
+  const outside = await snapshot(page);
+  assert.ok(outside.camera[0] > 2.25, 'Walk crosses the open kitchen entry');
+  assert.ok(Math.abs(outside.camera[1] - 1.615) < .015, 'Eye height follows the rendered gravel datum');
+  const garden = await page.evaluate(() => window.__gardenQA.plants());
+  assert.ok(garden.some(item => item.instances > 0), 'Garden planting remains rendered outside');
+  await page.screenshot({ path: `${directory}/walk-outside-house.png` });
+  await page.keyboard.down('a');
+  await page.waitForFunction(() => window.__gardenQA.snapshot().camera[0] < 1.7, null, { timeout: 10000 });
+  await page.keyboard.up('a');
+  report.cases.push('desktop input, focus cleanup, room doors, exterior exit, garden floor and return');
   for (const zone of ['north-extension', 'central-core', 'southwest-room', 'east-upper-room', 'east-lower-room', 'service-core', 'ensuite']) {
     await page.goto(`${base}/?view=model&camera=walk&zone=${zone}&gardenQA=1`); await ready(page);
     const surfaces = await page.evaluate(() => window.__gardenQA.surfaces());

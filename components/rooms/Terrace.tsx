@@ -1,6 +1,7 @@
 "use client";
 import { Blk, CX, CZ, SoftBox, type Palette } from "./shared";
 import { RoundedBox } from "@react-three/drei";
+import { useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { designAssumptions } from "@/data/house";
 import { EditableFurniture, type FurnitureEditingState } from "./EditableFurniture";
@@ -23,6 +24,52 @@ function OutdoorPart({ position, size, radius, material }: { position: [number, 
   return <RoundedBox position={position} args={size} radius={radius} smoothness={3} material={material} castShadow receiveShadow />;
 }
 
+const RUSH_LIGHT = new THREE.MeshPhysicalMaterial({ color: "#ae966d", roughness: 0.9, sheen: 0.14 });
+const RUSH_DARK = new THREE.MeshPhysicalMaterial({ color: "#887654", roughness: 0.92, sheen: 0.1 });
+
+function RushStrand({ points, material }: { points: THREE.Vector3[]; material: THREE.Material }) {
+  const geometry = useMemo(() => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 32, 0.0032, 6, false), [points]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return <mesh geometry={geometry} material={material} castShadow receiveShadow />;
+}
+
+function RushBack() {
+  const strands = useMemo(() => {
+    const result: { points: THREE.Vector3[]; material: THREE.Material }[] = [];
+    // A fine hand-woven cane panel follows the chair's lightly reclined frame.
+    for (let cord = 0; cord <= 9; cord++) {
+      const x = THREE.MathUtils.lerp(-0.168, 0.168, cord / 9);
+      const points = Array.from({ length: 73 }, (_, i) => {
+        const t = i / 72;
+        const row = Math.min(7, Math.floor(t * 8));
+        const u = t * 8 - row;
+        const a = (cord + row) % 2 ? -1 : 1;
+        const b = (cord + row + 1) % 2 ? -1 : 1;
+        const overUnder = THREE.MathUtils.lerp(a, b, u * u * (3 - 2 * u)) * 0.0045;
+        return new THREE.Vector3(x + Math.sin(t * Math.PI) * 0.003, 0.53 + t * 0.32, 0.233 + t * 0.014 + overUnder);
+      });
+      result.push({ points, material: cord % 3 === 0 ? RUSH_DARK : RUSH_LIGHT });
+    }
+    for (let row = 0; row <= 8; row++) {
+      const t = row / 8;
+      const y = 0.535 + t * 0.31;
+      const points = Array.from({ length: 82 }, (_, i) => {
+        const u = i / 81;
+        const x = THREE.MathUtils.lerp(-0.168, 0.168, u);
+        const cord = Math.min(8, Math.floor(u * 9));
+        const v = u * 9 - cord;
+        const a = (cord + row) % 2 ? 1 : -1;
+        const b = (cord + row + 1) % 2 ? 1 : -1;
+        const overUnder = THREE.MathUtils.lerp(a, b, v * v * (3 - 2 * v)) * 0.0045;
+        return new THREE.Vector3(x, y + Math.sin(u * Math.PI) * 0.002, 0.233 + t * 0.014 + overUnder);
+      });
+      result.push({ points, material: row % 3 === 0 ? RUSH_DARK : RUSH_LIGHT });
+    }
+    return result;
+  }, []);
+  return <group>{strands.map((strand, i) => <RushStrand key={i} {...strand} />)}</group>;
+}
+
 function TerraceChair({ x, z, base, palette, rotation = 0 }: { x: number; z: number; base: number; palette: Palette; rotation?: number }) {
   const width = terraceFurnitureSpec.chair.widthCm / 100;
   return (
@@ -37,7 +84,7 @@ function TerraceChair({ x, z, base, palette, rotation = 0 }: { x: number; z: num
       {[-1, 1].map((side) => <OutdoorBeam key={`seat-side-${side}`} from={[side * 0.19, 0.43, -0.2]} to={[side * 0.2, 0.43, 0.2]} radius={0.01} material={terraceIronMaterial} />)}
       <OutdoorPart position={[0, 0.445, 0]} size={[0.39, 0.022, 0.41]} radius={0.014} material={palette.woven} />
       <OutdoorPart position={[0, 0.485, -0.012]} size={[width - 0.06, 0.065, 0.37]} radius={0.04} material={terraceCushionMaterial} />
-      <OutdoorPart position={[0, 0.69, 0.216]} size={[0.35, 0.34, 0.022]} radius={0.025} material={palette.woven} />
+      <RushBack />
     </group>
   );
 }

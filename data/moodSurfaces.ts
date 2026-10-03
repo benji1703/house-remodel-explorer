@@ -39,14 +39,14 @@ export const moodSurfaces = {
     image: "/textures/lime-plaster-albedo.jpg",
     referenceImage: "/references/moods/mood-living-14.jpeg",
     crop: [0, 0, 1, 1], sampleCm: [225, 225],
-    color: "#fffaf3", detail: 0.9, space: "world", albedo: true,
-    mineralFinish: { reliefMm: 0.35, roughness: [0.91, 0.985], illuminationLod: 6 },
+    color: "#fffaf3", detail: 0.78, space: "world", albedo: true,
+    mineralFinish: { reliefMm: 0.20, roughness: [0.91, 0.985], illuminationLod: 6 },
   },
   mineral: {
     image: "/references/moods/mood-living-14.jpeg",
     // Foreground floor only: below the timber skirting, away from the window.
     crop: [0.46, 0.86, 0.22, 0.12], sampleCm: [80, 38],
-    color: "#ac8d68", detail: 0.9, space: "world",
+    color: "#d9cbb7", detail: 0.9, space: "world",
     mineralFinish: { reliefMm: 0.45, roughness: [0.46, 0.68], illuminationLod: 4.8 },
   },
   linen: {

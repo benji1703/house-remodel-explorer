@@ -35,10 +35,13 @@ function Asset({ id, light, palette, glow }: { id: InteriorAssetId; light: boole
           : sourceName.includes("stoneware") ? palette.stone : null;
         const material = surface instanceof THREE.MeshStandardMaterial ? cloneSurfaceMaterial(surface) : source.clone();
         material.name = source.name;
+        // Blender's neutral contact bake belongs to the mesh, independently
+        // of the shared finish. Keep it when substituting a runtime material.
+        material.vertexColors = source.vertexColors;
         if (surface) material.color.copy(source.color);
         if (source.name.includes("linen")) {
           material.bumpMap = weave;
-          material.bumpScale = id === "living-rug" ? 0.002 : 0.0007;
+          material.bumpScale = id === "living-rug" ? 0.00065 : 0.00022;
           material.roughness = 0.96;
           material.side = THREE.DoubleSide;
         }

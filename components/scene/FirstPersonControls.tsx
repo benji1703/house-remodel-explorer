@@ -14,6 +14,7 @@ export type WalkInput = {
   pulses: Map<string, number>;
   wake?: () => void;
   reset?: () => void;
+  pose?: { zone: ZoneId; revision: number; position: [number, number, number]; yaw: number; pitch: number };
 };
 export const createWalkInput = (): WalkInput => ({ held: new Set(), pulses: new Map() });
 function clearInput(input: RefObject<WalkInput>) { input.current.held.clear(); input.current.pulses.clear(); }
@@ -43,7 +44,25 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
     clear(); invalidate();
   }, [camera, zone, clear, invalidate]);
 
-  useEffect(() => { reset(); }, [reset, revision]);
+  useEffect(() => {
+    const current = input.current;
+    const pose = current.pose;
+    if (pose && pose.zone === zone && pose.revision === revision) {
+      // Core texture/quality loads can remount the controller through Suspense.
+      // Keep the visitor's position and gaze instead of returning to the entry.
+      angles.current = { yaw: pose.yaw, pitch: pose.pitch };
+      camera.position.fromArray(pose.position);
+      camera.rotation.set(pose.pitch, pose.yaw, 0, "YXZ");
+      if (camera instanceof THREE.PerspectiveCamera) {
+        Object.assign(camera, { fov: walkSettings.fov });
+        camera.updateProjectionMatrix();
+      }
+      clear(); invalidate();
+    } else reset();
+    return () => {
+      current.pose = { zone, revision, position: camera.position.toArray(), ...angles.current };
+    };
+  }, [camera, zone, revision, reset, input, clear, invalidate]);
   useEffect(() => {
     const current = input.current;
     Object.assign(current, { wake: invalidate, reset });
@@ -142,8 +161,11 @@ export function FirstPersonController({ input, active, zone, revision, allDoorsO
     const targetX = (side * Math.cos(yaw) - forward * Math.sin(yaw)) * speed / length;
     const targetZ = (-forward * Math.cos(yaw) - side * Math.sin(yaw)) * speed / length;
     const blend = 1 - Math.exp(-12 * dt);
-    velocity.current.x += (targetX - velocity.current.x) * blend;
-    velocity.current.y += (targetZ - velocity.current.y) * blend;
+    if (!forward && !side) velocity.current.set(0, 0);
+    else {
+      velocity.current.x += (targetX - velocity.current.x) * blend;
+      velocity.current.y += (targetZ - velocity.current.y) * blend;
+    }
     if (velocity.current.lengthSq() > 0.00001) {
       const [x, z] = moveWalkPosition(camera.position.x + CX, camera.position.z + CZ,
         velocity.current.x * dt, velocity.current.y * dt,

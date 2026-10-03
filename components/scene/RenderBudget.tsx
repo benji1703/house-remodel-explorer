@@ -16,6 +16,8 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
   const previousProjection = useMemo(() => new THREE.Matrix4(), []);
   const casters = useMemo(() => new WeakMap<THREE.Object3D, { matrix: THREE.Matrix4; visible: boolean; shadow: boolean; projection?: THREE.Matrix4 }>(), []);
   const prepared = useMemo(() => new WeakSet<THREE.Material>(), []);
+  const shadowEligible = useMemo(() => new WeakSet<THREE.SpotLight>(), []);
+  const lightPosition = useMemo(() => new THREE.Vector3(), []);
   const moving = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const casterCount = useRef(-1);
@@ -58,6 +60,26 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
       }, 240);
     }
     scene.updateMatrixWorld();
+    // All rooms remain lit during a walkthrough, but each shadow consumes a
+    // fragment texture sampler. Reserve space for PBR maps, sky and area-light
+    // LUTs on 16-sampler GPUs; prioritize nearby, active practical fixtures.
+    const lights: { light: THREE.SpotLight; distance: number }[] = [];
+    scene.traverseVisible(object => {
+      if (!(object instanceof THREE.SpotLight)) return;
+      if (object.castShadow) shadowEligible.add(object);
+      if (!shadowEligible.has(object)) return;
+      lights.push({ light: object, distance: object.intensity > 0.001
+        ? object.getWorldPosition(lightPosition).distanceToSquared(camera.position) : Infinity });
+    });
+    lights.sort((a, b) => a.distance - b.distance);
+    const shadowLimit = Math.min(profile.maxLocalShadows, Math.max(0, gl.capabilities.maxTextures - 8));
+    lights.forEach(({ light, distance }, index) => {
+      const enabled = index < shadowLimit && Number.isFinite(distance);
+      if (light.castShadow !== enabled) {
+        light.castShadow = enabled;
+        gl.shadowMap.needsUpdate = true;
+      }
+    });
     let count = 0;
     const prepare = (material: THREE.Material) => {
       if (prepared.has(material)) return;
@@ -97,6 +119,6 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
     visit(scene, true);
     if (count !== casterCount.current) gl.shadowMap.needsUpdate = true;
     casterCount.current = count;
-  });
+  }, -0.5);
   return null;
 }

@@ -108,6 +108,7 @@ export function HouseExplorer() {
   const floorFinish: FloorFinish = floorParam === "sand-microtopping" || floorParam === "oak"
     ? floorParam
     : "oak";
+  const roomFloorFinish = selectedZone === "service-core" || selectedZone === "ensuite" ? "sand-microtopping" : floorFinish;
   const selectedMood: MoodBoardId = isMoodBoardId(moodParam)
     ? moodParam
     : isMoodBoardId(zoneParam)
@@ -148,8 +149,8 @@ export function HouseExplorer() {
   const [showMeasurements, setShowMeasurements] = useState(false);
   const compassRef = useRef<CompassHandle>(null);
   const updateCompass = useCallback((azimuth: number) => compassRef.current?.update(azimuth), []);
-  // Keep server markup deterministic, then make the live local clock the
-  // default presentation after hydration. Curated study times remain selectable.
+  // Start with the curated daylight presentation so finishes remain legible
+  // at any time of day. Controls still offers Local now and evening studies.
   const { hour: sunHour, lightsOn: houseLightsOn, previewHour, previewLightsOn, revision: lightingRevision, updating: lightingUpdating, changeLighting, lightingReady } = useLightingTransition(lightingScenes[0].hour, true);
   const [allDoorsOpen, setAllDoorsOpen] = useState(true);
   const [doorStates, setDoorStates] = useState<Record<string, boolean>>({});
@@ -175,14 +176,6 @@ export function HouseExplorer() {
   const moodLightboxPanelRef = useRef<HTMLDivElement>(null);
   const experienceRef = useRef<HTMLElement>(null);
   const furnitureRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const now = new Date();
-      changeLighting(now.getHours() + now.getMinutes() / 60, true);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [changeLighting]);
 
   usePanelFocus(detailRef, compact && sheetOpen && (view === "model" || view === "references"), () => setSheetOpen(false), true, stageRef);
   usePanelFocus(experienceRef, view === "model" && experienceOpen, () => setExperienceOpen(false), compact, stageRef);
@@ -513,7 +506,7 @@ export function HouseExplorer() {
       <p className="detail-copy">Choose a starting room. Move freely through the furnishings.</p>
       <div className="walk-finish-palette" aria-label="Interior palette">
         <div><span style={{ background: moodSurfaces.plaster.color }} /><b>Limewash</b><small>Warm beige walls</small></div>
-        <div><span style={{ background: floorFinish === "oak" ? moodSurfaces.oak.color : moodSurfaces.mineral.color }} /><b>{floorFinish === "oak" ? "Oak parquet" : "Microcement"}</b><small>{floorFinish === "oak" ? "Natural oak floors" : "Soft sand floors"}</small></div>
+        <div><span style={{ background: roomFloorFinish === "oak" ? moodSurfaces.oak.color : moodSurfaces.mineral.color }} /><b>{roomFloorFinish === "oak" ? "Oak parquet" : "Microcement"}</b><small>{roomFloorFinish === "oak" ? "Natural oak floors" : "Soft sand floors"}</small></div>
       </div>
       <RoomDirectory onSelect={selectRoom} />
       <button type="button" className="overview-plan-link" onClick={() => goToView("references")}>Explore the mood <span aria-hidden="true">↗</span></button>

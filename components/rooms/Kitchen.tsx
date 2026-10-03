@@ -114,10 +114,12 @@ function SourdoughLoaf({ base }: { base: number }) {
     const positions = geometry.attributes.position;
     for (let i = 0; i < positions.count; i++) {
       const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
-      const angle = Math.atan2(z, x);
-      const radial = 1 + 0.035 * Math.sin(angle * 3 + 0.4) + 0.018 * Math.sin(angle * 7 - 1.2);
-      const flatY = y < -0.42 ? -0.42 + (y + 0.42) * 0.1 : y;
-      positions.setXYZ(i, x * 0.145 * radial, 0.068 + flatY * 0.085, z * 0.11 * radial);
+      // A low bâtard profile has an unmistakable long axis and shouldered ends;
+      // the previous near-spherical boule read as a brown ball on the island.
+      const end = 0.78 + 0.22 * Math.sqrt(Math.max(0, 1 - x * x));
+      const ripple = 1 + 0.012 * Math.sin(x * 18 + z * 11) + 0.008 * Math.sin(z * 27 - y * 9);
+      const flatY = y < -0.42 ? -0.42 + (y + 0.42) * 0.08 : y;
+      positions.setXYZ(i, x * 0.205 * end * ripple, 0.073 + flatY * 0.078 * (0.97 + 0.03 * Math.cos(x * 7)), z * 0.105 * end * ripple);
     }
     geometry.computeVertexNormals();
 
@@ -149,12 +151,12 @@ function SourdoughLoaf({ base }: { base: number }) {
       const ear: THREE.Vector3[] = [];
       for (let step = 0; step <= 18; step++) {
         const t = step / 18 - 0.5;
-        const x = slash * 0.043 + t * 0.048;
-        const z = t * 0.092 - slash * 0.006;
-        const dome = Math.sqrt(Math.max(0.08, 1 - (x / 0.145) ** 2 - (z / 0.11) ** 2));
-        const y = 0.068 + 0.085 * dome;
-        groove.push(new THREE.Vector3(x, y + 0.0008, z));
-        ear.push(new THREE.Vector3(x + 0.005, y + 0.0021, z));
+        const x = t * (slash === 0 ? 0.31 : 0.18) + (slash === 0 ? 0 : slash * 0.055);
+        const z = (slash === 0 ? -0.008 : slash * 0.037) + t * (slash === 0 ? 0.022 : 0.028);
+        const dome = Math.sqrt(Math.max(0.06, 1 - (x / 0.205) ** 2 - (z / 0.105) ** 2));
+        const y = 0.073 + 0.078 * dome;
+        groove.push(new THREE.Vector3(x, y + 0.0007, z));
+        ear.push(new THREE.Vector3(x, y + 0.0032, z + 0.006));
       }
         cuts.push(
         new THREE.TubeGeometry(new THREE.CatmullRomCurve3(groove), 40, 0.0013, 6, false),

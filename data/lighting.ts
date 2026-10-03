@@ -1,3 +1,6 @@
+import { house } from "./house";
+import { exteriorOpenings } from "./structuralWalls";
+
 export type LightingProfile = {
   dpr: [number, number];
   shadowMap: number;
@@ -7,21 +10,22 @@ export type LightingProfile = {
   movingDpr: number;
   transmission: boolean;
   localLights: boolean;
+  maxLocalShadows: number;
 };
 
 /** Rendering budgets are architectural presentation policy, separate from JSX. */
 export const lightingProfiles = {
   high: {
-    dpr: [1, 2], shadowMap: 2048, environmentResolution: 128, contactResolution: 512,
+    dpr: [1, 2], shadowMap: 2048, environmentResolution: 128, contactResolution: 768,
     idlePixelBudget: 4_000_000, movingDpr: 1.25,
-    transmission: false, localLights: true,
+    transmission: false, localLights: true, maxLocalShadows: 6,
   },
   light: {
     // Mobile uses fewer effects and a capped framebuffer. RenderBudget restores
     // up to 1.5x after interaction for readable edges on Retina displays.
     dpr: [1, 1.5], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
     idlePixelBudget: 1_600_000, movingDpr: 1,
-    transmission: false, localLights: false,
+    transmission: false, localLights: false, maxLocalShadows: 3,
   },
 } satisfies Record<"high" | "light", LightingProfile>;
 
@@ -68,14 +72,40 @@ export const lightingScenes = [
 /** Broad indirect illumination keeps pale mineral finishes clean under a ceiling.
  * Shared across quality profiles; no additional shadow maps or fixture meshes. */
 export const interiorLighting = {
-  environment: 0.44,
-  environmentColor: "#fff8ee",
-  skyColor: "#fff8ed",
-  groundColor: "#eadbc5",
-  hemisphere: 0.32,
-  ambient: 0.045,
-  directionalFill: 0.10,
+  environment: 0.34,
+  environmentColor: "#f5f6fa",
+  skyColor: "#edf2fb",
+  groundColor: "#cbbda7",
+  hemisphere: 0.25,
+  ambient: 0.025,
+  directionalFill: 0.065,
   eveningHemisphere: 0.42,
   eveningAmbient: 0.18,
-  contactOpacity: 0.28,
+  contactOpacity: 0.34,
+  windowIntensity: 3.2,
+  windowColor: "#f3f6ff",
+  roomContactSpanCm: 650,
+  roomContactFarCm: 110,
 } as const;
+
+/** Diffuse sky bounce at the existing glazing, not additional fixtures or
+ * architectural openings. Store derived positions in cm until rendering. */
+export const interiorWindowLights = house.footprint.flatMap((a, edge) => {
+  const b = house.footprint[(edge + 1) % house.footprint.length];
+  const dx = b[0] - a[0], dz = b[1] - a[1];
+  const length = Math.hypot(dx, dz);
+  const inward = [-dz / length, dx / length] as const;
+  return (exteriorOpenings[edge] ?? []).filter(opening => opening.sill > 0 || opening.fixed).map((opening, index) => {
+    const x = a[0] + dx / length * opening.at;
+    const z = a[1] + dz / length * opening.at;
+    const zone = house.zones.find(room => x + inward[0] * 0.15 >= room.x && x + inward[0] * 0.15 <= room.x + room.width && z + inward[1] * 0.15 >= room.z && z + inward[1] * 0.15 <= room.z + room.depth);
+    return {
+      id: `window-bounce-${edge}-${index}`,
+      zone: zone?.id,
+      positionCm: [(x + inward[0] * 0.025) * 100, (opening.sill + opening.head) * 50, (z + inward[1] * 0.025) * 100] as const,
+      widthCm: opening.width * 100,
+      heightCm: (opening.head - opening.sill) * 100,
+      rotation: Math.atan2(-inward[0], -inward[1]),
+    };
+  });
+});

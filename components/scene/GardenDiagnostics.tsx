@@ -127,6 +127,33 @@ export function GardenDiagnostics() {
         direction: state.get().camera.getWorldDirection(new THREE.Vector3()).toArray(),
         assets: performance.getEntriesByType("resource").filter((r) => /\.(glb|gltf|bin|ktx2)/.test(r.name)).map((r) => ({url:r.name, bytes:(r as PerformanceResourceTiming).encodedBodySize,duration:r.duration})),
       }),
+      gpu: () => {
+        const gl = state.gl.getContext();
+        const rendererInfo = gl.getExtension("WEBGL_debug_renderer_info") as { UNMASKED_VENDOR_WEBGL: number; UNMASKED_RENDERER_WEBGL: number } | null;
+        const programs = (state.gl.info.programs ?? []).flatMap((entry) => {
+          const program = (entry as unknown as { program?: WebGLProgram }).program;
+          if (!program) return [];
+          return [{
+            linked: gl.getProgramParameter(program, gl.LINK_STATUS) as boolean,
+            log: gl.getProgramInfoLog(program) ?? "",
+          }];
+        });
+        const errors: number[] = [];
+        for (let error = gl.getError(); error !== gl.NO_ERROR && errors.length < 16; error = gl.getError()) errors.push(error);
+        return {
+          webgl: gl.getParameter(gl.VERSION),
+          vendor: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+          renderer: rendererInfo ? gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+          maxTextureImageUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+          maxCombinedTextureImageUnits: gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS),
+          contextLost: gl.isContextLost(),
+          drawingBuffer: [gl.drawingBufferWidth, gl.drawingBufferHeight],
+          programCount: programs.length,
+          linkedProgramCount: programs.filter((program) => program.linked).length,
+          programFailures: programs.filter((program) => !program.linked && program.log).map((program) => program.log),
+          errors,
+        };
+      },
       plants: () => {
         const report: object[] = [];
         state.scene.traverse((object) => {

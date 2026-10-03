@@ -1076,7 +1076,7 @@ function SceneContent({
     <>
       <LightingRig geometryRevision={geometryRevision} designMode={designMode} quality={quality} landscapeReady={landscapeReady} kitchenRoom={kitchenRoom} cameraMode={cameraMode} selectedZone={selectedZone} floorFinish={floorFinish} removedFurniture={removedFurniture} furnitureSignature={JSON.stringify(furnitureSizes)} sunHour={sunHour} houseLightsOn={houseLightsOn} sun={sun} />
 
-      {designMode && <MediterraneanLandscape palette={palette} quality={quality} onReady={onLandscapeReady} />}
+      {designMode && <MediterraneanLandscape palette={palette} quality={quality} cameraMode={cameraMode} onReady={onLandscapeReady} />}
       <FootprintSurface material={palette.ground} elevation={0.002} />
       {cameraMode === "walk" && <FootprintSurface material={palette.ceiling} elevation={zoneById[selectedZone].level + designAssumptions.finishedCeilingHeightCm / 100} ceiling />}
       {house.zones.map((zone) => (

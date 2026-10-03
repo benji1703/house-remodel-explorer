@@ -40,8 +40,10 @@ try {
   page.on('console', m => { if (m.type() === 'error') report.errors.push(m.text()); });
   await page.goto(`${process.env.RENDER_BASE_URL || 'http://localhost:3000'}/?view=model&camera=garden&zone=central-core&gardenQA=1`);
   await page.waitForFunction(() => window.__gardenQA?.snapshot().target);
+  const qualityToggle = page.locator('button[aria-label="Toggle rendering detail"]');
   for (const quality of ['high', 'light']) {
-    if (quality === 'light') await page.getByRole('button', { name: 'Use lighter rendering' }).click();
+    const light = await qualityToggle.getAttribute('aria-pressed') === 'true';
+    if (light !== (quality === 'light')) await qualityToggle.click();
     await page.waitForTimeout(5000);
     const plants = await page.evaluate(() => window.__gardenQA.plants().filter(p => p.accepted));
     const vines = plants.filter(p => p.species === 'trachelospermum-jasminoides');

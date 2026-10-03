@@ -101,6 +101,10 @@ try {
   const outside = await snapshot(page);
   assert.ok(outside.camera[0] > 2.25, 'Walk crosses the open kitchen entry');
   assert.ok(Math.abs(outside.camera[1] - 1.615) < .015, 'Eye height follows the rendered gravel datum');
+  // The doorway exit faces the gravel route; turn toward the measured eastern
+  // planting before checking that frustum-gated plants load on demand.
+  await page.evaluate(() => window.__gardenQA.camera([2.4, 1.615, -2.9], [8, 1, 4.5]));
+  await page.waitForFunction(() => window.__gardenQA.plants().some(item => item.instances > 0), null, { timeout: 20000 });
   const garden = await page.evaluate(() => window.__gardenQA.plants());
   assert.ok(garden.some(item => item.instances > 0), 'Garden planting remains rendered outside');
   await page.screenshot({ path: `${directory}/walk-outside-house.png` });

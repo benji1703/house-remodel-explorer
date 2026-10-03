@@ -55,6 +55,9 @@ try {
   }
   await page.goto(`${base}/?view=model&camera=room&zone=central-core&gardenQA=1`);
   await settle(page);
+  const qualityToggle = page.locator('button[aria-label="Toggle rendering detail"]');
+  if (await qualityToggle.getAttribute('aria-pressed') === 'true') await qualityToggle.click();
+  await settle(page);
   await page.getByRole('button',{name:'Furniture',exact:true}).click();
   await page.locator('.furniture-select select').selectOption('living-coffee-table');
   const before = await page.evaluate(()=>window.__gardenQA.interiors().find(p=>p.asset==='coffee-still-life'));
@@ -69,7 +72,7 @@ try {
   await page.getByRole('button',{name:'Reset piece',exact:true}).click();
   await page.getByRole('button',{name:'Close furniture editor',exact:true}).click();
   report.cases.push({name:'editable-table', resizeAndRemoval:true});
-  await page.getByRole('button',{name:'Use lighter rendering'}).click();
+  await page.getByRole('button',{name:'Toggle rendering detail'}).click();
   await settle(page);
   const light = await page.evaluate(()=>window.__gardenQA.snapshot());
   assert.ok(light.assets.some(p=>p.url.includes('tailored-linen-sofa-light.glb')),'Light profile loads the simplified sofa');
@@ -98,7 +101,7 @@ try {
   watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
   await settle(mobile);
-  assert.equal(await mobile.locator('button[aria-label="Use lighter rendering"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'),'true');
   const snapshot=await mobile.evaluate(()=>window.__gardenQA.snapshot());
   assert.ok(snapshot.assets.some(p=>p.url.includes('kitchen-preparation-light.glb')),'Mobile receives light assets');
   assert.ok(!snapshot.assets.some(p=>/models\/interior\/(bed-|bath-)/.test(p.url)),'Unvisited room props are not loaded');

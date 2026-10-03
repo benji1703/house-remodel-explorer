@@ -29,6 +29,7 @@ try {
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(`${process.env.RENDER_BASE_URL || 'http://localhost:3000'}/?view=model&camera=walk&zone=central-core&gardenQA=1`, {waitUntil: 'domcontentloaded'});
   await page.waitForFunction(() => window.__gardenQA?.lighting().fixtures.length === 6 && !document.querySelector('.is-model-loading'));
+  const qualityToggle = page.locator('button[aria-label="Toggle rendering detail"]');
   await page.getByRole('button', {name: 'Controls', exact: true}).click({noWaitAfter: true});
   await page.getByRole('button', {name: 'Evening glow', exact: true}).click({noWaitAfter: true});
   const allDoors = page.getByRole('group', {name: 'Set all doors', exact: true});
@@ -36,7 +37,8 @@ try {
   await page.waitForFunction(() => window.__gardenQA.lighting().doors.every(d => Math.abs(Math.abs(d.angle) - Math.PI / 2) < .005));
   await page.getByRole('button', {name: 'Close controls', exact: true}).click({noWaitAfter: true});
   for (const quality of ['high', 'light']) {
-    if (quality === 'light') await page.getByRole('button', {name: 'Use lighter rendering'}).click({noWaitAfter: true});
+    const light = await qualityToggle.getAttribute('aria-pressed') === 'true';
+    if (light !== (quality === 'light')) await qualityToggle.click({noWaitAfter: true});
     await page.waitForFunction(() => {
       const report = window.__gardenQA.lighting();
       return report.fixtures.length === 6 && report.sources.length >= 6 && report.shadowsEnabled && report.sources.filter(l => l.intensity > 0).every(l => l.castShadow && l.shadowMapAllocated);

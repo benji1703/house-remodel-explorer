@@ -49,7 +49,7 @@ try {
   assert.equal(await page.evaluate(() => window.__gardenQA.snapshot().frames), frame, 'loader must not keep rendering alive');
   await page.reload();
   await page.locator('.scene-loading-cover.is-revealed').waitFor({ state: 'attached', timeout: 60000 });
-  await page.getByRole('button', { name: 'Use lighter rendering' }).click();
+  await page.getByRole('button', { name: 'Toggle rendering detail' }).click();
   await page.waitForTimeout(500);
   await page.locator('.scene-loading-cover.is-revealed').waitFor({ state: 'attached', timeout: 60000 });
   await page.goto(`${base}/?view=model&camera=overview`, { waitUntil: 'domcontentloaded' });

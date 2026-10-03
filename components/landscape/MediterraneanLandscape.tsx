@@ -1,7 +1,7 @@
 "use client";
 
 import { useThree } from "@react-three/fiber";
-import { useProjectedDetail } from "../scene/SceneDetail";
+import { useProjectedDetail, useProjectedVisibility } from "../scene/SceneDetail";
 import { Html, useGLTF, useKTX2 } from "@react-three/drei";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -212,19 +212,30 @@ function GravelGrain({ quality }: { quality: Quality }) {
 }
 
 /** Cells cull independently; a far olive never keeps the entire grove drawing. */
-function PlantCell({ species, plants, quality, onSelect }: {
-  species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: Quality; onSelect: (plant: LandscapePlant) => void;
+function PlantCell({ species, plants, quality, cameraMode, onSelect }: {
+  species: LandscapeSpeciesId; plants: LandscapePlant[]; quality: Quality; cameraMode: "overview" | "room" | "plan" | "garden" | "walk"; onSelect: (plant: LandscapePlant) => void;
 }) {
   const center = useMemo(() => {
     const sum = plants.reduce((total, plant) => [total[0] + plant.positionCm[0], total[1] + plant.positionCm[2]], [0, 0]);
     return [sum[0] / plants.length / 100 - CX, landscapeSpecies[species].heightCm / 200, sum[1] / plants.length / 100 - CZ];
   }, [plants, species]);
   const diameter = landscapeSpecies[species].heightCm / 100;
+  const cellDiameter = useMemo(() => 2 * Math.max(...plants.map((plant) => {
+    const dx = plant.positionCm[0] / 100 - CX - center[0];
+    const dz = plant.positionCm[2] / 100 - CZ - center[2];
+    const canopy = Math.max(landscapeSpecies[species].heightCm, landscapeSpecies[species].spreadCm) * plant.scale / 200;
+    return Math.hypot(dx, dz) + canopy;
+  })), [center, plants, species]);
+  const visible = useProjectedVisibility(center, cellDiameter);
+  // Frustum gating is for composed architectural views. In first-person and
+  // garden navigation, keep the complete planting available as the user turns.
+  const shouldCull = cameraMode === "overview" || cameraMode === "room";
   const tree = species === "olea-europaea" || species === "trachelospermum-jasminoides";
   const near = useProjectedDetail(center, diameter, tree ? 360 : 160, quality === "high");
   const medium = useProjectedDetail(center, diameter, tree ? 200 : 65);
   const detail: PlantDetail = near ? "high" : medium ? "light" : "far";
   const fallback = <PlantBatch species={species} plants={plants} quality="far" onSelect={onSelect} />;
+  if (shouldCull && !visible) return null;
   return <Suspense fallback={fallback}><PlantBatch species={species} plants={plants} quality={detail} onSelect={onSelect} /></Suspense>;
 }
 
@@ -233,7 +244,7 @@ function LandscapeCommitted({ quality, onReady }: { quality: Quality; onReady: (
   return null;
 }
 
-export function MediterraneanLandscape({ palette, quality, onReady }: { palette: Palette; quality: Quality; onReady: (quality: Quality) => void }) {
+export function MediterraneanLandscape({ palette, quality, cameraMode, onReady }: { palette: Palette; quality: Quality; cameraMode: "overview" | "room" | "plan" | "garden" | "walk"; onReady: (quality: Quality) => void }) {
   const [selected, setSelected] = useState<LandscapePlant | null>(null);
   // A phone's narrower view does not need four-metre planting cells. Larger
   // cells keep the same specimens and picking IDs with far fewer draw calls.
@@ -255,7 +266,7 @@ export function MediterraneanLandscape({ palette, quality, onReady }: { palette:
       <PlantingBeds />
       <Limestone quality={quality} />
       {groundDetail && <GravelGrain quality={quality} />}
-      {batches.map(({ key, species, plants }) => <PlantCell key={key} species={species} plants={plants} quality={quality} onSelect={setSelected} />)}
+      {batches.map(({ key, species, plants }) => <PlantCell key={key} species={species} plants={plants} quality={quality} cameraMode={cameraMode} onSelect={setSelected} />)}
       <LandscapeCommitted quality={quality} onReady={onReady} />
     </Suspense>
     {Array.from({ length: 6 }, (_, index) => <SoftBox key={index} x={8.25 + index * 0.82} z={3.18} y={-0.035} w={0.64} d={0.88} h={0.055} radius={0.025} material={palette.stone} />)}

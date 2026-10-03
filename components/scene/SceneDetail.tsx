@@ -13,6 +13,28 @@ const ShadowRefreshContext = createContext<() => void>(() => {});
 export const ShadowRefreshProvider = ShadowRefreshContext.Provider;
 export const useShadowRefresh = () => useContext(ShadowRefreshContext);
 
+/** Keep streamed GLBs out of the cache until their object-space cell is visible. */
+export function useProjectedVisibility(center: readonly number[], diameter: number) {
+  const { camera } = useThree();
+  const point = useMemo(() => new THREE.Vector3(...center), [center]);
+  const [visible, setVisible] = useState(false);
+  const current = useRef(false);
+  const frustum = useMemo(() => new THREE.Frustum(), []);
+  const matrix = useMemo(() => new THREE.Matrix4(), []);
+  const sphere = useMemo(() => new THREE.Sphere(point, diameter / 2), [point, diameter]);
+  useFrame(() => {
+    camera.updateMatrixWorld();
+    matrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    frustum.setFromProjectionMatrix(matrix);
+    const next = frustum.intersectsSphere(sphere);
+    if (next !== current.current) {
+      current.current = next;
+      setVisible(next);
+    }
+  });
+  return visible;
+}
+
 /** Screen-space detail with separate entry/exit thresholds prevents zoom flicker.
  * CSS pixels, not device pixels: a Retina display must not load a bigger scene.
  */

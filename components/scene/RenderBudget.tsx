@@ -21,8 +21,11 @@ export function RenderBudget({ quality, active }: { quality: "high" | "light"; a
   const moving = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const casterCount = useRef(-1);
+  const compactDevice = window.matchMedia("(max-width: 800px)").matches
+    || window.matchMedia("(pointer: coarse)").matches;
+  const pixelBudget = quality === "light" && compactDevice ? 450_000 : profile.idlePixelBudget;
   const idleDpr = Math.min(window.devicePixelRatio || 1, profile.dpr[1],
-    Math.sqrt(profile.idlePixelBudget / Math.max(1, size.width * size.height)));
+    Math.sqrt(pixelBudget / Math.max(1, size.width * size.height)));
 
   useEffect(() => {
     const gl = get().gl;

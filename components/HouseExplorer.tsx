@@ -97,7 +97,9 @@ export function HouseExplorer() {
   const viewParam = searchParams.get("view");
   const zoneParam = searchParams.get("zone");
   const moodParam = searchParams.get("mood");
-  const view: View = isView(viewParam) ? viewParam : "model";
+  // Start with the fast, measured plan. The 3D house is an explicit choice, so
+  // phones and lower-power laptops never allocate a WebGL scene on first visit.
+  const view: View = isView(viewParam) ? viewParam : "plan";
   const cameraParam = searchParams.get("camera");
   const cameraMode: CameraMode = cameraParam === "overview" || cameraParam === "room" || cameraParam === "plan" || cameraParam === "garden" || cameraParam === "walk"
     ? cameraParam : isZoneId(zoneParam) ? "room" : "overview";
@@ -140,7 +142,7 @@ export function HouseExplorer() {
   };
 
   const [designMode, setDesignMode] = useState(true);
-  const [quality, setQuality] = useState<"high" | "light">("high");
+  const [quality, setQuality] = useState<"high" | "light">("light");
   const [webglSupport, setWebglSupport] = useState<boolean | null>(null);
   // Keep the WebGL renderer after the first house visit. Recreating it on
   // every Plan → House switch can exhaust Safari's context budget on iPhone.
@@ -433,7 +435,9 @@ export function HouseExplorer() {
   };
 
   const returnToHouse = () => {
-    navigate({ view: "model", camera: "overview" }, "replace");
+    navigate(compact
+      ? { view: "model", zone: selectedZone, camera: "room" }
+      : { view: "model", camera: "overview" }, "replace");
     if (cameraMode === "overview") setCameraRevision((revision) => revision + 1);
     setExperienceOpen(false);
     setFurnitureEditorOpen(false);
@@ -610,11 +614,11 @@ export function HouseExplorer() {
             <button
               type="button"
               className="ghost-button"
-              aria-label="Use lighter rendering"
+              aria-label="Toggle rendering detail"
               aria-pressed={quality === "light"}
               onClick={() => setQuality((value) => (value === "high" ? "light" : "high"))}
             >
-              {quality === "high" ? "Detail: High" : "Detail: Light"}
+              {quality === "high" ? "Detail: High" : "Detail: Balanced"}
             </button>
           )}
         </div>

@@ -21,10 +21,10 @@ export const lightingProfiles = {
     transmission: false, localLights: true, maxLocalShadows: 6,
   },
   light: {
-    // Mobile uses fewer effects and a capped framebuffer. RenderBudget restores
-    // up to 1.5x after interaction for readable edges on Retina displays.
-    dpr: [1, 1.5], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
-    idlePixelBudget: 1_600_000, movingDpr: 1,
+    // Balanced rendering is the default on all devices. Keep the resting and
+    // interaction framebuffers small; high detail stays available on demand.
+    dpr: [0.75, 1.15], shadowMap: 512, environmentResolution: 16, contactResolution: 192,
+    idlePixelBudget: 1_350_000, movingDpr: 0.85,
     transmission: false, localLights: false, maxLocalShadows: 3,
   },
 } satisfies Record<"high" | "light", LightingProfile>;

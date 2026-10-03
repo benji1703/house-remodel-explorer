@@ -26,7 +26,13 @@ function watch(page, browser) {
       report.errors.push({ browser, error: `${response.status()} ${response.url()}` });
   });
 }
+async function setQuality(page, quality) {
+  const toggle = page.locator('button[aria-label="Toggle rendering detail"]');
+  const light = await toggle.getAttribute('aria-pressed') === 'true';
+  if (light !== (quality === 'light')) await toggle.click();
+}
 async function capture(page, name, shadowLimit, minimumDpr = 1.8) {
+  if (minimumDpr >= 1.8) await setQuality(page, 'high');
   await ready(page);
   const gpu = await page.evaluate(() => window.__gardenQA.gpu());
   assert.equal(gpu.contextLost, false, `${name}: WebGL context stays live`);
@@ -95,10 +101,12 @@ try {
       }
       await page.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`);
       await ready(page);
+      await setQuality(page, 'high');
+      await ready(page);
       await sofaCamera(page);
       for (const quality of ['high', 'light']) {
         const before = await page.evaluate(() => window.__gardenQA.snapshot());
-        if (quality === 'light') await page.getByRole('button', { name: 'Use lighter rendering' }).click();
+        await setQuality(page, quality);
         await ready(page);
         const after = await page.evaluate(() => window.__gardenQA.snapshot());
         for (const property of ['camera', 'direction']) assert.ok(after[property].every((value, i) => Math.abs(value - before[property][i]) < .01), `${quality}: quality change preserves walkthrough pose`);
@@ -106,11 +114,11 @@ try {
         assert.equal(sofa.owner, 'living-sofa');
         const size = sofa.bounds.max.map((value, i) => value - sofa.bounds.min[i]);
         assert.ok(Math.abs(size[0] - 1.02) < .025 && Math.abs(size[2] - 2.2) < .025, 'Original editable sofa envelope');
-        await capture(page, `${browserName}-sofa-${quality}`, quality === 'high' ? 6 : 3, quality === 'high' ? 1.8 : 1.25);
+        await capture(page, `${browserName}-sofa-${quality}`, quality === 'high' ? 6 : 3, quality === 'high' ? 1.8 : 1.05);
       }
       await preset(page, 'Evening glow', 21);
-      await capture(page, `${browserName}-evening-light`, 3, 1.25);
-      await page.getByRole('button', { name: 'Use lighter rendering' }).click();
+      await capture(page, `${browserName}-evening-light`, 3, 1.05);
+      await page.getByRole('button', { name: 'Toggle rendering detail' }).click();
       await capture(page, `${browserName}-evening-high`, 6, 1.8);
       await page.close();
 
@@ -119,8 +127,8 @@ try {
       watch(mobile, `${browserName}-mobile`);
       await mobile.goto(`${base}/?view=model&camera=walk&zone=central-core&gardenQA=1`);
       await ready(mobile);
-      assert.equal(await mobile.locator('button[aria-label="Use lighter rendering"]').getAttribute('aria-pressed'), 'true');
-      await capture(mobile, `${browserName}-mobile`, 3, 1.4);
+      assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'true');
+      await capture(mobile, `${browserName}-mobile`, 3, 1.05);
       // Context loss must retain the accessible 2D plan, with room navigation.
       await mobile.locator('canvas').first().evaluate(canvas => canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true })));
       await mobile.waitForFunction(() => !document.querySelector('canvas'));

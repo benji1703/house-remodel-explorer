@@ -64,8 +64,10 @@ try {
     await inspect(page, name, ['oak', 'plaster', ...textiles]);
   }
   await page.goto(`${base}/?view=model&camera=overview&floor=sand-microtopping&gardenQA=1`);
+  const qualityToggle = page.locator('button[aria-label="Toggle rendering detail"]');
+  if (await qualityToggle.getAttribute('aria-pressed') === 'true') await qualityToggle.click();
   await inspect(page, 'overview', Object.keys(expectedImages));
-  await page.getByRole('button', { name: 'Use lighter rendering' }).click();
+  await qualityToggle.click();
   await inspect(page, 'overview-light', Object.keys(expectedImages));
   await page.goto(`${base}/?view=model&camera=room&zone=north-extension&floor=oak&gardenQA=1`);
   await inspect(page, 'kitchen-parquet', ['oak', 'plaster', 'travertine']);
@@ -78,7 +80,7 @@ try {
   watch(mobile);
   await mobile.goto(`${base}/?view=model&camera=room&zone=north-extension&gardenQA=1`);
   await inspect(mobile, 'mobile-kitchen', ['oak', 'travertine', 'plaster', 'woven']);
-  assert.equal(await mobile.locator('button[aria-label="Use lighter rendering"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await mobile.locator('button[aria-label="Toggle rendering detail"]').getAttribute('aria-pressed'), 'true');
   await mobile.close();
   assert.deepEqual(report.errors, [], 'No browser or shader errors');
   report.passed = true;

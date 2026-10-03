@@ -68,7 +68,9 @@ try {
   if (await qualityToggle.getAttribute('aria-pressed') === 'true') await qualityToggle.click();
   await inspect(page, 'overview', Object.keys(expectedImages));
   await qualityToggle.click();
-  await inspect(page, 'overview-light', Object.keys(expectedImages));
+  // Faster omits fine furnishings by design. Require the continuous surfaces
+  // shared by both profiles; textiles and clay props are covered in High.
+  await inspect(page, 'overview-light', ['oak', 'plaster', 'travertine', 'mineral', 'linen']);
   await page.goto(`${base}/?view=model&camera=room&zone=north-extension&floor=oak&gardenQA=1`);
   await inspect(page, 'kitchen-parquet', ['oak', 'plaster', 'travertine']);
   await page.getByRole('button', { name: 'Survey shell', exact: true }).click();

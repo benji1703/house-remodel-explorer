@@ -60,15 +60,26 @@ the verifier scripts provide repeatable checks.
 
 ## Final recheck
 
-Pending: complete the final render/movement/lighting regressions, uncontended
-production timing measurements and the final local production build. On the
-development server, the phone-emulated movement trace recorded a 775 ms maximum
-WebKit frame gap and a 66.7 ms Chromium maximum. This WebKit smoothness problem
-still needs work; the development server and host GPU make these timings
-diagnostic rather than representative of a physical iPhone. Controls caused
-zero extra scene frames in three openings, but that alone does not establish
-smooth movement.
+`npm run lint`, `npx tsc --noEmit` and `npm run build:local` pass. ESLint retains
+one pre-existing cleanup warning in `lib/usePanelFocus.ts`. Loading transitions,
+lighting changes, all mapped finishes, seven-room walking, outdoor exit and
+return, and mobile touch cancellation pass in their browser checks. The
+materials verifier now waits for mood materials before
+checking them and only expects shared architectural surfaces in Faster mode;
+fine textiles and clay props are checked in High mode.
+
+There are still two measured Safari limitations. On WebKit desktop, the adaptive
+render check did not reach high-detail planting within 30 seconds. Its WebKit
+phone case closed during the run, and the browser logged a failed access check
+for one far-detail plant GLB. Both Chromium adaptive cases pass, including High
+planting. Separately, the phone-emulated normal-motion trace recorded a 775 ms
+maximum WebKit frame gap versus 66.7 ms in Chromium. These development-server
+and host-GPU measurements are diagnostic, not physical-iPhone benchmarks.
+Controls caused zero extra scene frames in three openings, but that does not
+establish smooth WebKit movement. A physical iPhone and Safari run is still
+needed before calling mobile movement smooth.
 
 These browser tests run on a Mac with phone emulation. They do not measure a
 physical iPhone's GPU, memory, Safari thermal behavior or VoiceOver. The work
-improves presentation and flow; it does not establish AAA game quality.
+improves presentation and flow; the Safari detail-streaming and frame-pacing
+issues remain open, so it does not establish AAA game quality.
